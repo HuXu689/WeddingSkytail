@@ -1,0 +1,12 @@
+'use client';
+import {useState} from 'react';
+import {api} from '@/shared/api';
+import type {Wedding} from '@/shared/admin-types';
+import {useAdmin} from '@/features/admin/use-admin';
+import {Heading,Feedback,Loading,Confirm} from '@/features/admin/ui';
+import {PolicyForm} from '@/features/admin/policy-form';
+import {DesignEditor} from '@/features/admin/design-editor';
+export default function WeddingPage(){
+ const state=useAdmin<Wedding>('/admin/wedding');const [unpublish,setUnpublish]=useState(false),[dirty,setDirty]=useState(false);
+ return <><Heading title="Thiết kế lời mời của hai bạn" description="Chọn mẫu, sửa nội dung và xem trước ngay. Lưu nháp không thay đổi thiệp đang phát hành."/><Feedback {...state} retry={()=>void state.reload().catch(()=>{})}/>{!state.data&&!state.error&&<Loading/>}{state.data&&<><div className="card row"><span className="badge">{state.data.published?'Đã công bố':'Chưa công bố'}</span><a href="/w/our-wedding" target="_blank" rel="noreferrer">Xem thiệp chung ↗</a><button disabled={state.busy||dirty||!state.data.published} className="secondary" onClick={()=>setUnpublish(true)}>Ngừng công bố</button></div><DesignEditor onDirty={setDirty} key={`design-${state.data.version}`} wedding={state.data} busy={state.busy} save={body=>state.run(()=>api('/admin/wedding/design','PUT',body),'Đã lưu bản nháp thiết kế. Thiệp đã phát hành chưa thay đổi.')} publish={()=>state.run(()=>api('/admin/wedding/publish','POST',{expectedVersion:state.data!.version}),'Đã phát hành mẫu và nội dung mới.')}/><section className="card"><h2>Truy cập toàn bộ lời mời</h2><p className="muted">Đóng truy cập không đổi QR và không xóa phản hồi. Hãy lưu thiết kế trước khi thay đổi chính sách.</p><PolicyForm key={`policy-${state.data.version}`} policy={state.data} global busy={state.busy||dirty} save={body=>state.run(()=>api('/admin/access-policy','PUT',body))}/></section></>}{unpublish&&<Confirm title="Ngừng công bố thiệp?" busy={state.busy} onClose={()=>setUnpublish(false)} onConfirm={async()=>{if(await state.run(()=>api('/admin/wedding/unpublish','POST',{expectedVersion:state.data!.version})))setUnpublish(false);}}>Khách sẽ không thể xem thiệp cho đến khi công bố lại. Nội dung đã lưu và link vẫn được giữ nguyên.</Confirm>}</>;
+}

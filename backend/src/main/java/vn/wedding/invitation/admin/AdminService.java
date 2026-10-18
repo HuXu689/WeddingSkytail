@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.invitations.TokenService;
+import vn.wedding.invitation.media.MediaService;
 import vn.wedding.invitation.common.ApiErrors;
 import static vn.wedding.invitation.access.AccessGate.number;
 
@@ -16,13 +17,14 @@ import static vn.wedding.invitation.access.AccessGate.number;
 public class AdminService {
     private final JdbcTemplate db;
     private final TokenService tokens;
-    public AdminService(JdbcTemplate db,TokenService tokens) { this.db=db; this.tokens=tokens; }
+    private final MediaService media;
+    public AdminService(JdbcTemplate db,TokenService tokens,MediaService media) { this.db=db; this.tokens=tokens; this.media=media; }
     public record WeddingInput(@NotBlank @Size(max=200) String names,@NotNull @Size(max=2000) String message,long expectedVersion) {}
     public record EventInput(@NotBlank @Size(max=200) String title,@NotNull Instant startAt,@NotNull Instant deadline,@NotBlank @Size(max=200) String venue,@NotBlank @Size(max=500) String address,@NotBlank String timezone,@Min(1) int capacity,long expectedVersion) {}
     public record Assignment(@NotNull UUID eventId,@Min(1) @Max(20) int maxPeople) {}
     public record GuestInput(@NotBlank @Size(max=200) String displayName,@NotNull @Size(max=100) String groupName,@NotBlank @Size(max=80) String salutation,@NotEmpty @Size(max=20) List<@Valid Assignment> assignments) {}
     public record PolicyInput(@Pattern(regexp="INHERIT|MANUAL_OPEN|MANUAL_CLOSED|SCHEDULED") @NotNull String mode,Instant openAt,Instant closeAt,long expectedVersion) {}
-    public Map<String,Object> wedding() { return db.queryForMap("SELECT * FROM wedding WHERE id=1"); }
+    public Map<String,Object> wedding() { var result=new HashMap<>(db.queryForMap("SELECT * FROM wedding WHERE id=1")); result.putAll(media.draft()); return result; }
     private Map<String,Object> lockWedding() { return db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE"); }
     public void audit(String action,Object target) { db.update("INSERT INTO audit(action,target) VALUES(?,?)",action,target.toString()); }
     public void saveWedding(WeddingInput input) {
@@ -31,13 +33,15 @@ public class AdminService {
     }
     public void publishWedding(boolean published,long version) {
         ApiErrors.version(number(lockWedding(),"version"),version);
-        db.update("UPDATE wedding SET names=draft_names,message=draft_message,published=?,version=version+1 WHERE id=1",published); audit(published?"WEDDING_PUBLISH":"WEDDING_UNPUBLISH",1);
+        if(published) { db.update("UPDATE wedding SET names=draft_names,message=draft_message,theme=draft_theme,accent=draft_accent,story=draft_story,footer=draft_footer,show_story=draft_show_story,published=true,version=version+1 WHERE id=1"); media.publishSelection(); }
+        else db.update("UPDATE wedding SET published=false,version=version+1 WHERE id=1");
+        audit(published?"WEDDING_PUBLISH":"WEDDING_UNPUBLISH",1);
     }
     public List<Map<String,Object>> events() { return db.queryForList("SELECT * FROM events ORDER BY start_at"); }
     public UUID saveEvent(UUID id,EventInput input) {
         lockWedding(); ZoneId.of(input.timezone()); ApiErrors.require(!input.deadline().isAfter(input.startAt()),"Hạn phản hồi phải trước giờ tiệc.");
         if(id==null) {
-            id=UUID.randomUUID(); db.update("INSERT INTO events(id,title,start_at,deadline,venue,address,timezone,capacity) VALUES(?,?,?,?,?,?,?,?)",id,input.title(),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),input.venue(),input.address(),input.timezone(),input.capacity());
+            id=UUID.randomUUID(); String eventCode="E-"+UUID.randomUUID().toString().replace("-","").substring(0,8).toUpperCase(Locale.ROOT); db.update("INSERT INTO events(id,event_code,title,start_at,deadline,venue,address,timezone,capacity) VALUES(?,?,?,?,?,?,?,?,?)",id,eventCode,input.title(),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),input.venue(),input.address(),input.timezone(),input.capacity());
         } else {
             var row=db.queryForMap("SELECT * FROM events WHERE id=? FOR UPDATE",id); ApiErrors.version(number(row,"version"),input.expectedVersion());
             ApiErrors.require("DRAFT".equals(row.get("state")),"Chỉ sửa sự kiện nháp. Hủy sự kiện đã phát hành nếu cần thay đổi lịch.");

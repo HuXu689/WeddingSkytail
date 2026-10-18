@@ -1,5 +1,44 @@
 # Wedding website — bản lõi 0.1.0
 
+## Cập nhật đợt 2A — mẫu thiệp và trình chỉnh sửa
+
+- `/admin/wedding` có 3 mẫu bố cục: Thanh lịch, Truyền thống, Hiện đại; 3 bảng màu: olive, đỏ trầm, xanh đêm. Mẫu Hiện đại hiện là bố cục chữ, chưa hỗ trợ ảnh cưới.
+- Chỉnh tên, lời mời, câu chuyện, lời cảm ơn; bật/tắt câu chuyện; gợi ý lời mời trang trọng/thân mật/gia đình. Preview khung điện thoại/rộng dùng chung `WeddingCanvas` với thiệp khách, không gọi open/RSVP. Người nhận và buổi tiệc trong preview là dữ liệu minh họa.
+- Lưu nháp toàn bộ thiết kế bằng `PUT /api/v1/admin/wedding/design`; publish copy snapshot sang các cột công bố. Public/guest chỉ nhận allowlist published fields. Câu chuyện/lời cảm ơn được công khai trên thiệp chung sau publish; không nhập nội dung riêng vào đây.
+- Migration mới `V4__wedding_design.sql`, giữ nguyên V1–V3. Enum mẫu/màu được validate backend và CHECK tại DB; không nhập HTML/CSS tùy ý.
+- Phát hành bị khóa khi còn thay đổi chưa lưu; có xác nhận phát hành. Ngừng công bố/thay policy bị khóa khi thiết kế đang chưa lưu để tránh reload làm mất bản chỉnh. Có cảnh báo đóng/reload tab khi chưa lưu; chưa có chặn điều hướng nội bộ bằng Next Link.
+- Mã mẫu: `frontend/src/features/invitation/design.tsx`, CSS ở `design.css`; trình chỉnh sửa: `features/admin/design-editor.tsx`. Nội dung vẫn render dưới dạng text, không dangerouslySetInnerHTML.
+- Đã build Next/Java qua Docker, chạy smoke test thêm draft isolation, published design và stable invitation link; regression session/restart/CSRF/IDOR/RSVP pass. Chưa có kiểm thử trực quan browser automation.
+- **Chưa hoàn thành toàn bộ đợt 2:** upload/resize ảnh, album, focal point ảnh, lịch sử/khôi phục phiên bản, sắp xếp khối nội dung sẽ làm tiếp. Không có nút upload giả. Vẫn dùng version chung của wedding nên thay nội dung có thể yêu cầu guest bấm mở lại; tách revision riêng là việc còn lại.
+
+## Cập nhật thư viện ảnh
+
+- Migration `V5__media_library.sql` tạo thư viện ảnh, lựa chọn ảnh bìa/album cho bản nháp và bản đã phát hành; V1–V4 không thay đổi.
+- API Owner: `GET/POST/DELETE /api/v1/admin/media`, chọn ảnh bìa tại `/hero/{surface}`, album tại `/album/{surface}`. Ảnh nháp chỉ đọc qua API Owner; ảnh đã phát hành mới đọc được tại `/media/{id}.jpg`.
+- Chỉ nhận JPEG/PNG ở bản hiện tại, tối đa 10 MB và 12.000 điểm ảnh mỗi chiều; ImageIO giải mã rồi tái mã hóa JPEG, bỏ dữ liệu EXIF/gốc. Tên lưu UUID, không dùng tên người dùng làm đường dẫn. Caddy giới hạn request ảnh 10 MB.
+- Volume `media-data` được cấp quyền cho user `wedding` trong entrypoint container; ứng dụng Java vẫn chạy non-root. Không phục vụ thư mục volume trực tiếp từ frontend.
+- Xóa ảnh đang được chọn ở bản nháp hoặc đã phát hành bị chặn. Phát hành thiết kế copy lựa chọn album/bìa nháp sang bản đã phát hành. Link, session, grants và access gate không thay đổi.
+- Giao diện mới: `/admin/media`, có tải ảnh, xem ảnh, đặt ảnh bìa, chọn album, chuyển giữa bản nháp/đã phát hành và xóa ảnh khi an toàn.
+
+## Cập nhật đợt 1 — giao diện và nền dễ chỉnh sửa
+
+- Quản trị có route riêng: `/admin`, `/admin/wedding`, `/admin/events`, `/admin/invitations`, `/admin/responses`, `/admin/audit`. Sidebar desktop và menu dạng lưới trên mobile; trạng thái đang tải, lỗi/thử lại, thông báo lưu và hộp xác nhận thao tác nguy hiểm.
+- Bảng phản hồi/nhật ký dùng nhãn tiếng Việt, không render trực tiếp tên cột SQL hoặc enum. Màu kem/olive, typography và khoảng cách thống nhất; không tải font hoặc thư viện UI bên ngoài.
+- Có chỉnh sửa buổi tiệc nháp qua giao diện. Sự kiện đã phát hành vẫn khóa sửa như bản lõi; revision sự kiện live thuộc đợt sau.
+- Form policy điền lại giờ đã lưu; lưu thời gian chính xác tới giây và giữ cửa sổ khi đổi chế độ thủ công. Tất cả input lịch mới dùng giờ Việt Nam UTC+07, không dùng timezone máy khách. Đây là lựa chọn cố định của UI bản này, chưa phải trình chọn nhiều timezone.
+- Tìm kiếm khách chỉ trong trang hiện tại (50 lời mời); bộ lọc phản hồi chỉ trong 200 phản hồi gần nhất. UI ghi rõ giới hạn, không coi là tìm toàn bộ database.
+- `frontend/src/features/admin` chứa shell, hook tải dữ liệu, form sự kiện/khách/policy và thành phần UI; `frontend/src/shared/admin-types.ts`, `labels.ts`, `time.ts` chứa kiểu API, nhãn và chuyển đổi thời gian. CSS dùng biến chung trong `globals.css`, bố cục admin ở `app/admin/admin.css`.
+- Test giờ: chạy `node --test tests/time.test.mjs` trong frontend (Node 24). Ba tests pass; TypeScript và Docker production build pass; HTTP smoke có restart backend pass.
+- Chưa kiểm thử trực quan bằng trình duyệt tự động hoặc chụp màn hình mobile; cần duyệt giao diện thực tế trước nghiệm thu UX. Chưa có 3 mẫu thiệp/media/trình chỉnh sửa preview — thuộc đợt 2.
+- Không thay API bảo mật, không thêm cookie grant/NextAuth, không sửa/thêm migration trong đợt này.
+
+## Quy tắc ngôn ngữ giao diện
+
+- Nội dung hiển thị cho chủ tiệc/khách phải là tiếng Việt có dấu, văn phong lịch sự và thống nhất.
+- Mã kỹ thuật như `DRAFT`, `PUBLISHED`, `MANUAL_OPEN`, tên biến, tên bảng và đường dẫn API được giữ nguyên vì không phải nội dung người dùng nhìn thấy.
+- Chạy `npm test` trong `frontend` để kiểm tra chuỗi tiếng Anh và dữ liệu giả không dấu phổ biến. Test này cố ý không quét tên biến/import mã kỹ thuật; khi thêm nhãn mới phải đặt trong câu tiếng Việt.
+- Script `deploy/smoke.ps1` cũng xuất kết quả bằng tiếng Việt có dấu để log kiểm thử không tạo tiền lệ dùng nội dung không chuẩn.
+
 Source triển khai từ bộ đặc tả trong `docs`. Đây là bản nền chạy end-to-end, **không phải toàn bộ MVP v1.1 và chưa nghiệm thu production**.
 
 ## Stack / cấu trúc
@@ -101,6 +140,20 @@ docker compose --env-file .env -f deploy/compose.yml cp db:/tmp/wedding.dump ./w
 File dump nhạy cảm, lưu ngoài repository. Restore trên stack cô lập mới, cùng key: copy dump vào db, `pg_restore -U wedding -d wedding --clean --if-exists /tmp/wedding.dump`; chỉ thực hiện trên DB đích được phép ghi đè. Xác minh link cũ/QR/RSVP sau restore. Quy trình này chưa chạy restore drill.
 
 **Chưa phát thiệp thật trước khi review bảo mật, thử in/quét, nội dung và backup/restore được duyệt.**
+
+## Cập nhật đợt 3A — nhập khách bằng CSV
+
+- Migration mới `V6__guest_import.sql`, giữ nguyên V1–V5. Bổ sung `events.event_code`, `invitations.external_ref`, `import_batches` và `import_rows`.
+- CSV UTF-8 gồm đúng các cột: `externalRef,displayName,salutation,groupName,eventCodes,maxPeople`. Nhiều buổi ngăn cách bằng `;`; `maxPeople` là một giá trị dùng cho tất cả hoặc danh sách khớp từng buổi.
+- `POST /api/v1/admin/imports/preview` chỉ lưu bản xem trước vào database, chưa tạo invitation/credential. Tệp tối đa 2 MB/2.000 dòng; hỗ trợ dấu ngoặc kép, dấu phẩy trong tên và dấu tiếng Việt.
+- `POST /api/v1/admin/imports/commit` dùng cùng `Idempotency-Key` của preview; chỉ ghi khi toàn bộ dòng hợp lệ. Transaction rollback toàn bộ nếu có lỗi.
+- Formula-like values bắt đầu bằng `=`, `+`, `-`, `@` được xử lý như dữ liệu rỗng để không biến thành công thức khi tái sử dụng; không tự ghép khách theo tên.
+- `externalRef` là khóa tham chiếu tùy chọn, không cho trùng trong database. Tên trùng vẫn được giữ vì có thể là các gia đình khác nhau.
+- Giao diện `/admin/import`: tải tệp mẫu, xem lỗi từng dòng, chỉ bật xác nhận khi tất cả dòng hợp lệ. Mã idempotency được giữ từ preview tới commit/retry.
+- Mã buổi tiệc hiện được sinh tự động dạng `E-XXXXXXXX` khi tạo sự kiện. CSV mẫu dùng mã minh họa; Owner phải thay bằng mã thực tế hiển thị trong quản trị ở bước hoàn thiện tiếp theo.
+- Đã thêm 3 unit tests parser CSV. Chưa chạy browser automation; chưa có chế độ cập nhật theo `externalRef` — bản đầu chỉ tạo mới và từ chối mã đã tồn tại.
+- Đã áp dụng migration V6 trên PostgreSQL 17. Backend có 8 unit tests pass (gồm 3 test parser CSV), frontend có 5 test pass, TypeScript/Next.js/Docker build pass. Preview CSV UTF-8 có dấu đã trả dòng hợp lệ và không tăng số invitation; smoke regression session/restart/CSRF/IDOR/RSVP vẫn pass.
+- Các lần thử preview đã tạo một số bản ghi `import_batches`/`import_rows` ở trạng thái `PREVIEW` để kiểm chứng; không tạo invitation hoặc credential. Cần thêm cleanup TTL cho staging import trước production.
 
 ## Session/grants và bootstrap Owner — cập nhật
 

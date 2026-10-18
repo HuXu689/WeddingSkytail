@@ -1,0 +1,1 @@
+export interface MediaAsset { id:string; original_name:string; width:number; height:number; bytes:number; created_at:string; draft_hero:boolean; published_hero:boolean; draft_album:boolean; published_album:boolean }

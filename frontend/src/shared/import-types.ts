@@ -1,0 +1,2 @@
+export interface ImportRow {line:number;externalRef:string;displayName:string;salutation:string;groupName:string;eventCodes:string;maxPeople:string;valid:boolean;message:string}
+export interface ImportPreview {batchId:string;totalRows:number;validRows:number;invalidRows:number;rows:ImportRow[]}

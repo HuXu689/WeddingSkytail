@@ -1,8 +1,9 @@
 'use client';
 import {use,useEffect,useState} from 'react';
 import {api} from '@/shared/api';
+import {WeddingCanvas,type WeddingDesign} from '@/features/invitation/design';
 export default function PublicWedding({params}:{params:Promise<{slug:string}>}) {
- const {slug}=use(params);const [data,setData]=useState<{names:string;message:string}|null>(null),[error,setError]=useState('');
- useEffect(()=>{api<{names:string;message:string}>(`/public/weddings/${slug}`).then(setData).catch(()=>setError('Thiệp chung chưa được công bố.'));},[slug]);
- return <main className="narrow hero"><p className="eyebrow">Chúng mình kết hôn</p><h1>{data?.names||'Một lời mời'}</h1><p style={{whiteSpace:'pre-line'}}>{data?.message||error||'Đang tải…'}</p><p className="muted">Thông tin buổi tiệc và xác nhận tham dự nằm trong lời mời riêng được gửi tới bạn.</p></main>;
+ const {slug}=use(params);const [data,setData]=useState<WeddingDesign|null>(null),[error,setError]=useState('');
+ useEffect(()=>{let active=true;setData(null);setError('');api<WeddingDesign>(`/public/weddings/${slug}`).then(value=>{if(active)setData(value);}).catch(()=>{if(active)setError('Thiệp chung chưa được công bố hoặc tạm thời không thể tải.');});return()=>{active=false;};},[slug]);
+ return <main className="narrow">{data?<WeddingCanvas design={data}><p className="muted" style={{textAlign:'center'}}>Thông tin buổi tiệc và xác nhận tham dự nằm trong lời mời riêng được gửi tới bạn.</p></WeddingCanvas>:<section className="hero"><h1>Một lời mời</h1><p role="status">{error||'Đang tải thiệp…'}</p></section>}</main>;
 }

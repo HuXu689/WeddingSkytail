@@ -5,9 +5,8 @@ RUN mvn -B dependency:go-offline
 COPY src src
 RUN mvn -B verify
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S wedding && adduser -S wedding -G wedding
+RUN apk add --no-cache su-exec && addgroup -S wedding && adduser -S wedding -G wedding && mkdir -p /data/media
 WORKDIR /app
 COPY --from=build /app/target/invitation-0.1.0.jar app.jar
-USER wedding
 EXPOSE 8080
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=70","-jar","app.jar"]
+ENTRYPOINT ["/bin/sh","-c","chown -R wedding:wedding /data/media && exec su-exec wedding java -XX:MaxRAMPercentage=70 -jar app.jar"]
