@@ -1,6 +1,6 @@
 # Wedding Invitation — Bộ kế hoạch xây dựng website thiệp cưới
 
-> **Đã có bản code lõi 0.1.0** (Spring Boot + Next.js + PostgreSQL + Docker). Xem [README-IMPLEMENTATION.md](README-IMPLEMENTATION.md) để chạy, kiểm thử và biết các giới hạn. Nội dung bên dưới là bộ đặc tả gốc, không phải danh sách chức năng đã hoàn tất.
+> **Đã có bản code lõi 0.1.0** (Spring Boot + Next.js + PostgreSQL + Docker). Xem [README-IMPLEMENTATION.md](README-IMPLEMENTATION.md) để chạy, kiểm thử và biết các giới hạn. Hướng dẫn chạy local và deploy qua SSH: [docs/15-local-and-ssh-deploy.md](docs/15-local-and-ssh-deploy.md). Nội dung bên dưới là bộ đặc tả gốc, không phải danh sách chức năng đã hoàn tất.
 
 **Phiên bản:** 1.1 · **Ngày lập:** 2026-10-14 · **Ngôn ngữ sản phẩm:** tiếng Việt.
 **Trạng thái:** đặc tả và kế hoạch, chưa phải phần mềm đã lập trình/chạy/kiểm thử.
