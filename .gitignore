@@ -1,0 +1,8 @@
+.env
+secrets/
+backend/target/
+frontend/node_modules/
+frontend/.next/
+frontend/*.tsbuildinfo
+*.log
+*.dump

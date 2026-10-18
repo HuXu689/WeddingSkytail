@@ -1,0 +1,17 @@
+{$SITE_ADDRESS: :80} {
+    request_body {
+        max_size 1MB
+    }
+    header {
+        Referrer-Policy no-referrer
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Cache-Control "private, no-store"
+    }
+    handle /api/* {
+        reverse_proxy backend:8080
+    }
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
