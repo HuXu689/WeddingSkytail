@@ -155,6 +155,79 @@ File dump nhạy cảm, lưu ngoài repository. Restore trên stack cô lập m�
 - Đã áp dụng migration V6 trên PostgreSQL 17. Backend có 8 unit tests pass (gồm 3 test parser CSV), frontend có 5 test pass, TypeScript/Next.js/Docker build pass. Preview CSV UTF-8 có dấu đã trả dòng hợp lệ và không tăng số invitation; smoke regression session/restart/CSRF/IDOR/RSVP vẫn pass.
 - Các lần thử preview đã tạo một số bản ghi `import_batches`/`import_rows` ở trạng thái `PREVIEW` để kiểm chứng; không tạo invitation hoặc credential. Cần thêm cleanup TTL cho staging import trước production.
 
+## Cập nhật đợt 3B — quản lý khách mời
+
+- Migration mới `V7__guest_management.sql` thêm `invitations.archived` và `invitations.internal_note`; không xóa cứng khách đã có RSVP.
+- Tách service `GuestManagementService`: danh sách khách có tìm kiếm server-side, lọc lưu trữ, lọc theo buổi/trạng thái RSVP và phân trang 50 dòng.
+- Owner có thể sửa tên, xưng hô, nhóm, ghi chú nội bộ và assignment qua `PUT /api/v1/admin/invitations/{id}`. Token, `auth_revision` và RSVP không đổi.
+- Hạ `max_people` dưới số người đã xác nhận chỉ trả cảnh báo; không giảm `responses.total_people`. Không cho bỏ assignment đã có RSVP để tránh làm mất liên kết dữ liệu.
+- Lưu trữ/khôi phục là soft archive, ghi audit; khách lưu trữ bị AccessGate chặn và QR/link không còn lấy được trong UI.
+- Giao diện `/admin/invitations` đã có tìm kiếm, hiện khách lưu trữ, chỉnh sửa nội dung/assignment/ghi chú và khôi phục khách.
+- V7 đã migrate thành công trên PostgreSQL hiện tại. Cần bổ sung test tích hợp API với dữ liệu fixture cho update assignment/cảnh báo trước khi dùng production.
+
+## Cập nhật đợt 3C — Owner quản lý RSVP
+
+- Migration mới `V8__owner_rsvp_history.sql` bổ sung `changed_by` và `change_reason` cho `rsvp_history`; lịch sử cũ được mặc định là `GUEST`.
+- `ResponseManagementService` tách khỏi `AdminService`: danh sách phản hồi hỗ trợ tìm kiếm server-side, lọc trạng thái/buổi tiệc và phân trang.
+- Owner có thể sửa RSVP qua `PUT /api/v1/admin/responses/{invitationId}/{eventId}`. Lý do chỉnh sửa bắt buộc, kiểm tra optimistic locking và giới hạn số người theo assignment.
+- Mỗi chỉnh sửa Owner tạo lịch sử mới với `changed_by=OWNER`, lý do, trạng thái, số người và phiên bản; token, quyền truy cập và assignment không bị thay đổi.
+- Giao diện `/admin/responses` có lọc, sửa phản hồi và xem lịch sử. Trạng thái vẫn hiển thị bằng tiếng Việt.
+
+## Cập nhật đợt 4A — snapshot export riêng tư
+
+- Migration mới `V9__private_exports.sql` tạo `export_jobs` và `export_rows`; snapshot có TTL 30 phút, trạng thái `READY/EXPIRED/REVOKED`, tối đa 300 khách và mặc định 15 nhãn/trang.
+- Route `/admin/exports` cho Owner chọn khách không lưu trữ, xem số khách/số trang và preview snapshot.
+- CSV UTF-8 có BOM, tên khách, link QR ổn định và danh sách buổi được gán. Snapshot lưu `token_hash`; lúc tải đối chiếu token hiện tại, nên rotate/revoke sau khi tạo snapshot sẽ làm download bị từ chối để tránh in link cũ.
+- API export đều nằm dưới `/api/v1/admin`, yêu cầu Spring Owner session/CSRF; khách archived/revoked hoặc không còn assignment hợp lệ bị loại. Tạo snapshot atomic, lỗi một dòng rollback toàn bộ.
+- Có endpoint revoke snapshot và `Cache-Control: no-store`; file không public và không đưa vào media public.
+- PDF A4 chưa phát hành ở đợt này vì repository chưa có renderer PDF và font TTF tiếng Việt. API từ chối format PDF rõ ràng thay vì tạo PDF sai dấu; cần chốt OpenPDF/renderer và đóng gói font trước đợt 4B.
+- Backend 10 tests pass, frontend 5 tests pass, TypeScript/Next/Docker build pass, V9 migrate thành công và smoke regression sau restart pass. API export chưa đăng nhập trả 401.
+
+## Cập nhật đợt 4B — PDF A4 15 nhãn/trang
+
+- Đã tích hợp Apache PDFBox 3.0.6 và renderer `ExportService.renderPdf`.
+- Đã đóng gói `backend/src/main/resources/fonts/NotoSans-Regular.ttf` cùng `fonts/OFL.txt`. Noto Sans dùng SIL Open Font License 1.1, cho phép nhúng/phân phối cùng ứng dụng khi giữ license và copyright notice.
+- PDF dùng A4, bố cục 3 cột × 5 hàng, mỗi trang 15 nhãn. Mỗi nhãn lấy tên, danh sách buổi và QR từ cùng snapshot `export_rows`.
+- Font được embed vào PDF để giữ dấu tiếng Việt; QR được tạo lại từ đúng URL snapshot, không đọc token mới trong lúc render.
+- Download CSV/PDF đều kiểm tra TTL, trạng thái job và `token_hash`; rotate/revoke link sau khi tạo snapshot sẽ chặn tải và yêu cầu tạo bản mới.
+- UI `/admin/exports` đã có nút `Tạo PDF A4`, preview số trang và nút tải PDF riêng tư.
+- Thêm `ExportPdfTest`: 16 nhãn tạo đúng 2 trang và PDF có kích thước/nội dung hợp lệ. Backend hiện 11/11 test pass; frontend 5/5, TypeScript/Next/Docker build và smoke regression pass.
+
+## Cập nhật đợt 4C — nghiệm thu PDF/QR tự động
+
+- `ExportPdfTest` đã đọc ngược PDF bằng PDFBox, chuẩn hóa Unicode NFC và xác nhận text layer có tên tiếng Việt/chữ có dấu.
+- Test duyệt các ảnh PNG nhúng trong PDF bằng ZXing; QR đầu snapshot (`token-1`) và cuối snapshot (`token-16`) đều giải mã đúng URL, xác nhận QR không bị lệch tên/link.
+- Kiểm tra 16 nhãn tạo đúng 2 trang theo quy tắc 15 nhãn/trang. Backend tổng cộng 11/11 test pass sau bổ sung kiểm thử decode QR.
+- Đã xác nhận V9 vẫn ở trạng thái up-to-date trên PostgreSQL, Docker startup không lỗi và smoke regression sau restart pass.
+- Chưa thay thế kiểm thử tự động bằng nghiệm thu vật lý: trước production vẫn cần in A4 ở 100%, thử nhiều máy in/giấy và quét bằng iOS/Android trong điều kiện ánh sáng thực tế.
+
+## Cập nhật đợt 5A — responsive và accessibility cơ bản
+
+- Admin mobile dưới 760px dùng lưới menu 3 cột; dưới 380px chuyển 2 cột để các nhãn dài như `Khách & lời mời`, `Nhập danh sách`, `Xuất QR` không bị ép quá hẹp.
+- Toolbar trên màn nhỏ chuyển label thành chiều rộng đầy đủ; bảng có cuộn ngang hỗ trợ cảm ứng và chỉ dẫn “Vuốt ngang để xem thêm”.
+- Thêm `.sr-only` cho nhãn checkbox chọn khách; giữ focus-visible rõ ràng, nút/input tối thiểu khoảng 44px và `prefers-reduced-motion`.
+- Frontend static accessibility/copy test tăng từ 5 lên 6 test pass; TypeScript/Next build, Docker build và smoke regression pass.
+- Chưa có Playwright/Cypress trong repository và môi trường hiện tại chưa chạy nghiệm thu browser automation hoặc thiết bị iOS/Android thật. Cần thực hiện manual UAT ở 360px, tablet, desktop, Zalo/Messenger trước production.
+
+## Cập nhật đợt 5B — retention và cleanup artifact riêng tư
+
+- Bật Spring scheduling và thêm `RetentionCleanupService` chạy mặc định mỗi giờ, lần đầu sau 60 giây.
+- Import preview: chỉ xóa `PREVIEW`/`FAILED` cũ hơn `IMPORT_PREVIEW_RETENTION_DAYS` (mặc định 7 ngày); batch `COMMITTED` không bị dọn.
+- Export: đánh dấu job `READY` quá hạn thành `EXPIRED`; chỉ xóa `EXPIRED`/`REVOKED` quá `EXPORT_RETENTION_DAYS` (mặc định 2 ngày). `export_rows` tự xóa nhờ foreign key cascade.
+- Cleanup không đụng invitation, token, assignment, RSVP, RSVP history, audit, media hoặc dữ liệu đã commit. Không có endpoint public để kích hoạt cleanup.
+- Cấu hình an toàn trong `application.yml`: retention 1–30 ngày; giá trị ngoài khoảng bị từ chối khi khởi động. Có thể cấu hình `CLEANUP_INTERVAL_MS`, `CLEANUP_INITIAL_DELAY_MS`, `IMPORT_PREVIEW_RETENTION_DAYS`, `EXPORT_RETENTION_DAYS`.
+- Thêm 2 retention unit tests; backend hiện 13/13 test pass. Frontend 6/6, TypeScript/Next/Docker build và smoke regression tiếp tục pass.
+
+## Cập nhật đợt 5C — chuẩn hóa nhãn hiển thị quản trị
+
+- Mở rộng bộ nhãn tập trung tại `frontend/src/shared/labels.ts` cho policy, trạng thái sự kiện, RSVP, import, export, link, media và các action audit V6–V9.
+- `Badge` luôn hiển thị tiếng Việt; mã kỹ thuật chỉ còn trong thuộc tính `title` để hỗ trợ chẩn đoán, không xuất hiện như nội dung chính.
+- Trang xuất QR/PDF dùng badge cho trạng thái link và định dạng snapshot, giữ nguyên logic chọn khách, snapshot, tải xuống và revoke.
+- Fallback của nhãn không còn là “Thao tác hệ thống” mơ hồ mà là “Trạng thái chưa xác định”, giúp phát hiện enum mới chưa được Việt hóa.
+- Không thay đổi API, quyền truy cập, session, access gate, migration hoặc token/QR.
+- Frontend copy/accessibility test 6/6, TypeScript và Next build pass.
+- Thêm `frontend/tests/labels-contract.test.mjs`: kiểm tra các mã policy, RSVP, import, export, media, link và audit bắt buộc đều có nhãn tiếng Việt có dấu; fallback không làm lộ mã kỹ thuật.
+
 ## Session/grants và bootstrap Owner — cập nhật
 
 - Spring là nguồn sự thật duy nhất. Spring Session JDBC lưu grant theo invitation và open marker phía server. Không NextAuth, không JWT/localStorage hoặc cookie danh sách invitationId cấp quyền.

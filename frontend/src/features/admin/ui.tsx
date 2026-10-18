@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef} from 'react';
 import {label} from '@/shared/labels';
-export function Badge({value}:{value:string}){return <span className={`badge badge-${value.toLowerCase()}`}>{label(value)}</span>;}
+export function Badge({value}:{value:string}){return <span className={`badge badge-${value.toLowerCase()}`} title={value}>{label(value)}</span>;}
 export function Heading({title,description}:{title:string;description:string}){return <header className="page-heading"><p className="eyebrow">Không gian chủ tiệc</p><h1>{title}</h1><p className="muted">{description}</p></header>;}
 export function Feedback({error,notice,retry}:{error:string;notice:string;retry?:()=>void}){return <>{error&&<div className="error" role="alert">{error} {retry&&<button className="secondary" onClick={retry}>Tải lại</button>}</div>}{notice&&<div className="success" role="status">{notice}</div>}</>;}
 export function Empty({children}:{children:React.ReactNode}){return <div className="empty-state"><span aria-hidden="true">✦</span><p>{children}</p></div>;}

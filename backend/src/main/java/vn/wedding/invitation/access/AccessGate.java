@@ -32,7 +32,7 @@ public class AccessGate {
         var rows=db.queryForList("SELECT * FROM invitations WHERE id=? FOR UPDATE",id);
         if(rows.isEmpty()) throw ApiErrors.unavailable();
         var invitation=rows.getFirst(); Instant now=Instant.now();
-        if(!Boolean.TRUE.equals(wedding.get("published")) || !Boolean.TRUE.equals(invitation.get("active")) || !policy(wedding,now) || !policy(invitation,now)) throw ApiErrors.unavailable();
+        if(!Boolean.TRUE.equals(wedding.get("published")) || !Boolean.TRUE.equals(invitation.get("active")) || Boolean.TRUE.equals(invitation.get("archived")) || !policy(wedding,now) || !policy(invitation,now)) throw ApiErrors.unavailable();
         if(session!=null) {
             if(!Objects.equals(session.getAttribute("grant:"+id), number(invitation,"auth_revision"))) throw ApiErrors.unavailable();
             if(opened && !Objects.equals(session.getAttribute("open:"+id), marker(wedding,invitation))) throw ApiErrors.unavailable();

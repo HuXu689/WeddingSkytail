@@ -29,3 +29,12 @@ test('giao diện có ngôn ngữ tiếng Việt', () => {
     assert.equal(source.includes(phrase), true, `Thiếu chuỗi tiếng Việt bắt buộc: ${phrase}`);
   }
 });
+
+test('giao diện quản trị có nền tảng responsive và accessibility', () => {
+  assert.match(source, /prefers-reduced-motion/);
+  assert.match(source, /@media\(max-width:380px\)/);
+  assert.match(source, /\.sr-only/);
+  for (const phrase of ['/admin/exports','Tạo PDF A4','Lịch sử','Lý do chỉnh sửa bắt buộc']) {
+    assert.equal(source.includes(phrase), true, `Thiếu thành phần nghiệm thu: ${phrase}`);
+  }
+});

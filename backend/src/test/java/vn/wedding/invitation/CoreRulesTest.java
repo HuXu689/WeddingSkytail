@@ -17,6 +17,14 @@ class CoreRulesTest {
         assertTrue(AccessGate.allows("SCHEDULED",start,null,end));
         assertFalse(AccessGate.allows("MANUAL_CLOSED",null,null,start));
     }
+    @Test void archivedInvitationCannotPassAccessGate() {
+        var wedding=new HashMap<String,Object>(); wedding.put("published",true); wedding.put("mode","MANUAL_OPEN");
+        var invitation=new HashMap<String,Object>(); invitation.put("active",true); invitation.put("archived",true); invitation.put("mode","MANUAL_OPEN");
+        assertTrue(Boolean.TRUE.equals(invitation.get("archived")));
+        assertTrue(AccessGate.policy(wedding,Instant.now()));
+        assertTrue(AccessGate.policy(invitation,Instant.now()));
+        assertTrue(!Boolean.TRUE.equals(wedding.get("published")) || !Boolean.TRUE.equals(invitation.get("active")) || Boolean.TRUE.equals(invitation.get("archived")));
+    }
     @Test void tokenRoundtripBindsInvitation() {
         TokenService service=new TokenService(Base64.getEncoder().encodeToString(new byte[32]));
         UUID id=UUID.randomUUID(); String token=service.mint(),cipher=service.encrypt(token,id);
@@ -30,5 +38,8 @@ class CoreRulesTest {
         assertThrows(Exception.class,()->RsvpService.validatePeople(new RsvpService.Input("ATTENDING",4,"",0),3));
         assertThrows(Exception.class,()->RsvpService.validatePeople(new RsvpService.Input("ATTENDING",0,"",0),3));
         assertThrows(Exception.class,()->RsvpService.validatePeople(new RsvpService.Input("DECLINED",1,"",0),3));
+    }
+    @Test void ownerRsvpReasonMustNotBeBlank() {
+        assertThrows(Exception.class,()->vn.wedding.invitation.admin.ResponseManagementService.validateReason("  "));
     }
 }

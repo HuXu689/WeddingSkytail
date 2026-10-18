@@ -2,7 +2,8 @@ export type PolicyMode = 'INHERIT' | 'MANUAL_OPEN' | 'MANUAL_CLOSED' | 'SCHEDULE
 export interface Policy { mode: PolicyMode; open_at: string | null; close_at: string | null; version: number }
 export interface Wedding extends Policy { draft_names: string; draft_message: string; names: string; message: string; published: boolean; draft_theme: import('@/features/invitation/design').Theme; draft_accent: import('@/features/invitation/design').Accent; draft_story: string; draft_footer: string; draft_show_story: boolean; heroUrl: string|null; albumUrls: string[] }
 export interface WeddingEvent { id: string; event_code: string; title: string; start_at: string; deadline: string; timezone: string; venue: string; address: string; capacity: number; state: 'DRAFT'|'PUBLISHED'|'CANCELLED'; version: number }
-export interface Invitation extends Policy { id: string; display_name: string; group_name: string; salutation: string; active: boolean; sent: boolean; first_opened_at: string|null; last_opened_at: string|null }
+export interface Invitation extends Policy { id: string; display_name: string; group_name: string; salutation: string; internal_note: string; archived: boolean; active: boolean; sent: boolean; first_opened_at: string|null; last_opened_at: string|null; version:number }
 export interface Summary { id: string; title: string; capacity: number; confirmed_people: number; invited_parties: number; unanswered: number; attending: number; declined: number }
-export interface ResponseRow { display_name: string; title: string; status: string; total_people: number; note: string; updated_at: string }
+export interface ResponseRow { invitation_id:string; event_id:string; display_name: string; title: string; status: string; total_people: number; note: string; version:number; updated_at: string }
+export interface RsvpHistoryRow { id:number; status:string; total_people:number; note:string; version:number; changed_by:string; change_reason:string; created_at:string }
 export interface AuditRow { id: number; action: string; target: string; created_at: string }

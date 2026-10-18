@@ -23,3 +23,8 @@ app:
   admin-user: ${ADMIN_USERNAME:}
   admin-password: ${ADMIN_PASSWORD:}
   media-root: ${MEDIA_ROOT:./data/media}
+  cleanup:
+    interval-ms: ${CLEANUP_INTERVAL_MS:3600000}
+    initial-delay-ms: ${CLEANUP_INITIAL_DELAY_MS:60000}
+    import-preview-retention-days: ${IMPORT_PREVIEW_RETENTION_DAYS:7}
+    export-retention-days: ${EXPORT_RETENTION_DAYS:2}

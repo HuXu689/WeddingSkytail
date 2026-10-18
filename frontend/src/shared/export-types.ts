@@ -1,0 +1,2 @@
+export interface ExportRow { rowNumber:number; invitationId:string; displayName:string; qrUrl:string; eventSummary:string }
+export interface ExportPreview { id:string; format:'CSV'|'PDF'; rowCount:number; pageCount:number; expiresAt:string; rows:ExportRow[] }
