@@ -1,9 +1,9 @@
 /* Admin components share the same palette as invitations, but have independent layout. */
-.admin-shell { display:grid; grid-template-columns:244px minmax(0,1fr); min-height:100vh; background:#f5f5ef; }
-.sidebar { background:#fffdf7; border-right:1px solid var(--line); padding:32px 20px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; }
+.admin-shell { display:grid; grid-template-columns:244px minmax(0,1fr); min-height:100vh; background:linear-gradient(135deg,#f4f5ef,#eef1e9); }
+.sidebar { background:#fffdf7e8; border-right:1px solid var(--line); padding:32px 20px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; backdrop-filter:blur(16px); }
 .brand { text-decoration:none; display:block; text-align:center; margin-bottom:36px; }
 .brand>span { font-size:40px; display:block; line-height:1; color:#879477; }
-.brand strong { font:25px Georgia,serif; display:block; margin-top:10px; }
+.brand strong { font:25px 'Segoe UI',Arial,sans-serif; font-weight:600; display:block; margin-top:10px; letter-spacing:-.3px; }
 .brand small { font-size:12px; letter-spacing:1px; margin-top:8px; }
 .sidebar nav { display:flex; flex-direction:column; gap:8px; }
 .sidebar nav a { display:flex; align-items:center; gap:14px; text-decoration:none; padding:12px 16px; border-radius:10px; color:var(--ink); min-height:48px; }
@@ -12,22 +12,23 @@
 .sidebar nav a.active { background:var(--olive); color:#fff; }
 .sidebar-foot { margin-top:auto; padding-top:28px; font-size:13px; color:var(--muted); }
 .admin-workspace { min-width:0; }
-.admin-topbar { padding:18px 40px; display:flex; justify-content:space-between; gap:16px; align-items:center; border-bottom:1px solid var(--line); background:#ffffffb0; font-size:14px; }
+.admin-topbar { padding:18px 40px; display:flex; justify-content:space-between; gap:16px; align-items:center; border-bottom:1px solid var(--line); background:#ffffffb0; font-size:14px; backdrop-filter:blur(12px); }
 .admin-main { max-width:1260px; margin:0 auto; padding:36px 40px 64px; }
 .page-heading { margin-bottom:28px; max-width:800px; }
 .page-heading h1 { font-size:clamp(30px,3.5vw,44px); margin:12px 0; }
 .page-heading .eyebrow { color:#657756; }
-.welcome-banner { display:flex; align-items:center; justify-content:space-between; gap:24px; border-radius:18px; padding:28px 32px; background:linear-gradient(120deg,#e6ebdc,#f2eadb); border:1px solid #d7dfcd; margin-bottom:24px; }
+.welcome-banner { display:flex; align-items:center; justify-content:space-between; gap:24px; border-radius:22px; padding:34px 38px; background:linear-gradient(120deg,#dfe9d8,#f5eadc); border:1px solid #d7dfcd; margin-bottom:28px; box-shadow:0 18px 50px #52664c12; position:relative; overflow:hidden; }.welcome-banner::after{content:'♡';position:absolute;right:34px;bottom:-28px;font-size:150px;color:#ffffff55;line-height:1;pointer-events:none}.welcome-banner>div{position:relative;z-index:1}.welcome-banner h2{font-size:30px}
 .welcome-banner h2 { margin:0 0 12px; }
 .welcome-banner p { max-width:600px; margin:0; }
 .welcome-banner .button { white-space:nowrap; }
 .summary-card { margin-top:0; }
-.metric { font:52px Georgia,serif; margin:20px 0; }
+.metric { font:52px 'Segoe UI',Arial,sans-serif; font-weight:300; margin:20px 0; }
 .metric span { display:block; font:14px/1.6 Arial,sans-serif; color:var(--muted); margin-top:8px; }
 .capacity-track { height:7px; border-radius:10px; background:#e8ecdf; overflow:hidden; margin-bottom:10px; }
 .capacity-track span { display:block; height:100%; background:#788d61; }
 .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; border-top:1px solid var(--line); margin-top:22px; padding-top:22px; font-size:13px; color:var(--muted); }
 .stats-grid strong { display:block; font-size:24px; color:var(--ink); }
+.admin-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:0 0 38px}.admin-overview>div{background:#fffdf9;border:1px solid var(--line);border-radius:18px;padding:20px 22px;display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center;box-shadow:0 8px 28px #25332908}.overview-icon{grid-row:span 2;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#edf2e8;color:var(--olive);font-size:20px}.admin-overview strong{font-size:28px;font-weight:500;line-height:1}.admin-overview small{color:var(--muted);font-size:12px}.dashboard-section-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:16px}.dashboard-section-heading h2{margin:4px 0 0}.dashboard-section-heading a{font-size:13px}.summary-top{display:flex;justify-content:space-between;align-items:center}.summary-top .eyebrow{margin:0}.status-dot{color:#557344;font-size:11px;background:#eef4e8;border-radius:20px;padding:5px 9px}.summary-card{transition:transform .2s ease,box-shadow .2s ease}.summary-card:hover{transform:translateY(-3px);box-shadow:0 14px 35px #25332912}
 .section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .section-heading h2 { margin:0 0 12px; }
 .badge { display:inline-block; width:fit-content; padding:5px 11px; border-radius:20px; background:#ecf0e5; color:#405a37; font-size:12px; font-weight:600; vertical-align:middle; }
@@ -68,7 +69,7 @@
  .admin-shell { display:block; } .sidebar { position:static; height:auto; padding:18px 16px 12px; border-right:0; border-bottom:1px solid var(--line); }
  .brand { text-align:left; margin-bottom:16px; } .brand>span,.brand small,.sidebar-foot { display:none; } .brand strong { margin:0; font-size:23px; }
  .sidebar nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; } .sidebar nav a { padding:8px 5px; gap:5px; font-size:12px; justify-content:center; text-align:center; overflow-wrap:anywhere; } .sidebar nav a>span { display:none; }
- .admin-topbar { padding:12px 16px; font-size:12px; } .admin-main { padding:24px 16px 40px; } .welcome-banner { padding:24px; } .pagination { font-size:13px; } .pagination button { padding:10px; }
+  .admin-topbar { padding:12px 16px; font-size:12px; } .admin-main { padding:24px 16px 40px; } .welcome-banner { padding:24px; } .pagination { font-size:13px; } .pagination button { padding:10px; }.admin-overview{gap:8px}.admin-overview>div{padding:14px 10px;display:block;text-align:center}.overview-icon{margin:0 auto 9px}.admin-overview strong{display:block;font-size:24px}.dashboard-section-heading{align-items:start;flex-direction:column;gap:6px}
  .toolbar { align-items:stretch; gap:8px; } .toolbar label { min-width:0; flex-basis:100%; } .toolbar label input,.toolbar label select { margin-top:4px; }
  .table::after { display:block; }
 }

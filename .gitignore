@@ -6,3 +6,4 @@ frontend/.next/
 frontend/*.tsbuildinfo
 *.log
 *.dump
+demo-links.txt
