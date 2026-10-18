@@ -5,7 +5,7 @@ import {WeddingCanvas,themes,accents,type WeddingDesign} from '@/features/invita
 import {Confirm} from './ui';
 const presets=[{name:'Trang trọng',text:'Trân trọng kính mời quý khách đến chung vui trong ngày thành hôn của chúng tôi. Sự hiện diện của quý khách là niềm vinh hạnh của gia đình.'},{name:'Thân mật',text:'Ngày vui của chúng mình sẽ trọn vẹn hơn khi có bạn. Hãy đến cùng chia sẻ những khoảnh khắc thật đẹp và lưu lại kỷ niệm đáng nhớ nhé!'},{name:'Gia đình',text:'Gia đình trân trọng kính mời cô chú, anh chị và các bạn đến chung vui trong ngày hạnh phúc của hai con. Rất mong được đón tiếp mọi người.'}];
 export function DesignEditor({wedding,busy,save,publish,onDirty}:{wedding:Wedding;busy:boolean;save:(body:unknown)=>Promise<boolean>;publish:()=>Promise<boolean>;onDirty:(dirty:boolean)=>void}){
- const initial:WeddingDesign={names:wedding.draft_names,message:wedding.draft_message,theme:wedding.draft_theme,accent:wedding.draft_accent,story:wedding.draft_story,footer:wedding.draft_footer,show_story:wedding.draft_show_story,heroUrl:wedding.heroUrl,albumUrls:wedding.albumUrls};
+  const initial:WeddingDesign={names:wedding.draft_names,message:wedding.draft_message,theme:wedding.draft_theme,accent:wedding.draft_accent,story:wedding.draft_story,footer:wedding.draft_footer,show_story:wedding.draft_show_story,heroUrl:wedding.heroUrl,heroPosition:wedding.heroPosition,albumUrls:wedding.albumUrls};
  const [design,setDesign]=useState(initial),[phone,setPhone]=useState(true),[confirm,setConfirm]=useState(false);
  const dirty=JSON.stringify(design)!==JSON.stringify(initial);
  useEffect(()=>{onDirty(dirty);},[dirty,onDirty]);
