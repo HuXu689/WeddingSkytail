@@ -41,7 +41,7 @@ Assert ($link.url -eq $link2.url) 'Link được giữ ổn định khi lấy l�
 $beforeDesign=CallApi $guest '/public/weddings/our-wedding'
 $w=CallApi $owner '/admin/wedding'
 $theme=if($beforeDesign.theme -eq 'TRADITIONAL'){'MODERN'}else{'TRADITIONAL'}
-CallApi $owner '/admin/wedding/design' PUT @{names=$w.draft_names;message=$w.draft_message;theme=$theme;accent='BURGUNDY';story='Câu chuyện phục vụ kiểm thử';footer='Cảm ơn bạn đã kiểm thử';showStory=$true;expectedVersion=$w.version}|Out-Null
+CallApi $owner '/admin/wedding/design' PUT @{names=$w.draft_names;message=$w.draft_message;theme=$theme;accent='BURGUNDY';story='Câu chuyện phục vụ kiểm thử';footer='Cảm ơn bạn đã kiểm thử';showStory=$true;musicId=$w.draft_music_id;showCountdown=$w.draft_show_countdown;expectedVersion=$w.version}|Out-Null
 Assert ((CallApi $guest '/public/weddings/our-wedding').theme -eq $beforeDesign.theme) 'Bản nháp thiết kế không bị lộ ra thiệp công khai'
 $w=CallApi $owner '/admin/wedding'
 CallApi $owner '/admin/wedding/publish' POST @{expectedVersion=$w.version}|Out-Null

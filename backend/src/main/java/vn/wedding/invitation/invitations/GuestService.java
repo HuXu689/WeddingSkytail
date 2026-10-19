@@ -39,13 +39,21 @@ public class GuestService {
     }
     public Map<String,Object> view(UUID id,HttpSession session) {
         var invitation=gate.check(id,session,true);
-        var wedding=db.queryForMap("SELECT names,message,theme,accent,story,footer,show_story FROM wedding WHERE id=1");
-        var events=db.queryForList("SELECT e.id,e.title,e.start_at,e.deadline,e.timezone,e.venue,e.address,e.state,a.max_people,r.status,r.total_people,r.note,coalesce(r.version,0) response_version,(e.state='PUBLISHED' AND now()<e.deadline) rsvp_open FROM assignments a JOIN events e ON e.id=a.event_id LEFT JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND e.state IN ('PUBLISHED','CANCELLED') ORDER BY e.start_at",id);
+        var wedding=db.queryForMap("SELECT names,message,theme,accent,story,footer,show_story,show_countdown FROM wedding WHERE id=1");
+        var events=db.queryForList("SELECT e.id,e.title,e.start_at,e.deadline,e.timezone,e.venue,e.address,e.maps_url,e.dress_code,e.parking,e.note,e.change_notice,e.revision,e.state,a.max_people,r.status,r.total_people,r.note,coalesce(r.version,0) response_version,(e.state='PUBLISHED' AND now()<e.deadline) rsvp_open FROM assignments a JOIN events e ON e.id=a.event_id LEFT JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND e.state IN ('PUBLISHED','CANCELLED') ORDER BY e.start_at",id);
         var design=new HashMap<String,Object>(wedding); design.putAll(media.published());
         return Map.of("invitationId",id,"displayName",invitation.get("display_name"),"salutation",invitation.get("salutation"),"wedding",design,"events",events);
     }
     public Object publicWedding(String slug) {
-        var rows=db.queryForList("SELECT names,message,slug,theme,accent,story,footer,show_story FROM wedding WHERE slug=? AND published=true",slug);
+        var rows=db.queryForList("SELECT names,message,slug,theme,accent,story,footer,show_story,show_countdown FROM wedding WHERE slug=? AND published=true",slug);
         if(rows.isEmpty()) throw ApiErrors.unavailable(); var result=new HashMap<String,Object>(rows.getFirst()); result.putAll(media.published()); return result;
+    }
+    /** "Add to calendar" must pass exactly the same gate as the invitation itself: grant, open marker, access window and PIN (P1). */
+    public CalendarFile.Event calendar(UUID id,UUID eventId,HttpSession session) {
+        gate.check(id,session,true);
+        var rows=db.queryForList("SELECT e.id,e.title,e.start_at,e.timezone,e.venue,e.address,e.maps_url,e.change_notice,e.state FROM assignments a JOIN events e ON e.id=a.event_id WHERE a.invitation_id=? AND e.id=? AND e.state IN ('PUBLISHED','CANCELLED')",id,eventId);
+        if(rows.isEmpty()) throw ApiErrors.unavailable();
+        var row=rows.getFirst();
+        return new CalendarFile.Event(eventId+"-"+id,(String)row.get("title"),AccessGate.instant(row.get("start_at")),(String)row.get("timezone"),(String)row.get("venue"),(String)row.get("address"),(String)row.get("maps_url"),(String)row.get("change_notice"),(String)row.get("state"));
     }
 }

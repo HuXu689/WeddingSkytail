@@ -70,7 +70,7 @@ Invoke-WebRequest -Uri "$BaseUrl/api/v1/auth/login" -Method Post -WebSession $ow
 Write-Host "Đã đăng nhập Owner: $Username" -ForegroundColor Green
 
 $wedding = Invoke-Api $owner '/admin/wedding'
-$design = @{ names=$demo.Names; message=$demo.Message; theme=$demo.Theme; accent=$demo.Accent; story=$demo.Story; footer=$demo.Footer; showStory=$true; expectedVersion=[int64]$wedding.version }
+$design = @{ names=$demo.Names; message=$demo.Message; theme=$demo.Theme; accent=$demo.Accent; story=$demo.Story; footer=$demo.Footer; showStory=$true; musicId=$wedding.draft_music_id; showCountdown=$wedding.draft_show_countdown; expectedVersion=[int64]$wedding.version }
 Invoke-Api $owner '/admin/wedding/design' 'PUT' $design (Get-Csrf $owner) | Out-Null
 Write-Host 'Đã lưu nội dung và thiết kế demo.' -ForegroundColor Green
 

@@ -19,23 +19,29 @@ public class AccessGate {
     public static long number(Map<String,Object> row,String key) { return ((Number)row.get(key)).longValue(); }
     public Map<String,Object> check(UUID id, HttpSession session, boolean opened) {
         if(session==null) throw ApiErrors.unavailable();
-        return evaluate(id,session,opened);
+        return evaluate(id,session,opened,true);
+    }
+    /** Used only by the PIN verification step: it must prove grant + access but not the PIN itself (FR19). */
+    public Map<String,Object> checkWithoutPin(UUID id, HttpSession session) {
+        if(session==null) throw ApiErrors.unavailable();
+        return evaluate(id,session,false,false);
     }
     /** Only redeem may use this, after proving possession of the credential. */
     public Map<String,Object> checkCredential(UUID id,String tokenHash) {
-        var invitation=evaluate(id,null,false);
+        var invitation=evaluate(id,null,false,false);
         if(!Objects.equals(invitation.get("token_hash"),tokenHash)) throw ApiErrors.unavailable();
         return invitation;
     }
-    private Map<String,Object> evaluate(UUID id,HttpSession session,boolean opened) {
+    private Map<String,Object> evaluate(UUID id,HttpSession session,boolean opened,boolean enforcePin) {
         Map<String,Object> wedding=db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE");
-        var rows=db.queryForList("SELECT * FROM invitations WHERE id=? FOR UPDATE",id);
+        var rows=db.queryForList("SELECT i.*,coalesce(p.enabled,false) pin_enabled,coalesce(p.security_revision,0) pin_revision FROM invitations i LEFT JOIN invitation_pin_protection p ON p.invitation_id=i.id WHERE i.id=? FOR UPDATE OF i",id);
         if(rows.isEmpty()) throw ApiErrors.unavailable();
         var invitation=rows.getFirst(); Instant now=Instant.now();
         if(!Boolean.TRUE.equals(wedding.get("published")) || !Boolean.TRUE.equals(invitation.get("active")) || Boolean.TRUE.equals(invitation.get("archived")) || !policy(wedding,now) || !policy(invitation,now)) throw ApiErrors.unavailable();
         if(session!=null) {
             if(!Objects.equals(session.getAttribute("grant:"+id), number(invitation,"auth_revision"))) throw ApiErrors.unavailable();
             if(opened && !Objects.equals(session.getAttribute("open:"+id), marker(wedding,invitation))) throw ApiErrors.unavailable();
+            if(enforcePin && Boolean.TRUE.equals(invitation.get("pin_enabled")) && !Objects.equals(session.getAttribute("pin:"+id), number(invitation,"pin_revision"))) throw ApiErrors.pinRequired();
         }
         return invitation;
     }

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useState} from 'react';
 import {api} from '@/shared/api';
-const navigation=[['/admin','Tổng quan','◈'],['/admin/wedding','Thiệp cưới','❀'],['/admin/media','Thư viện ảnh','▧'],['/admin/events','Buổi tiệc','▦'],['/admin/invitations','Khách & lời mời','♡'],['/admin/import','Nhập danh sách','⇧'],['/admin/exports','Xuất QR','▤'],['/admin/responses','Phản hồi','✓'],['/admin/audit','Nhật ký','≡']];
+const navigation=[['/admin','Tổng quan','◈'],['/admin/wedding','Thiệp cưới','❀'],['/admin/media','Thư viện ảnh','▧'],['/admin/events','Buổi tiệc','▦'],['/admin/invitations','Khách & lời mời','♡'],['/admin/import','Nhập danh sách','⇧'],['/admin/exports','Xuất QR','▤'],['/admin/print','Trung tâm in','⎙'],['/admin/responses','Phản hồi','✓'],['/admin/reminders','Nhắc chưa phản hồi','◔'],['/admin/audit','Nhật ký','≡']];
 export function AdminShell({children}:{children:React.ReactNode}){
  const path=usePathname();const [busy,setBusy]=useState(false),[error,setError]=useState('');
  if(path==='/admin/login')return <>{children}</>;

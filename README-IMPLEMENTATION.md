@@ -1,5 +1,57 @@
 # Wedding website — bản lõi 0.1.0
 
+## Cập nhật đợt 4B — worklist nhắc RSVP, tệp lịch, nhạc nền và đếm ngược
+
+- Migration `V14__reminders_music_countdown.sql`: bảng `invitation_reminders(invitation_id,event_id,contacted_at,contacted_by,note)`; `wedding` thêm `draft_music_id/music_id/draft_show_countdown/show_countdown`; `media_assets` thêm `kind` (IMAGE/AUDIO) và nới CHECK mime cho `audio/mpeg`, `audio/mp4`, `audio/ogg` — ảnh vẫn chỉ `image/jpeg` và bắt buộc kích thước điểm ảnh, nhạc để NULL.
+- **Worklist nhắc RSVP (FR21):** `GET /admin/reminders?eventId=&filter=UNANSWERED|NO_OPEN|OPENED_NO_RESPONSE` trả danh sách khách chưa phản hồi kèm **nội dung nhắc soạn sẵn theo buổi** (giờ/địa điểm theo múi giờ của buổi) và bộ đếm; `POST /admin/reminders/{invitationId}/{eventId}` đánh dấu đã nhắc kèm ghi chú, `DELETE` bỏ ghi nhận. Đánh dấu **không** tạo lượt mở và không lẫn với `open_events`: lời mời chỉ rời nhóm “chưa ghi nhận mở” khi khách thật sự mở thiệp. Audit `REMINDER_CONTACTED`/`REMINDER_CLEAR`.
+- **Tệp lịch (ICS):** `GET /guest/invitations/{id}/events/{eventId}/calendar.ics` đi qua đúng cổng như thiệp (grant + dấu đã mở + lịch mở/đóng + PIN), trả `text/calendar` với `DTSTAMP/DTSTART/DTEND` UTC, `UID` ổn định, `LOCATION`, `URL` bản đồ, lưu ý thay đổi và `STATUS:CANCELLED`; mọi dòng gấp theo 75 octet và thoát `\ ; ,` theo RFC 5545. `CalendarFile` là lớp thuần nên có unit test riêng.
+- **Nhạc nền:** tải tệp qua `POST /admin/media/audio` (≤5 MB, nhận diện bằng magic bytes ID3/MP3, `ftyp`/M4A, `OggS`, không dùng ImageIO); `PUT /admin/wedding/design` nhận `musicId` + `showCountdown` và publish copy sang cột công bố; URL nhạc bản nháp `/api/v1/admin/media/audio` (chỉ chủ tiệc), URL công khai ổn định `/api/v1/media/audio`; xóa tệp nhạc đang được chọn bị chặn.
+- **Thiệp khách:** nhạc **không tự phát** — khách bấm “Bật nhạc nền” mới phát (không gọi `play()` khi tải trang, có `aria-pressed` và thông báo trạng thái); khối đếm ngược hiện khi bật và tự ẩn khi buổi gần nhất đã bắt đầu; nút “Thêm vào lịch” trên từng buổi đã phát hành.
+- Kiểm thử: `CalendarFileTest` 5 ca (UTC, UID ổn định, thoát ký tự, gấp dòng ≤75 octet, thiếu dữ liệu tùy chọn) — backend **25/25**; frontend **18/18** + typecheck + build; `deploy/verify-dot4b.ps1` **48 khẳng định pass** trên stack thật (worklist, tách biệt lượt mở, ICS theo cổng truy cập, nhạc theo bản nháp/bản phát hành, chặn xóa tệp đang dùng). `smoke.ps1`, `verify-dot3.ps1` và `verify-dot4-pin.ps1` vẫn pass.
+- Tương thích: `PUT /admin/wedding/design` dùng `Boolean showCountdown` nên client cũ thiếu trường không bị lỗi 400; `deploy/smoke.ps1` và `scripts/seed-demo.ps1` đã cập nhật để giữ nguyên trạng thái nhạc/đếm ngược khi lưu thiết kế.
+- **P1 đã hoàn tất.** Phần còn lại chỉ là các hạng mục P2 trong `docs/10-roadmap-and-backlog.md`.
+
+## Cập nhật đợt 4A — PIN bảo vệ lời mời (FR19)
+
+- Migration `V13__invitation_pin.sql` tạo `invitation_pin_protection` (`enabled`, `pin_hash`, `security_revision`, `updated_at`, `updated_by`) với ràng buộc: bật thì bắt buộc có hash.
+- API Owner: `GET/PUT/DELETE /admin/invitations/{id}/pin` và `POST …/pin/reset`. Máy chủ sinh mã 6 chữ số (không bắt đầu bằng 0, loại mã lặp và dãy dễ đoán) hoặc nhận mã do chủ tiệc tự đặt (4–12 chữ số). Mã chỉ được trả về **một lần** khi sinh hoặc đổi; `GET` chỉ trả `enabled`, `securityRevision`, `updatedAt` — không bao giờ trả bản băm hay mã.
+- Bản băm BCrypt cost 12 giống mật khẩu chủ tiệc; mã không bị ghi log, không nằm trong QR và không xuất hiện trong script kiểm thử/backup.
+- Phiên khách lưu `pin:<id>` gắn với `security_revision`, nên đổi mã hoặc tắt PIN sẽ hủy mọi phiên đã xác nhận trước đó.
+- `AccessGate` chặn ở tầng gate cho mọi API riêng tư. Khi chưa xác nhận, `state`/`open` trả **428** để giao diện hiện bước nhập PIN (không lộ tên khách trước khi xác nhận); mã sai trả **403** với thông báo chung, không tiết lộ mã có tồn tại hay không.
+- Chống dò mã hai lớp: `RequestLimits` giới hạn 10 lần/phút cho mỗi địa chỉ ở endpoint PIN (kèm `Retry-After`), và `PinService` chặn 20 lần sai trong 15 phút cho mỗi lời mời.
+- Giao diện: trang Khách & lời mời có khung “Mã PIN bảo vệ lời mời” (bật, tạo mã mới, tự đặt mã, tắt PIN có xác nhận, mã hiện một lần kèm nút sao chép); thiệp khách có bước nhập PIN riêng trước khi mở thiệp, dùng ô mật khẩu và thông báo lỗi chung.
+- Kiểm thử: `PinProtectionTest` (chuẩn hoá mã, sinh mã, băm BCrypt, bộ đếm sai) — backend 20/20; `deploy/verify-dot4-pin.ps1` **27/27 khẳng định pass** trên stack thật (428 khi chưa xác nhận, 403 mã sai, 429 khi dò liên tục, đổi mã hủy phiên, tắt PIN trả lại quyền truy cập, RSVP vẫn lưu được sau khi xác nhận). `smoke.ps1` và `verify-dot3.ps1` vẫn pass.
+- **Còn lại của P1:** worklist nhắc RSVP, tệp ICS, nhạc nền và đếm ngược.
+
+## Cập nhật đợt 3 — thao tác truy cập hàng loạt, buổi tiệc chi tiết hơn, trung tâm in và báo cáo
+
+- `POST /api/v1/admin/invitations/bulk-policy` (FR18, docs/13 §5): xem trước rồi mới áp dụng; body `{ids,mode,openAt,closeAt,dryRun,expectedVersions}`. `dryRun=true` trả về số lời mời áp dụng được, số bị bỏ (không tồn tại/đã thu hồi/đã thay đổi), ảnh hưởng phiên đang mở, số lời mời sẽ được mở và `qrUnchanged=true`.
+- Bulk chỉ đổi `mode/open_at/close_at` + `version`, **không rotate token** nên QR đã in vẫn dùng được; khóa `SELECT … FOR UPDATE` theo id đã sắp xếp, tối đa 300 lời mời, ghi audit `ACCESS_BULK_*`. Chế độ `INHERIT` bị chặn khi thao tác hàng loạt để tránh quyền ngầm theo nhóm.
+- Giao diện: chọn nhiều lời mời bằng checkbox, “Chọn tất cả trên trang”, bảng xem trước trạng thái trước/sau và cảnh báo xung đột; nút áp dụng bị khóa cho tới khi có bản xem trước hợp lệ.
+- Migration `V11__event_details_and_revision.sql` bổ sung cho `events`: `maps_url`, `dress_code`, `parking`, `note`, `change_notice`, `cancel_reason`, `revision`. Buổi tiệc đã phát hành sửa được qua `PUT /admin/events/{id}/revise`: bắt buộc kèm thông báo thay đổi khi đổi giờ hoặc địa điểm, tăng `revision`, giữ nguyên link/QR của khách. Hủy buổi tiệc **bắt buộc có lý do** (`cancel_reason`).
+- Thiệp khách hiện tiến độ phản hồi, nút “Xem đường đi” khi có `maps_url`, trang phục, chỗ đỗ xe, ghi chú và dòng “Buổi tiệc vừa được cập nhật” kèm thông báo thay đổi khi `revision>0`.
+- Trung tâm in `/admin/print` (docs/02 §14): chọn khách, chọn mẫu nhãn `QR_ONLY`/`NAME_QR`, xem trước lưới A4 3×5 = 15 nhãn/trang kèm cảnh báo tên dài, tạo bản in rồi tải PDF. Migration `V12__print_label_style.sql` thêm `export_jobs.label_style`; `ExportService.renderPdf(rows)` giữ nguyên bố cục cũ nên `ExportPdfTest` không đổi.
+- Báo cáo CSV: `GET /admin/reports/guests.csv` và `/responses.csv` (lọc theo `eventId`), không chứa link/token; trang Xuất QR có khối chọn phạm vi, trang Buổi tiệc có link báo cáo cho từng buổi.
+- Kiểm thử: backend `mvn -B clean verify` 16/16 (thêm `PrintLabelStyleTest`), frontend `npm test` 16/16 (thêm hợp đồng lớp CSS và copy đợt 3), `npm run typecheck`/`npm run build` pass, Docker rebuild áp dụng V11+V12 thành công, `deploy/smoke.ps1` pass và `deploy/verify-dot3.ps1` 32/32 khẳng định pass trên stack thật.
+- **Còn lại của P1:** PIN theo lời mời, worklist nhắc RSVP, tệp ICS, nhạc nền và đếm ngược thuộc đợt 4; chưa có kiểm thử trình duyệt tự động.
+
+## Cập nhật đợt 2B — lấp phần “backend đã có, giao diện còn thiếu”
+
+- Lời mời có thêm bộ lọc buổi tiệc, trạng thái phản hồi, trạng thái truy cập và lượt mở thiệp; thẻ lời mời hiện buổi được mời, số buổi đồng ý/từ chối và số người đã xác nhận.
+- `access_state` được tính **tại thời điểm gọi API** (`OPEN`, `NOT_YET_OPEN`, `CLOSED_SCHEDULE`, `CLOSED_MANUAL`, `CLOSED_GLOBAL`, `REVOKED`) từ cùng một biểu thức SQL và bản Java `stateOf()`; không thêm cột trạng thái và không dùng cron.
+- Tổng quan có khối thống kê link (`GET /admin/dashboard/link-stats`) gồm đang mở/đang đóng, chưa ghi nhận mở/đã ghi nhận mở, sắp mở theo lịch và “đã mở nhưng chưa phản hồi” theo buổi; lượt mở không được cộng thành số người.
+- Thiệp cưới có công tắc ghi nhận lượt mở (`PUT /admin/wedding/tracking`, có version) kèm lời nhắc rằng tắt ghi nhận không xóa dữ liệu đã có.
+- Nhập danh sách: sau khi commit, bản xem trước được đặt lại và hiện số khách đã tạo kèm liên kết sang Khách & lời mời. Trang xuất QR kiểm tra trạng thái bản xuất trước khi tải và báo lỗi thân thiện khi snapshot hết hạn hoặc bị thu hồi.
+- Đã xóa mã chết `invitations(page)` và `responses()`; giữ `PUT /admin/wedding/draft` vì `deploy/smoke.ps1` còn dùng.
+
+## Cập nhật đợt 1B — sửa lỗi chặn và bù CSS thiếu
+
+- Thêm `GET /admin/invitations/{id}/assignments` để form sửa khách nạp được danh sách buổi đã gán; nút Lưu bị khóa tới khi nạp xong và có nút thử lại — tránh lưu rỗng làm mất buổi đã gán.
+- Hộp xác nhận thao tác lời mời có tiêu đề và nội dung riêng cho thu hồi, tạo link mới và lưu trữ; nhánh tạo link mới cảnh báo rõ QR đã in sẽ mất hiệu lực.
+- Thư viện ảnh gọi đúng `setHero`, thêm nhãn “Ảnh bìa”/“Trong album” theo bản nháp và bản đã phát hành, kèm viền nhận biết ảnh bìa.
+- Bổ sung CSS còn thiếu cho trình chỉnh sửa thiết kế, thẻ mẫu/màu, thanh lưu, khung xem trước điện thoại, thư viện ảnh, mốc lịch sử và các biến thể nhãn; sửa vị trí nút chuyển ảnh trong lightbox và ẩn chân trang trong khu quản trị.
+- Thêm `frontend/tests/css-class-contract.test.mjs`: mọi lớp CSS dùng trong component phải có định nghĩa trong stylesheet, để lỗi thiếu style không tái phát.
+
 ## Cập nhật đợt 2A — mẫu thiệp và trình chỉnh sửa
 
 - `/admin/wedding` có 3 mẫu bố cục: Thanh lịch, Truyền thống, Hiện đại; 3 bảng màu: olive, đỏ trầm, xanh đêm. Mẫu Hiện đại hiện là bố cục chữ, chưa hỗ trợ ảnh cưới.

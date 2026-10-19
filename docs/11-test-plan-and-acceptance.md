@@ -129,3 +129,24 @@ CI reports, migration tests, redacted security test log, print photos không ch�
 Traceability: FR15→QA41,42,45,46,55; FR16→QA43,44,54; FR17→QA47–52,56,58–60; FR18→QA53; FR19→QA57; FR20→QA03,07,31,34,41,45,54,55; FR21 P1 worklist UAT via QA58 plus manual message copy checks.
 
 New release gates: T34 completed; scheduled access server clock+timezone UAT; close old-session test; tracking wording/notice reviewed. If PIN included, QA57 pass. Existing release gates still mandatory.
+
+## Bao phủ tự động bổ sung (đợt sửa lỗi 1–3)
+
+| Lệnh | Nội dung | Kết quả |
+|---|---|---|
+| `cd backend; mvn -B clean verify` | Quy tắc lõi, PDF 15 nhãn/trang, mẫu nhãn `QR_ONLY`/`NAME_QR`, CSV import, bootstrap Owner, retention | 16/16 pass |
+| `cd frontend; npm test` | Copy tiếng Việt, hợp đồng nhãn, hợp đồng lớp CSS, thời gian VN, luồng khách | 16/16 pass |
+| `cd frontend; npm run typecheck && npm run build` | Kiểu dữ liệu và build production (có route `/admin/print`) | pass |
+| `./deploy/smoke.ps1` | Regression session/CSRF/gate/RSVP/restart, thiết kế published, link ổn định | pass |
+| `./deploy/verify-dot3.ps1` | Trường buổi tiệc mới, revision + thông báo thay đổi, lý do hủy bắt buộc, bulk policy, báo cáo CSV, mẫu nhãn in + PDF, thiệp khách | 35/35 khẳng định pass |
+| `./deploy/verify-dot4-pin.ps1` | PIN: 428 khi chưa xác nhận, 403 mã sai, 429 khi dò liên tục, đổi mã hủy phiên, tắt PIN trả lại quyền, RSVP sau khi xác nhận | 27/27 khẳng định pass |
+| `./deploy/verify-dot4b.ps1` | Worklist nhắc RSVP (tách biệt lượt mở), ICS theo cổng truy cập + giờ UTC, nhạc nền theo bản nháp/bản phát hành, chặn xóa tệp đang dùng, đếm ngược | 48/48 khẳng định pass |
+
+- QA53 (bulk selection changes after preview): `verify-dot3.ps1` kiểm tra preview trả `versions`, áp dụng đúng các version đó, xác nhận link trước/sau không đổi, và `INHERIT` bị từ chối ở chế độ hàng loạt.
+- QA41–QA46 (open status/tracking): bộ lọc `accessState`/`openFilter` và khối thống kê link được kiểm tra qua API trong cùng script; phần “không cộng lượt mở thành số người” là yêu cầu hiển thị, cần UAT thị giác.
+- Mã trạng thái API quản trị khi viết script kiểm thử: vi phạm quy tắc nghiệp vụ → `422` (`ApiErrors.require`), sai `expectedVersion` → `409`, body thiếu/sai trường bắt buộc → `400`. Mọi request tạo hoặc sửa buổi tiệc phải gửi `expectedVersion` trong JSON, kể cả khi tạo mới.
+- QA57 (PIN): đã phủ tự động bằng `PinProtectionTest` (chuẩn hoá mã, sinh mã 6 chữ số, băm BCrypt, bộ đếm sai) và `verify-dot4-pin.ps1` (428 khi chưa xác nhận, 403 mã sai với thông báo chung, 429 khi dò liên tục, đổi mã/tắt PIN hủy phiên đã xác nhận, QR không đổi).
+- QA58 (nhắc RSVP, FR21): `verify-dot4b.ps1` khẳng định đánh dấu “đã nhắc” không tạo lượt mở, lời mời chỉ rời nhóm “chưa ghi nhận mở” khi khách mở thiệp, và nội dung nhắc soạn sẵn bám đúng buổi tiệc.
+- QA59 (tệp lịch): `CalendarFileTest` (UTC, UID, thoát ký tự, gấp dòng ≤75 octet) + `verify-dot4b.ps1` (403 khi chưa mở thiệp, 403 với buổi không được gán, `text/calendar`, DTSTART khớp giờ UTC).
+- QA60 (nhạc nền & đếm ngược): `verify-dot4b.ps1` khẳng định tệp không phải nhạc bị từ chối, nhận diện bằng magic bytes, ảnh không dùng được làm nhạc, tệp đang chọn không xóa được, `musicUrl` bản nháp khác bản công khai và chỉ hiện cho khách sau khi phát hành.
+- **P1 đã hoàn tất** (PIN, worklist nhắc, ICS, nhạc, đếm ngược). Việc còn lại thuộc P2 trong `docs/10-roadmap-and-backlog.md`.

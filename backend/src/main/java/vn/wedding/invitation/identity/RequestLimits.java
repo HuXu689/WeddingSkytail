@@ -14,14 +14,16 @@ public class RequestLimits extends OncePerRequestFilter {
     private final ConcurrentHashMap<String,Window> windows=new ConcurrentHashMap<>();
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {
         String path=request.getRequestURI();
-        if(request.getMethod().equals("POST") && (path.equals("/api/v1/auth/login") || path.equals("/api/v1/guest-links/redeem"))) {
+        // PIN verification is throttled much tighter than the other POST endpoints (FR19).
+        boolean pinAttempt=request.getMethod().equals("POST") && path.startsWith("/api/v1/guest/invitations/") && path.endsWith("/pin");
+        if(request.getMethod().equals("POST") && (pinAttempt || path.equals("/api/v1/auth/login") || path.equals("/api/v1/guest-links/redeem"))) {
             long minute=System.currentTimeMillis()/60000;
             if(windows.size()>10000) windows.entrySet().removeIf(e->e.getValue().minute()<minute);
             // Remote address is the direct peer. Proxy deployment shares this conservative ceiling.
             String key=request.getRemoteAddr()+":"+path;
             if(windows.size()>10000 && !windows.containsKey(key)) { response.setStatus(429); response.setHeader("Retry-After","60"); return; }
             Window window=windows.compute(key,(k,v)->v==null||v.minute()!=minute?new Window(minute,1):new Window(minute,v.count()+1));
-            int limit=path.endsWith("login")?30:300;
+            int limit=pinAttempt?10:path.endsWith("login")?30:300;
             if(window.count()>limit) { response.setStatus(429); response.setHeader("Retry-After","60"); return; }
         }
         chain.doFilter(request,response);

@@ -1,0 +1,2 @@
+-- Print centre (docs/02 §14): the owner can print QR-only labels or keep the name + event layout on the A4 sheet.
+ALTER TABLE export_jobs ADD COLUMN label_style varchar(20) NOT NULL DEFAULT 'NAME_QR' CHECK(label_style IN ('QR_ONLY','NAME_QR'));
