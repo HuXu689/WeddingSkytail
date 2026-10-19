@@ -56,7 +56,9 @@ test('thiệp khách có thay đổi buổi tiệc, đường đi và tiến đ�
 });
 
 test('PIN bảo vệ lời mời có bước nhập riêng ở thiệp khách và phần quản lý ở trang khách mời', () => {
-  const guest = fs.readFileSync(path.join(sourceRoot,'app','invitation','[id]','page.tsx'),'utf8');
+  const page = fs.readFileSync(path.join(sourceRoot,'app','invitation','[id]','page.tsx'),'utf8');
+  assert.match(page, /<InvitationEntry<Invitation>/);
+  const guest = fs.readFileSync(path.join(sourceRoot,'features','invitation','invitation-entry.tsx'),'utf8');
   for (const phrase of ['Nhập mã PIN để mở thiệp','Bảo vệ bằng mã PIN','Mã PIN không đúng','type="password"']) {
     assert.equal(guest.includes(phrase), true, `Thiếu bước PIN ở thiệp khách: ${phrase}`);
   }

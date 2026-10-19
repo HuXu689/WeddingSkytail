@@ -31,7 +31,10 @@ public class GuestService {
     }
     public void open(UUID id,HttpSession session,boolean owner) {
         var invitation=gate.check(id,session,false); var wedding=db.queryForMap("SELECT * FROM wedding WHERE id=1");
-        session.setAttribute("open:"+id,gate.marker(wedding,invitation));
+        // Gate first on every retry: idempotency must never revive a closed/revoked grant.
+        var marker=gate.marker(wedding,invitation);
+        if(Objects.equals(session.getAttribute("open:"+id),marker)) return;
+        session.setAttribute("open:"+id,marker);
         if(Boolean.TRUE.equals(wedding.get("tracking")) && !owner) db.update("INSERT INTO open_events(invitation_id,pseudonym,bucket) VALUES(?,?,?) ON CONFLICT DO NOTHING",id,tokens.pseudonym(session.getId(),id),Instant.now().getEpochSecond()/600);
     }
     public Map<String,Object> state(UUID id,HttpSession session) {

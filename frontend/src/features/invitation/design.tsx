@@ -26,7 +26,7 @@ export function WeddingCanvas({design,recipient,salutation,children,initiallyOpe
   const heroPosition=design.heroPosition||'50% 50%';
   return <div ref={canvasRef} className={`wedding-canvas theme-${design.theme.toLowerCase()}`} style={{'--wedding-accent':color} as CSSProperties}>
     <div className={`wedding-inner ${opened?'is-open':''}`}>
-      <header className="wedding-cover">
+      <header className={`wedding-cover ${design.theme==='ELEGANT'&&design.heroUrl?'hero-split':''}`}>
         {design.heroUrl&&<div className="cover-photo"><img src={design.heroUrl} alt={`Ảnh của ${oneLine(design.names)||'hai bạn'}`} style={{objectPosition:heroPosition}} fetchPriority="high" /></div>}
         <div className="cover-content"><span className="wedding-ornament" aria-hidden="true">{design.theme==='TRADITIONAL'?'囍':design.theme==='MODERN'?'—':'❧'}</span><p className="eyebrow reveal">{recipient?(oneLine(salutation||'Trân trọng kính mời')):'Chúng mình kết hôn'}</p>{recipient&&<h2 className="recipient-name reveal">{oneLine(recipient)}</h2>}<h1 className="reveal couple-names">{coupleNames(design.names||'Tên hai bạn').map((part,index)=><Fragment key={`${index}-${part}`}>{index>0&&<span className="couple-join" aria-hidden="true">&amp;</span>}<span className="couple-name">{part}</span></Fragment>)}</h1><div className="wedding-rule"/><p className="wedding-message reveal">{text(design.message)}</p>{!opened&&<button className="open-invitation reveal" onClick={()=>setOpened(true)} aria-label="Mở thiệp">Mở thiệp <span aria-hidden="true">♡</span></button>}<span className="cover-caption reveal">Một ngày · Một đời · Một tình yêu</span></div>
       </header>

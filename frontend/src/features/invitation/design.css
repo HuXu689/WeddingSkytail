@@ -50,6 +50,15 @@ main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 @keyframes sectionReveal{from{opacity:.65;transform:translateY(20px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.wedding-inner,.cover-photo img,.reveal.is-visible{animation:none}.cover-photo img{transform:none}.reveal{opacity:1;transform:none;transition:none}.album-main img,.album-side img{transition:none}}
 /* Reply progress, map link and change notice for the guest invitation. */
+.invitation-envelope{position:relative;isolation:isolate;width:min(100%,300px);height:180px;margin:0 auto 32px;background:#f2ebdf;border:1px solid #d1c2a8;border-radius:4px 4px 12px 12px;box-shadow:0 16px 36px #493c2514;pointer-events:none}
+.envelope-flap{position:absolute;inset:0;background:#e5d7bf;clip-path:polygon(0 0,100% 0,50% 62%);transform-origin:top;transition:transform 550ms ease}
+.envelope-seal{position:absolute;left:calc(50% - 24px);top:78px;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:var(--brand-primary);color:#fff;font-size:26px;box-shadow:0 3px 10px #493c2520;transition:opacity 400ms ease,transform 550ms ease}
+.is-opening .envelope-flap{transform:rotateX(160deg)}
+.is-opening .envelope-seal{opacity:0;transform:translateY(16px)}
+.invitation-entry h1:focus{outline:none}
+.invitation-entry button{min-height:44px}
+@media(max-width:520px){.invitation-envelope{width:230px;height:150px;margin-bottom:24px}.envelope-seal{top:60px}}
+@media(prefers-reduced-motion:reduce){.envelope-flap,.envelope-seal{transition:none}.is-opening .envelope-flap{transform:none}.is-opening .envelope-seal{transform:none}}
 .rsvp-summary{display:flex;flex-direction:column;gap:10px;background:#fffdf8;border:1px solid #dfe2d5;border-radius:14px;padding:18px 20px;margin:0 0 22px}
 .rsvp-summary .eyebrow{margin:0;color:var(--wedding-accent)}
 .rsvp-summary strong{font-size:17px}
@@ -122,3 +131,22 @@ main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 .theme-elegant .wedding-thanks{border-top:1px solid var(--inv-champagne-soft)}
 .theme-elegant .rsvp-summary{border-color:var(--inv-hairline);background:var(--inv-paper)}
 @media(prefers-reduced-motion:reduce){.theme-elegant .cover-photo img{animation:none;transform:none}}
+/* HERO-001: keep copy off the photograph, including in the narrow editor preview.
+   Scoped to ELEGANT; legacy templates and the no-photo cover keep their layout. */
+.theme-elegant .wedding-cover.hero-split{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:stretch;min-height:0;background:var(--inv-paper-deep)}
+.theme-elegant .hero-split .cover-photo{position:relative;inset:auto;z-index:auto;min-width:0;min-height:560px;aspect-ratio:4/5;align-self:stretch}
+.theme-elegant .hero-split .cover-photo img{position:absolute;inset:0;width:100%;height:100%;filter:none;animation:none;transform:none}
+.theme-elegant .hero-split .cover-photo::after,.theme-elegant .hero-split .cover-content::before{display:none}
+.theme-elegant .hero-split .cover-content{min-width:0;max-width:none;align-self:center;padding:clamp(28px,4cqw,64px);color:var(--inv-ink);text-shadow:none;text-align:left}
+.theme-elegant .hero-split .cover-content .eyebrow{color:var(--wedding-accent)}
+.theme-elegant .hero-split .couple-names{font-size:clamp(36px,4.5cqw,68px);justify-content:flex-start}
+.theme-elegant .hero-split .wedding-ornament{color:var(--wedding-accent)}
+.theme-elegant .hero-split .cover-caption{letter-spacing:normal}
+@container (max-width:760px){
+ .theme-elegant .wedding-cover.hero-split{grid-template-columns:minmax(0,1fr)}
+ .theme-elegant .hero-split .cover-photo{min-height:0;aspect-ratio:4/3;max-height:560px}
+ .theme-elegant .hero-split .cover-content{padding:32px 24px 40px;text-align:center}
+ .theme-elegant .hero-split .couple-names{font-size:clamp(36px,8cqw,58px);justify-content:center}
+ .theme-elegant .hero-split .wedding-rule{margin-inline:auto}
+ .theme-elegant .hero-split .wedding-message{margin-inline:auto}
+}

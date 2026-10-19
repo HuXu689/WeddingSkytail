@@ -3,7 +3,7 @@
 > **Đây là nguồn sự thật duy nhất về kế hoạch và tiến độ triển khai.** Cập nhật ngay tại checkpoint nhỏ trong lúc làm, không đợi cuối phiên. Không tạo tài liệu kế hoạch cạnh tranh.
 > Các tài liệu `docs/01`–`docs/16` vẫn là đặc tả nghiệp vụ gốc; tài liệu này chỉ ghi **việc đang làm, đã làm, còn lại** trên code thật.
 
-**Ngày lập:** 2026-10-19 · **Phiên gần nhất:** S2 · **Người thực hiện:** agent (Cline) + Owner review.
+**Ngày lập:** 2026-10-19 · **Phiên gần nhất:** S4 · **Người thực hiện:** agent (Cline) + Owner review.
 
 ---
 
@@ -24,7 +24,7 @@ Một website thiệp cưới cho **một** đám cưới, quản lý **nhiều 
 | Đợt | Nội dung | Trạng thái tổng |
 |---|---|---|
 | **1** | Sửa lỗi tên/Unicode, sidebar, responsive, preview editor; kiểm tra mapping RSVP; design tokens nền tảng; giữ baseline nghiệp vụ | **DONE (S1)** |
-| **2** | Art direction hoàn thiện **một** mẫu chuẩn; intro/mở thiệp, hero, typography, layout section; album/lightbox; motion system; editor cho các cấu hình đã triển khai | **IN_PROGRESS** — TYPO-001 DONE (S2); ART-001 READY_FOR_REVIEW (thiếu ảnh chụp); còn INTRO-001, HERO-001, ALBUM-001, MOTION-001, EDITOR-001… |
+| **2** | Art direction hoàn thiện **một** mẫu chuẩn; intro/mở thiệp, hero, typography, layout section; album/lightbox; motion system; editor cho các cấu hình đã triển khai | **IN_PROGRESS** — TYPO-001 DONE (S2); ART-001 READY_FOR_REVIEW (thiếu ảnh chụp); INTRO-001 READY_FOR_REVIEW (S3); còn HERO-001, ALBUM-001, MOTION-001, EDITOR-001… |
 | **3** | Section tùy chọn thật sự cần: gia đình/nghi lễ, lịch trình, dress code, calendar/map; hoàn thiện sổ lời chúc; hộp quà mừng **nếu Owner đưa vào scope** | TODO |
 | **4** | Biến thể theme còn lại; regression, performance, accessibility, mobile thật; production build & Docker | TODO |
 
@@ -279,8 +279,8 @@ Trạng thái dùng đúng bộ: `TODO` · `IN_PROGRESS` · `BLOCKED` · `READY_
 | ID | P | Task | Dependencies | Điều kiện hoàn thành |
 |---|---|---|---|---|
 | ART-001 | P0 | **READY_FOR_REVIEW (S2)** — Art direction **một** mẫu chuẩn (`ELEGANT`): giấy ngà ivory, champagne tiết chế, hero bớt tối, hoạ tiết không chặn click. `--wedding-accent` **vẫn là màu Owner chọn** | UI-001, TOK-001, UI-004 | ✅ rules `.theme-elegant` + token `--inv-*` trên `.wedding-canvas`; TRADITIONAL/MODERN giữ nguyên; contract test `frontend/tests/invitation-art-direction.test.mjs` (10 test). ⚠️ **Chưa đạt tiêu chí "ảnh chụp desktop 1440 + mobile 390"** ⇒ chưa DONE, xem blocker G |
-| INTRO-001 | P0 | Màn mở thiệp/phong bì có phản hồi niêm phong; open-intent idempotent; retry mạng; reduced-motion vào ngay | ART-001 | Double-click/StrictMode không tăng lượt mở; không render nội dung riêng trước khi được cấp quyền |
-| HERO-001 | P0 | Hero ảnh–chữ tách vùng khi ảnh không có khoảng trống; crop theo focal; mobile bố cục riêng | ART-001 | Chữ không đè mặt; không phủ overlay làm mất sức sống ảnh |
+| INTRO-001 | P0 | **READY_FOR_REVIEW (S3)** — phong bì + single-flight intent + retry qua state; PIN→open→payload; backend gate trước khi bỏ qua marker đã mở | ART-001 (code đã có; ảnh chụp vẫn chờ review) | Double-click/StrictMode không tăng lượt mở; không render nội dung riêng trước khi được cấp quyền; frontend 56/56 + backend 42/42 + typecheck/build pass; chưa browser UAT |
+| HERO-001 | P0 | **READY_FOR_REVIEW (S4)** — ELEGANT có ảnh dùng split hero: hai cột rộng, ảnh trên–chữ dưới khi container ≤760px; giữ focal, không scrim trên ảnh | ART-001 (code đã có, ảnh chụp chờ review) | 5 contract test mới; frontend 61/61, typecheck/build pass; backend 42/42. Chưa browser UAT/ảnh chụp nên chưa DONE |
 | TYPO-001 | P0 | **DONE (S2)** — Hai họ font qua token (`--inv-serif` cho tên/tiêu đề, `--inv-sans` cho nội dung/form); bỏ `letter-spacing` khỏi câu tiếng Việt; nội dung chính ≥16px ở khung hẹp | TOK-001 | ✅ contract test khoá serif/sans, `letter-spacing:normal`, cỡ chữ tối thiểu; không font viết tay |
 | ALBUM-001 | P0 | Ảnh chủ đạo + nhóm phụ, lightbox có chỉ số/Esc/focus trap, mobile ảnh đủ lớn | UI-004 | Không đồng thời grid+carousel+coverflow+autoplay |
 | MOTION-001 | P0 | Ba lớp motion (chuyển cảnh chính, scroll reveal, micro-interaction), 400–700ms, 16–24px, stagger nhẹ | ART-001 | Không animate layout form khi đang thao tác; không scroll hijacking |
@@ -388,31 +388,39 @@ S2 cũng **xác minh lại Đợt 1** bằng cách chạy thật (test / typeche
 
 ---
 
+### S3 — 2026-10-19 — INTRO-001
+
+**Checkpoint triển khai:** giữ nguyên staged/unstaged S1/S2, không reset/stage/commit. Baseline frontend 51/51 pass. Đã đọc README, README-IMPLEMENTATION, handoff và luồng guest/access/PIN thật trước khi sửa.
+
+- Tách `InvitationEntry` khỏi page: phong bì chỉ có copy chung, không nhận recipient/design/event. Chỉ mount `WeddingCanvas` sau payload được backend cho phép. Route đổi id remount state riêng.
+- `open-intent.ts`: single-flight theo id, kiểm `/state` trước `/open`, không cache private payload sau request; retry lỗi POST/payload kiểm state lại. StrictMode restore chỉ GET, không tự ghi lượt mở.
+- Sửa lỗi PIN cũ: xác minh PIN → state/open → payload (trước đây xác minh xong gọi payload thẳng khi chưa có open marker).
+- `GuestService.open`: vẫn gate mỗi lần; cùng session/open marker không insert tracking lại kể cả qua bucket 10 phút. Marker đổi vẫn cần một intent mới; không thay token/QR/schema. Đây là idempotency theo marker/session hiện có, không tuyên bố exactly-once phân tán giữa nhiều session.
+- Phản hồi busy/live status, khóa đồng bộ bằng ref, bỏ qua response sau unmount/đổi id; reduced-motion bỏ transition, không delay nhân tạo, vẫn cần bấm Mở thiệp (không tự tạo consent/tracking).
+- Thêm 5 test frontend (4 test chạy logic async thật, 1 contract), 3 test backend; cập nhật test PIN theo component mới. Lượt kiểm đầu phát hiện 2 assertion cần cập nhật theo refactor/comment; typecheck đã pass. Kết quả cuối: frontend **56/56 pass**, `npm run typecheck` exit 0, `npm run build` exit 0; backend **42/42 pass**, BUILD SUCCESS; `git diff --check` sạch. Log local: `s3-frontend-test.log`, `s3-frontend-build.log`, `s3-backend-test.log` (không commit).
+- **DB thật đã kiểm tra:** Docker stack đang chạy; truy vấn Flyway xác nhận V12–V16 success=true, V16 mới nhất. Không cần migration mới, số tiếp theo vẫn V17. Container hiện dùng image cũ, chưa rebuild/deploy S3.
+
+### S4 — 2026-10-19 — HERO-001
+
+- Đã đọc handoff, code hero/CSS cascade/editor và kiểm tra working tree: HEAD `b7c8cd1`; thay đổi S3 còn nguyên, không stage/reset/commit. Baseline frontend **56/56 pass**.
+- Chỉ ELEGANT có ảnh nhận class `hero-split`. Khung rộng dùng hai vùng ảnh–chữ độc lập, container ≤760px xếp ảnh trên–chữ dưới (áp dụng cả preview điện thoại trong desktop). Không đoán khuôn mặt hay khoảng trống của ảnh.
+- Ảnh giữ `heroPosition`, `object-fit:cover`, `fetchPriority="high"`; dự trữ khung bằng aspect-ratio/min-height. Bỏ scrim, filter và zoom riêng ở split hero. Chữ đặt trên giấy ngà, không text-shadow; eyebrow dùng màu Owner chọn thay champagne nhạt trên nền sáng.
+- Không đổi API/schema/draft-publish; không sửa backend S3. TRADITIONAL/MODERN và hero không ảnh giữ bố cục cũ. Thêm 5 contract test HERO-001; vẫn cần browser UAT để xác nhận crop/focal, tên dài, viewport thực và contrast.
+- Kết quả kiểm tra cuối phiên: frontend **61/61 pass**, `npm run typecheck` sạch, production build hoàn tất (18 trang static + route dynamic); backend **42/42 pass**, BUILD SUCCESS; `git diff --check` sạch. Log local `s4-frontend-test.log`, `s4-typecheck.log`, `s4-frontend-build.log`, `s4-backend-test.log` (không commit). Không deploy/rebuild Docker và không seed dữ liệu.
+
 ## G. NEXT SESSION HANDOFF
 
 > **Luôn cập nhật mục này trước khi kết thúc / ngắt phiên.**
 
-- **Task đang làm:** Đợt 2 — `TYPO-001` **DONE (S2)**; `ART-001` **READY_FOR_REVIEW (S2)** (chờ ảnh chụp). Task kế tiếp đang mở: `INTRO-001`.
-- **Trạng thái code hiện tại:** working tree **chưa commit**, gồm (a) thay đổi T24/T25 có từ trước S1 (wishes, vai trò editor, V15, V16), (b) Đợt 1 của S1, (c) `ART-001`/`TYPO-001` của S2. Frontend build được, backend test pass. Chưa push.
-- **Việc đã xong trong task hiện tại:** TYPO-001 DONE (serif/sans qua token, `letter-spacing:normal` cho câu tiếng Việt, cỡ chữ ≥16px — tất cả đều kiểm được bằng test). ART-001 READY_FOR_REVIEW: lớp `.theme-elegant` + token `--inv-*` + 10 contract test, **nhưng chưa chụp ảnh nên chưa đạt acceptance**.
-- **Việc còn lại:** ảnh chụp desktop 1440 + mobile 390 cho ART-001; `INTRO-001`, `HERO-001`, `ALBUM-001`, `MOTION-001`, `EDITOR-001/002/003`, `MOTION-002`.
-- **File cần đọc đầu tiên ở phiên sau:** `docs/IMPLEMENTATION_PLAN.md` (file này) → mục G → mục D (Đợt 2); rồi `frontend/src/features/invitation/design.tsx` + `design.css`.
-- **Lệnh cần chạy tiếp:**
-  - `cd frontend; npm test`
-  - `cd frontend; npx tsc --noEmit`
-  - `cd frontend; npm run build`
-  - `cd backend; mvn -o test`
-  - Kiểm tra DB thật: `docker compose --env-file .env -f deploy/compose.yml exec -T db psql -U wedding -d wedding -c "SELECT version, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;"`
-- **Migration mới chưa áp dụng:** không. Cả Đợt 1 và Đợt 2 (`ART-001`/`TYPO-001`) đều **không cần migration**.
-- **1–3 bước tiếp theo cụ thể:**
-  1. Chụp ảnh xác nhận ART-001 trên dữ liệu demo (`scripts/seed-demo.ps1`) ở 1440px và 390px — cả trường hợp hero có ảnh và không ảnh; đối chiếu Q9 (tracking ở MODERN).
-  2. Làm `INTRO-001`: màn mở thiệp/phong bì cho luồng lời mời riêng — open-intent idempotent (double-click/StrictMode không tăng lượt mở), retry khi mạng lỗi, reduced-motion vào thẳng, không render nội dung riêng trước khi được cấp quyền.
-  3. Làm `HERO-001`: tách vùng ảnh–chữ khi ảnh không có khoảng trống, dùng crop theo focal đã có (`heroPosition`), bố cục mobile riêng.
-- **Blocker:**
-  - ⚠️ **Chưa có browser automation** ⇒ acceptance kiểu "ảnh chụp"/"mắt thường" (ART-001, QA-001) phải do Owner chụp; agent không tự tạo screenshot được. Đây là blocker thật đang treo cho ART-001.
-  - `GIFT-001` (hộp quà) **BLOCKED — chờ Owner quyết định scope**.
-- **Lưu ý migration/dữ liệu/compatibility:**
-  - S2 **không** sửa schema/API/backend ⇒ dữ liệu demo cũ vẫn dùng được.
-  - `V17` là số migration tiếp theo hợp lệ (Đợt 3: tên riêng + section tùy chọn).
-  - Payload khách có `event_note`; `note` luôn là lời nhắn riêng ⇒ client cũ cần tải lại payload.
-  - Không đổi token/QR khi sửa tên, ảnh, theme, địa điểm (đã giữ trong S2).
+- **Task vừa làm:** Đợt 2 — `HERO-001` **READY_FOR_REVIEW (S4)**: split hero ELEGANT, giữ focal, mobile theo container; code/test/build xong, chờ browser UAT. `INTRO-001`/`ART-001` vẫn READY_FOR_REVIEW, `TYPO-001` DONE.
+- **Working tree:** HEAD đầu S4 `b7c8cd1`; giữ nguyên toàn bộ diff S3, thêm S4 ở `design.tsx`, `design.css`, `invitation-hero.test.mjs` và tài liệu này. Agent không commit/push/stage/reset. Không nhầm thay đổi S3 là code mới của S4.
+- **Đã xác minh cuối S4:** `npm test` **61/61**; `npm run typecheck` sạch; `npm run build` hoàn tất; `mvn -o test` **42/42**; `git diff --check` sạch. DB thật kiểm ở S3: V16 mới nhất, V12–V16 success=true; S4 không chạy lại truy vấn DB. Container chạy image cũ, **chưa chứa S3/S4**; không nhầm UAT container với code workspace.
+- **Hành vi mới S4:** chỉ ELEGANT có ảnh nhận split hero. Hai vùng ảnh–chữ độc lập, container ≤760px xếp ảnh trên–chữ dưới; không scrim/filter/zoom trên ảnh. Giữ `heroPosition`, ưu tiên tải hero, màu Owner chọn; TRADITIONAL/MODERN và không ảnh giữ nguyên. S3 vẫn giữ open-intent/PIN/gate và không ghi lượt mở khi mount.
+- **File đọc đầu tiên:** tài liệu này → mục D Đợt 2 → `frontend/src/features/invitation/design.tsx`, `design.css`, `frontend/tests/invitation-hero.test.mjs`; ALBUM-001 tập trung phần album/lightbox trong `design.tsx`.
+- **1–3 bước tiếp theo:**
+  1. Owner/browser UAT ART-001 + INTRO-001 + HERO-001 ở desktop 1440, mobile 390 và preview editor: hero có/không ảnh, crop/focal, tên dài, 3 màu nhấn, 3 theme, PIN đúng/sai, double-click, mạng lỗi/retry, bàn phím, reduced-motion. Dùng code workspace hoặc rebuild image có chủ đích trước UAT. Không tự seed/ghi đè dữ liệu thật.
+  2. Task code ưu tiên tiếp theo **ALBUM-001 (P0)**, dependency UI-004 đã DONE: sửa lightbox có focus trap/khôi phục focus khi Esc, chỉ số; thống nhất ảnh chính + nhóm phụ, mobile ảnh đủ lớn. Không thêm carousel/autoplay/coverflow mới.
+  3. Sau ALBUM: MOTION-001/EDITOR-001 theo bảng D; không tự đóng các task đang chờ review ảnh chụp.
+- **Lệnh regression:** tại `frontend`: `npm test`, `npm run typecheck`, `npm run build`; tại `backend`: `mvn -o test`. DB: `docker compose --env-file .env -f deploy/compose.yml exec -T db psql -U wedding -d wedding -c "SELECT version, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;"`.
+- **Blocker/giới hạn:** chưa browser automation/ảnh chụp; HERO chỉ có contract test CSS/source, chưa đo overflow/contrast hoặc crop bằng browser thật. S3 StrictMode/remount UI và nhiều tab trên HTTP thật chưa E2E; idempotency theo session/open marker, không tuyên bố exactly-once phân tán. GIFT-001 vẫn BLOCKED chờ Owner chọn scope.
+- **Migration/compatibility:** S3/S4 không thêm migration; V17 là số tiếp theo hợp lệ. `event_note` là ghi chú sự kiện; `note` là lời nhắn riêng. Không cache private payload lâu dài, không lưu PIN/token ở localStorage. Draft/publish, RSVP version/idempotency, grants/PIN/access gate giữ nguyên.
