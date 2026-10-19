@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const css=readFileSync(new URL('../src/features/invitation/design.css',import.meta.url),'utf8');
 const component=readFileSync(new URL('../src/features/invitation/design.tsx',import.meta.url),'utf8');
-const hero=css.slice(css.indexOf('/* HERO-001:'));
+const hero=css.slice(css.indexOf('/* HERO-001:'),css.indexOf('/* ALBUM-001:')===-1?undefined:css.indexOf('/* ALBUM-001:'));
 const rule=selector=>{
  const start=hero.indexOf(`${selector}{`);
  assert.notEqual(start,-1,`Missing ${selector}`);

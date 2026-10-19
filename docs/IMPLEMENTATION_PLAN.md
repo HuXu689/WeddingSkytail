@@ -3,7 +3,7 @@
 > **Đây là nguồn sự thật duy nhất về kế hoạch và tiến độ triển khai.** Cập nhật ngay tại checkpoint nhỏ trong lúc làm, không đợi cuối phiên. Không tạo tài liệu kế hoạch cạnh tranh.
 > Các tài liệu `docs/01`–`docs/16` vẫn là đặc tả nghiệp vụ gốc; tài liệu này chỉ ghi **việc đang làm, đã làm, còn lại** trên code thật.
 
-**Ngày lập:** 2026-10-19 · **Phiên gần nhất:** S4 · **Người thực hiện:** agent (Cline) + Owner review.
+**Ngày lập:** 2026-10-19 · **Phiên gần nhất:** S12 (unsaved navigation guard + countdown independence) · **Người thực hiện:** agent (Cline) + Owner review.
 
 ---
 
@@ -24,7 +24,7 @@ Một website thiệp cưới cho **một** đám cưới, quản lý **nhiều 
 | Đợt | Nội dung | Trạng thái tổng |
 |---|---|---|
 | **1** | Sửa lỗi tên/Unicode, sidebar, responsive, preview editor; kiểm tra mapping RSVP; design tokens nền tảng; giữ baseline nghiệp vụ | **DONE (S1)** |
-| **2** | Art direction hoàn thiện **một** mẫu chuẩn; intro/mở thiệp, hero, typography, layout section; album/lightbox; motion system; editor cho các cấu hình đã triển khai | **IN_PROGRESS** — TYPO-001 DONE (S2); ART-001 READY_FOR_REVIEW (thiếu ảnh chụp); INTRO-001 READY_FOR_REVIEW (S3); còn HERO-001, ALBUM-001, MOTION-001, EDITOR-001… |
+| **2** | Art direction hoàn thiện **một** mẫu chuẩn; intro/mở thiệp, hero, typography, layout section; album/lightbox; motion system; editor cho các cấu hình đã triển khai | **IN_PROGRESS** — TYPO-001 DONE (S2); ART-001 READY_FOR_REVIEW (thiếu ảnh chụp); INTRO-001 READY_FOR_REVIEW (S3); HERO/ALBUM/MOTION-001 READY_FOR_REVIEW; S7 triển khai editor/sections + HTTP/browser QA, chưa nghiệm thu toàn bộ |
 | **3** | Section tùy chọn thật sự cần: gia đình/nghi lễ, lịch trình, dress code, calendar/map; hoàn thiện sổ lời chúc; hộp quà mừng **nếu Owner đưa vào scope** | TODO |
 | **4** | Biến thể theme còn lại; regression, performance, accessibility, mobile thật; production build & Docker | TODO |
 
@@ -282,35 +282,35 @@ Trạng thái dùng đúng bộ: `TODO` · `IN_PROGRESS` · `BLOCKED` · `READY_
 | INTRO-001 | P0 | **READY_FOR_REVIEW (S3)** — phong bì + single-flight intent + retry qua state; PIN→open→payload; backend gate trước khi bỏ qua marker đã mở | ART-001 (code đã có; ảnh chụp vẫn chờ review) | Double-click/StrictMode không tăng lượt mở; không render nội dung riêng trước khi được cấp quyền; frontend 56/56 + backend 42/42 + typecheck/build pass; chưa browser UAT |
 | HERO-001 | P0 | **READY_FOR_REVIEW (S4)** — ELEGANT có ảnh dùng split hero: hai cột rộng, ảnh trên–chữ dưới khi container ≤760px; giữ focal, không scrim trên ảnh | ART-001 (code đã có, ảnh chụp chờ review) | 5 contract test mới; frontend 61/61, typecheck/build pass; backend 42/42. Chưa browser UAT/ảnh chụp nên chưa DONE |
 | TYPO-001 | P0 | **DONE (S2)** — Hai họ font qua token (`--inv-serif` cho tên/tiêu đề, `--inv-sans` cho nội dung/form); bỏ `letter-spacing` khỏi câu tiếng Việt; nội dung chính ≥16px ở khung hẹp | TOK-001 | ✅ contract test khoá serif/sans, `letter-spacing:normal`, cỡ chữ tối thiểu; không font viết tay |
-| ALBUM-001 | P0 | Ảnh chủ đạo + nhóm phụ, lightbox có chỉ số/Esc/focus trap, mobile ảnh đủ lớn | UI-004 | Không đồng thời grid+carousel+coverflow+autoplay |
-| MOTION-001 | P0 | Ba lớp motion (chuyển cảnh chính, scroll reveal, micro-interaction), 400–700ms, 16–24px, stagger nhẹ | ART-001 | Không animate layout form khi đang thao tác; không scroll hijacking |
-| EDITOR-001 | P0 | Nhóm chỉnh sửa 1–13, preview ngay, "quay về mặc định" không xoá dữ liệu thật | UI-003 | Owner không thể vô tình làm mất đường tới thông tin buổi tiệc/RSVP |
-| EDITOR-002 | P1 | Mobile editor: chuyển "Chỉnh sửa / Xem trước"; mở preview riêng ở tab | EDITOR-001 | Không ép editor hai cột trên mobile |
-| EDITOR-003 | P1 | Bật/tắt + đổi thứ tự section trong giới hạn; `templateVersion`/`contentSchemaVersion`; backend validate cấu hình | EDITOR-001 | Không cho nhập JS/CSS/HTML tuỳ ý; backend từ chối cấu hình sai |
-| MOTION-002 | P1 | Chế độ trang trí sinh động chỉ ở intro; dừng khi tab ẩn; tắt theo reduced-motion | MOTION-001 | Không che chữ, không chặn click, không hàng trăm phần tử |
+| ALBUM-001 | P0 | **READY_FOR_REVIEW (S5)** — tách WeddingAlbum; ảnh chính + tối đa 4 ảnh phụ không trùng; native modal dialog/portal, focus restore, chỉ số và bàn phím | UI-004 | Frontend 66/66, typecheck/build pass; backend 42/42; chưa browser UAT; không carousel/dots/autoplay thứ hai |
+| MOTION-001 | P0 | **READY_FOR_REVIEW (S6)** — 650ms chuyển cảnh/reveal, 20px, stagger 40/80ms, micro-interaction 400ms; observer bỏ qua form/focus, nghe reduced-motion | ART-001 (code có, visual review treo) | Frontend 71/71, typecheck/build pass, backend 42/42; chưa browser UAT; không scroll hijacking, nội dung mặc định hiển thị |
+| EDITOR-001 | P0 | **IN_PROGRESS (S7)** — nhóm cấu hình hiện có, reset mẫu/màu an toàn, đường tới media/events; còn nhóm 1–13 đầy đủ và chặn điều hướng nội bộ tổng quát | UI-003 | Owner không thể vô tình làm mất đường tới thông tin buổi tiệc/RSVP |
+| EDITOR-002 | P1 | **READY_FOR_REVIEW (S7)** — mobile edit/preview không unmount state; cửa sổ riêng live draft, fallback popup bị chặn; browser mobile panel pass, popup chưa E2E | EDITOR-001 | Không ép editor hai cột trên mobile |
+| EDITOR-003 | P1 | **READY_FOR_REVIEW (S8)** — V17/V19 optional và core layout reorder/toggle, version/snapshot, live preview; events/RSVP cố định | EDITOR-001 | Không cho nhập JS/CSS/HTML tuỳ ý; backend từ chối cấu hình sai |
+| MOTION-002 | P1 | **READY_FOR_REVIEW (S7)** — intro opt-in 3 phần tử, pause tab hidden, reduced-motion ẩn; contract pass, chưa browser visibility E2E | MOTION-001 | Không che chữ, không chặn click, không hàng trăm phần tử |
 
 ### Đợt 3 — danh sách task (chưa triển khai)
 
 | ID | P | Task | Dependencies | Điều kiện hoàn thành |
 |---|---|---|---|---|
-| SEC-001 | P1 | Giới thiệu hai bạn / gia đình (public/private rõ, không bịa tên bố mẹ) | EDITOR-003, `V17+` | Owner chủ động nhập mới hiển thị; quyền rõ ràng |
-| SEC-002 | P1 | Nghi lễ riêng (chỉ khi dữ liệu thật sự khác buổi tiệc; không nhân đôi sự kiện) | `V17+` | Không tự tạo sự kiện thứ hai từ một sự kiện |
-| SEC-003 | P1 | Lịch trình có cấu trúc (thời điểm/tiêu đề/mô tả), timeline desktop + mobile | `V17+` | Không lấy lịch trình từ mẫu tham khảo; giờ không trùng nhau vô lý |
-| SEC-004 | P2 | Dress code: mẫu màu + **tên màu bằng chữ** + hướng dẫn ngắn | `V17+` | Không ép khách hiểu chỉ bằng màu |
-| SEC-005 | P2 | Mini calendar/URL map embed: chỉ tải khi cần, kiểm soát nguồn, không SSRF | ART-001 | Không tạo arbitrary URL fetch/proxy; không API key bí mật ở frontend |
-| WISH-001 | P1 | Sổ lời chúc hoàn thiện: form gọn, trạng thái theo quyền, danh sách công khai chỉ đã duyệt | Đợt 2 | Không danh sách dài cuộn lồng khó dùng trên mobile |
+| SEC-001 | P1 | **READY_FOR_REVIEW (S7)** — INTRO/FAMILY nhập chủ động, default PRIVATE/tắt; HTTP public/private isolation pass | EDITOR-003, `V17+` | Owner chủ động nhập mới hiển thị; quyền rõ ràng |
+| SEC-002 | P1 | **READY_FOR_REVIEW (S7)** — CEREMONY riêng không tạo event/assignment; mặc định tắt, văn bản Owner nhập | `V17+` | Không tự tạo sự kiện thứ hai từ một sự kiện |
+| SEC-003 | P1 | **READY_FOR_REVIEW (S7)** — TIMELINE thời điểm/tiêu đề/mô tả, validation thời điểm + chống trùng đang bật; thứ tự Owner điều chỉnh | `V17+` | Không lấy lịch trình từ mẫu tham khảo; giờ không trùng nhau vô lý |
+| SEC-004 | P2 | **READY_FOR_REVIEW (S7)** — DRESS_CODE swatch + nội dung tên màu, validation hex và nội dung | `V17+` | Không ép khách hiểu chỉ bằng màu |
+| SEC-005 | P2 | **READY_FOR_REVIEW (S7)** — mini calendar + Google Maps link theo địa chỉ, chỉ mount khi mở details; không iframe/fetch/proxy | ART-001 | Không tạo arbitrary URL fetch/proxy; không API key bí mật ở frontend |
+| WISH-001 | P1 | **READY_FOR_REVIEW (S7)** — danh sách 6 mục/xem thêm, lỗi tải mine rõ ràng; thiệp chung render chỉ wishes backend đã duyệt | Đợt 2 | Không danh sách dài cuộn lồng khó dùng trên mobile |
 | GIFT-001 | P2 | **BLOCKED — chờ Owner quyết định scope.** Hộp quà mừng: modal copy/lưu QR, preview + xác nhận trước publish, không vào OG | Owner chốt | QR mừng cưới ≠ QR lời mời; Owner tự kiểm tra người thụ hưởng; mặc định tắt |
 
 ### Đợt 4 — danh sách task (chưa triển khai)
 
 | ID | P | Task | Dependencies | Điều kiện hoàn thành |
 |---|---|---|---|---|
-| THEME-001 | P1 | Hoàn thiện biến thể theme còn lại (burgundy/ivory/champagne presets) | ART-001 | Không tự đổi mẫu đang phát hành của Owner |
-| TOK-002 | P2 | Di trú toàn bộ CSS cũ sang tokens; xoá giá trị rải rác | Đợt 3 | Không đổi màu đang phát hành |
-| QA-001 | P0 | Ma trận regression: 360/390/tablet/1440, tên dài, ít/nhiều ảnh, 1/2 buổi, hero sáng/tối, keyboard, reduced-motion | Đợt 2–3 | Không cuộn ngang; contrast đạt; focus rõ |
-| PERF-001 | P1 | Đo performance ở cấu hình ghi rõ (số ảnh, KB font, motion level) | Đợt 2 | Chỉ hero ưu tiên tải; lazy phần dưới; không tải ảnh gốc độ phân giải cao |
-| A11Y-001 | P1 | Focus trap modal/lightbox, trả focus về nút mở, safe-area, sticky CTA không che form | Đợt 2 | Esc đóng; tab không thoát ra ngoài |
-| OPS-001 | P0 | Production build + Docker compose kiểm tra; smoke script chạy qua | Đợt 3 | Không secrets trong image; chỉ 80/443 |
+| THEME-001 | P1 | **IN_PROGRESS (S7)** — ba theme/12 viewport Chrome pass overflow; sửa tên dài, không tự đổi thiết kế Owner; palette art direction còn cần review | ART-001 | Không tự đổi mẫu đang phát hành của Owner |
+| TOK-002 | P2 | **IN_PROGRESS (S10)** — 138 màu hex cũ ở 3 stylesheet chuyển về compatibility palette, giữ nguyên giá trị alpha/màu; không alias màu trạng thái sang brand | Đợt 3 | Test migration + resolved art contracts pass; đang build/browser regression. Font/spacing/radius cũ chưa di trú toàn bộ |
+| QA-001 | P0 | **IN_PROGRESS (S7)** — Chrome headless 3 theme × 360/390/768/1440, album 0–5, focus/modal/reduced-motion/mobile panel; thiếu private browser E2E/PIN và contrast | Đợt 2–3 | Không cuộn ngang; contrast đạt; focus rõ |
+| PERF-001 | P1 | **IN_PROGRESS (S7)** — report local Chrome resource timing/bytes, 5 bitmap QA, system fonts; upload mới bound 2400px; ảnh cũ chưa resize, chưa mạng mobile/LCP/CLS chuẩn | Đợt 2 | Chỉ hero ưu tiên tải; lazy phần dưới; không tải ảnh gốc độ phân giải cao |
+| A11Y-001 | P1 | **IN_PROGRESS (S7)** — browser Tab/Esc/modal restore pass sau explicit trap; safe-area; chưa screen reader/iOS/contrast matrix | Đợt 2 | Esc đóng; tab không thoát ra ngoài |
+| OPS-001 | P0 | **IN_PROGRESS (S7)** — build/QA Compose + V17/V18 + smoke và 6 HTTP suites pass; production Owner chưa deploy, chỉ QA loopback 8099 | Đợt 3 | Không secrets trong image; chỉ 80/443 |
 
 ---
 
@@ -408,19 +408,115 @@ S2 cũng **xác minh lại Đợt 1** bằng cách chạy thật (test / typeche
 - Không đổi API/schema/draft-publish; không sửa backend S3. TRADITIONAL/MODERN và hero không ảnh giữ bố cục cũ. Thêm 5 contract test HERO-001; vẫn cần browser UAT để xác nhận crop/focal, tên dài, viewport thực và contrast.
 - Kết quả kiểm tra cuối phiên: frontend **61/61 pass**, `npm run typecheck` sạch, production build hoàn tất (18 trang static + route dynamic); backend **42/42 pass**, BUILD SUCCESS; `git diff --check` sạch. Log local `s4-frontend-test.log`, `s4-typecheck.log`, `s4-frontend-build.log`, `s4-backend-test.log` (không commit). Không deploy/rebuild Docker và không seed dữ liệu.
 
+### S5 — 2026-10-19 — ALBUM-001
+
+- Working tree đầu phiên: S3/S4 đã được stage bên ngoài agent, HEAD vẫn `b7c8cd1`; giữ nguyên index, không reset/stage/commit. Đọc code/CSS/editor/handoff trước sửa.
+- Tách `WeddingAlbum` và helper thuần `album-window.ts`: một ảnh chính, tối đa 4 ảnh phụ không lặp ảnh chính; bỏ dot carousel, giữ nút đổi ảnh chính và chỉ số. Mobile không giấu ảnh phụ; khung ảnh chính ≥280px, ảnh phụ 160px.
+- Lightbox dùng `<dialog>.showModal()` để browser giữ focus và làm nền inert. Portal lên body tránh container/transform/overflow của preview cắt lightbox. Esc, nút đóng và click nền dùng cùng luồng đóng; cleanup khôi phục focus opener + overflow. Mũi tên trái/phải, chỉ số live, nút ≥44px; một ảnh không có nút chuyển thừa.
+- Không dependency mới/API/migration; helper có test chạy logic thật cho wrap-around và album 0–30 ảnh. Focus trap/native inert vẫn cần browser UAT, không tuyên bố contract test là E2E.
+- Kiểm thử cuối phiên: frontend **66/66 pass**, typecheck exit 0, production build exit 0; backend **42/42 pass**, BUILD SUCCESS; `git diff --check` sạch. Lượt đầu phát hiện test HERO quét nhầm cả CSS mới phía sau (regex `order:` khớp `border:`), đã giới hạn đúng phạm vi HERO; không đổi acceptance HERO. Log local `s5-frontend-test.log`, `s5-typecheck.log`, `s5-frontend-build.log`, `s5-backend-test.log`.
+
+### S6 — 2026-10-19 — MOTION-001
+
+- Đầu phiên HEAD `ddb7965`, S5 đang staged từ ngoài agent; giữ nguyên index, không stage/reset/commit. Đã đọc handoff/code/CSS và chạy regression sau checkpoint đầu: 66/66 pass (không gọi đây là baseline trước sửa).
+- Tách `observeInvitation`: chỉ reveal vùng không chứa/nằm trong form; không animate vùng đang focus. Một lần mỗi phần tử; disconnect/unsubscribe khi cleanup, hỗ trợ đổi reduced-motion ngay trong phiên. Thiếu matchMedia/IntersectionObserver hoặc observer lỗi: bỏ hiệu ứng, không giấu nội dung.
+- Chuyển cảnh/reveal dùng 650ms, 20px; hero cũ 1.4s giảm về 650ms; stagger nhẹ 40/80ms ở chữ cover. Micro-interaction màu/shadow 400ms, không translate form/nút. CSS chặn animation vùng focus/form; reduced-motion bỏ zoom hover album.
+- Thêm 5 test motion, 4 test chạy helper observer bằng fake environment (không phải browser E2E); chưa nghiệm thu motion bằng mắt/browser.
+- Kết quả cuối: frontend **71/71 pass**, typecheck exit 0, production build exit 0; backend **42/42 pass**, BUILD SUCCESS; `git diff --check` sạch. Log local `s6-frontend-test.log`, `s6-typecheck.log`, `s6-frontend-build.log`, `s6-backend-test.log`. Không rebuild/deploy Docker, không seed DB.
+
+### S7 — checkpoint triển khai nhiều task
+
+- Owner yêu cầu tiếp tục tất cả task đủ điều kiện, không dừng ở từng task. Giữ nguyên staged/unstaged S5/S6, không stage/reset/commit.
+- EDITOR-001/002: reset chỉ mẫu/màu (giữ nội dung/media), mobile edit/preview không unmount state, cửa sổ preview riêng dùng portal không lưu storage/token, chỉ dẫn ảnh/buổi/RSVP. **Chưa đạt toàn bộ nhóm 1–13**: các nhóm chưa có spec/config vẫn không tạo nút giả.
+- EDITOR-003 + SEC-001/002/003/004: migration mới **V17** bảng section DRAFT/PUBLISHED, schema/template version 1; list allowlist kiểu/audience, 20 mục, timestamp timeline không trùng khi bật, color hex. Section mới PRIVATE/tắt; reorder/bật/tắt không xóa dữ liệu; cấm che events/RSVP. Publish sao chép snapshot trong transaction; public query chỉ PUBLIC+enabled, private vẫn qua gate.
+- SEC-005: lịch ngày tiệc + link Google Maps user-initiated, không iframe/proxy/arbitrary fetch. WISH-001: xem thêm từng 6 lời chúc, lỗi tải “của bạn” không bị giả thành danh sách rỗng.
+- MOTION-002: trang trí intro opt-in 3 phần tử, pause khi tab ẩn, reduced-motion ẩn. A11Y: safe-area lightbox; portal modal dùng đúng ownerDocument khi ở cửa sổ preview.
+- PERF bước nền: ảnh upload mới resize chiều dài lớn nhất 2400px, không upscale, flatten PNG alpha nền trắng trước JPEG. **Ảnh cũ chưa tự di trú, chưa benchmark browser/perf**.
+- Checkpoint đầu: frontend 73/73, build/typecheck pass; backend 46/46. Docker build backend/frontend thành công; **chưa restart stack Owner**, chưa áp V17 vào DB đang chạy. Tiếp theo kiểm thử stack QA riêng, không chạy smoke có ghi dữ liệu trên stack Owner.
+
+### S8 — checkpoint bố cục lõi và browser flows
+
+- Giữ nguyên index/diff S5–S7, HEAD đầu phiên `ddb7965`. Thêm **V19** `wedding_layout`: sáu phần MUSIC/COUNTDOWN/STORY/CONTENT/ALBUM/THANKS, order + enabled, snapshot DRAFT/PUBLISHED; allowlist + complete unique set, version 1 và conflict. Không có EVENTS/RSVP trong cấu hình; bìa/events cố định.
+- `LayoutEditor` load/save/reorder/toggle/reset không xóa nội dung/media; khóa chéo 3 editor khi dirty để tránh reload mất form. `WeddingCanvas` dùng layout với fallback payload cũ. Lưu nháp/publish tách biệt.
+- Frontend **79/79**, backend **56/56**, typecheck/build/Docker build pass. QA V19 migrate thành công; `verify-layout.ps1` pass nháp isolation, 409, publish order/hide, validation chặn EVENTS. Lượt đầu script restore serialize PS object sai, đã đổi sang hashtable và chạy lại pass; không phải lỗi endpoint.
+- Chrome CDP pass 12 viewport/theme, gallery 0–5, Tab/Shift+Tab/Esc/1 ảnh, mobile editor, private open, **gửi RSVP thật và PIN sai/đúng**; private canvas không render trước PIN.
+- Tiếp tục kiểm performance/contrast và nhóm điều khiển; không đánh dấu toàn bộ backlog DONE.
+
+### S9 — checkpoint preview và contrast
+
+- Working tree S5–S8 còn nguyên, HEAD đầu phiên `ddb7965`; không stage/reset/commit. Không migration mới/API/schema/backend change.
+- EDITOR-002: `window.open` chuyển khỏi effect vào click handler để giữ user activation; popup lifecycle theo Window prop, phát hiện đóng bên ngoài, cleanup timer/style host, hoãn close/cancel close để StrictMode không đóng popup giả. Lỗi popup bị chặn hiện rõ ở editor.
+- Browser CDP mới: popup thật mở/render canvas, đóng từ ngoài trả lại nút mở, giả lập blocked popup có thông báo. Phần screenshot cần bringToFront khi target nền sau popup; đã sửa harness.
+- Contrast audit conservative chỉ đo opaque solid background; bỏ qua ảnh/gradient/transparency/opacity, không tuyên bố WCAG đầy đủ. Phát hiện tagline footer 3.65–3.79:1 và số ảnh TRADITIONAL 4.43:1; đổi sang token text-secondary, tagline 13px. Audit sẽ fail script nếu có lỗi trong phạm vi đo.
+- Test checkpoint: frontend83/83, typecheck/build Docker pass; backend56/56. Regression cuối pass: frontend **83/83**, typecheck/build exit0, backend **56/56**; Docker frontend build/QA recreate pass; browser cuối exit0. Contrast sampled: ELEGANT16/TRADITIONAL11/MODERN11, **0 failures**, bỏ qua lần lượt1/6/6 mẫu (ảnh/gradient/opacity). Không chứng nhận WCAG đầy đủ.
+
+### S10 — checkpoint TOK-002
+
+- Đọc backlog/handoff/code trước sửa, HEAD `ddb7965`, giữ nguyên staged/unstaged trước đó. Không stage/reset/commit.
+- `color-tokens.css` gom 138 giá trị hex compatibility; ba stylesheet globals/admin/invitation thay literal trong declaration bằng var, giữ nguyên custom-property declaration và giá trị màu/alpha. Không đổi màu published hay alias legacy status vào brand. Palette load trước globals; popup copy stylesheet nhận palette tự động.
+- Thêm script migration chạy một lần (từ chối overwrite khi đã migrate), test cấm hex trong declaration component và kiểm resolved token; art contract cũ kiểm resolved value thay spelling token.
+- TOK-002 chưa toàn bộ DONE: font/spacing/radius cũ và màu rgba/named vẫn còn. Không biến 138 màu thành một palette mới làm đổi giao diện Owner.
+- Kết quả cuối frontend **86/86**, typecheck/build pass; backend **56/56**; Docker frontend rebuild/QA recreate pass. Browser regression S9 pass; thêm 9 theme×accent trên390px: không overflow, 12 contrast cases/152 mẫu nền đặc/0 lỗi. Ảnh và báo cáo trong `.qa-artifacts/`, không sửa mẫu đang phát hành trên stack Owner.
+
+### S11 — checkpoint token và editor safety
+
+- Working tree/HEAD `ddb7965` giữ nguyên staged/unstaged; không stage/reset/commit. Không backend/migration mới.
+- Migrate 19 giá trị rgb/rgba/named (white/black/transparent) vào compatibility paint tokens, giữ nguyên giá trị; không ghi đè palette hex S10. Script mở rộng idempotent, helper resolved-color và test chống literal được cập nhật.
+- Editor trước đây biến lỗi GET media thành thư viện rỗng; nay báo lỗi riêng, giữ musicId đã chọn, khóa danh sách khi chưa load, có nút retry. Không tự bỏ nhạc hoặc giả trạng thái “chưa có tệp”.
+- TOK-002 vẫn chưa toàn bộ DONE: spacing/typography/radius legacy còn chưa di trú. Regression cuối frontend **87/87**, typecheck/build pass, backend **56/56**, Docker frontend rebuild/QA recreate và Chrome QA pass. Browser thêm fake media-network failure→alert/selector locked→retry→selector restored; contrast12 cases/152 samples/0 failures.
+
+### S12 — bảo vệ bản nháp khi điều hướng
+
+- Giữ nguyên staged/unstaged của Owner, HEAD `ddb7965`; không stage/reset/commit/push, không schema/backend/migration mới.
+- Ba editor dùng chung `useUnsavedChanges`: capture link click, native beforeunload, cancelable Navigation API traversal cho Back/Forward. Không sửa Next history state, không thêm sentinel/history loop; giữ modified-click/new-tab/download và anchor cùng trang.
+- Browser QA fixture dùng điều hướng nội bộ Next từ dashboard sang editor: nhập tên chưa lưu → Back/hủy giữ đúng tên và route; Back/đồng ý quay dashboard; quay lại editor xác nhận tên chưa lưu không bị ghi máy chủ. Chrome test pass. Browser thiếu Navigation API vẫn có click/unload guard, **chưa bảo đảm chặn same-document Back trên browser cũ**.
+- Countdown tách khỏi nhánh tải audio: lỗi media không khóa công tắc countdown. Fake media failure/retry browser test kiểm luôn checkbox countdown khả dụng.
+- Harness thêm timeout30s mỗi CDP request và xử lý beforeunload dialog; lượt đầu bị treo do native unload và fixture cross-document, đã đóng riêng Chrome QA qua DevTools, sửa fixture sang Next internal navigation và chạy lại pass. Không đóng browser Owner.
+- Kết quả cuối: frontend **89/89**, typecheck/build exit0; backend **56/56**, BUILD SUCCESS; diff check sạch. Docker frontend build/QA recreate trong S12 pass; `s12-browser-resume.log` xác nhận browser regression pass (gồm Back cancel/accept, media retry/countdown, popup, modal, PIN/RSVP, presets/contrast). Không deploy stack Owner.
+
 ## G. NEXT SESSION HANDOFF
 
-> **Luôn cập nhật mục này trước khi kết thúc / ngắt phiên.**
+> **S12 mới nhất**: unsaved navigation guard + countdown independence; chưa tất cả task DONE. Giữ nguyên staged/unstaged hiện có, không stage/reset/commit/push.
 
-- **Task vừa làm:** Đợt 2 — `HERO-001` **READY_FOR_REVIEW (S4)**: split hero ELEGANT, giữ focal, mobile theo container; code/test/build xong, chờ browser UAT. `INTRO-001`/`ART-001` vẫn READY_FOR_REVIEW, `TYPO-001` DONE.
-- **Working tree:** HEAD đầu S4 `b7c8cd1`; giữ nguyên toàn bộ diff S3, thêm S4 ở `design.tsx`, `design.css`, `invitation-hero.test.mjs` và tài liệu này. Agent không commit/push/stage/reset. Không nhầm thay đổi S3 là code mới của S4.
-- **Đã xác minh cuối S4:** `npm test` **61/61**; `npm run typecheck` sạch; `npm run build` hoàn tất; `mvn -o test` **42/42**; `git diff --check` sạch. DB thật kiểm ở S3: V16 mới nhất, V12–V16 success=true; S4 không chạy lại truy vấn DB. Container chạy image cũ, **chưa chứa S3/S4**; không nhầm UAT container với code workspace.
-- **Hành vi mới S4:** chỉ ELEGANT có ảnh nhận split hero. Hai vùng ảnh–chữ độc lập, container ≤760px xếp ảnh trên–chữ dưới; không scrim/filter/zoom trên ảnh. Giữ `heroPosition`, ưu tiên tải hero, màu Owner chọn; TRADITIONAL/MODERN và không ảnh giữ nguyên. S3 vẫn giữ open-intent/PIN/gate và không ghi lượt mở khi mount.
-- **File đọc đầu tiên:** tài liệu này → mục D Đợt 2 → `frontend/src/features/invitation/design.tsx`, `design.css`, `frontend/tests/invitation-hero.test.mjs`; ALBUM-001 tập trung phần album/lightbox trong `design.tsx`.
-- **1–3 bước tiếp theo:**
-  1. Owner/browser UAT ART-001 + INTRO-001 + HERO-001 ở desktop 1440, mobile 390 và preview editor: hero có/không ảnh, crop/focal, tên dài, 3 màu nhấn, 3 theme, PIN đúng/sai, double-click, mạng lỗi/retry, bàn phím, reduced-motion. Dùng code workspace hoặc rebuild image có chủ đích trước UAT. Không tự seed/ghi đè dữ liệu thật.
-  2. Task code ưu tiên tiếp theo **ALBUM-001 (P0)**, dependency UI-004 đã DONE: sửa lightbox có focus trap/khôi phục focus khi Esc, chỉ số; thống nhất ảnh chính + nhóm phụ, mobile ảnh đủ lớn. Không thêm carousel/autoplay/coverflow mới.
-  3. Sau ALBUM: MOTION-001/EDITOR-001 theo bảng D; không tự đóng các task đang chờ review ảnh chụp.
-- **Lệnh regression:** tại `frontend`: `npm test`, `npm run typecheck`, `npm run build`; tại `backend`: `mvn -o test`. DB: `docker compose --env-file .env -f deploy/compose.yml exec -T db psql -U wedding -d wedding -c "SELECT version, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;"`.
-- **Blocker/giới hạn:** chưa browser automation/ảnh chụp; HERO chỉ có contract test CSS/source, chưa đo overflow/contrast hoặc crop bằng browser thật. S3 StrictMode/remount UI và nhiều tab trên HTTP thật chưa E2E; idempotency theo session/open marker, không tuyên bố exactly-once phân tán. GIFT-001 vẫn BLOCKED chờ Owner chọn scope.
-- **Migration/compatibility:** S3/S4 không thêm migration; V17 là số tiếp theo hợp lệ. `event_note` là ghi chú sự kiện; `note` là lời nhắn riêng. Không cache private payload lâu dài, không lưu PIN/token ở localStorage. Draft/publish, RSVP version/idempotency, grants/PIN/access gate giữ nguyên.
+- **S12 tiếp nối sau ngắt phiên:** `use-unsaved-changes.ts` dùng chung ba editor, 2 contract tests mới; browser Chrome cancel/accept Back qua Next internal navigation và xác nhận nháp không persisted pass. Countdown chỉnh được khi media load lỗi. `scripts/browser-qa.mjs` timeout CDP + native beforeunload handling, fixture điều hướng nội bộ; kết quả cuối frontend89/89/typecheck/build, backend56/56, browser pass ở `s12-browser-resume.log`. Không schema/migration mới, QA V19, DB Owner giữ nguyên.
+- **File đọc đầu phiên sau:** tài liệu này → `use-unsaved-changes.ts`, ba editor và `scripts/browser-qa.mjs`. Back guard Chrome đã E2E; còn browser không Navigation API, dev StrictMode popup, nhóm1–13, spacing/font/radius token, ảnh thật/thiết bị thật và production. Không lặp lại đánh giá Back là chưa kiểm ở Chrome.
+
+- **S11 mới nhất:** HEAD đầu phiên `ddb7965`, index/working tree cũ giữ nguyên, không stage/reset/commit/push. Thêm `scripts/tokenize-css-colors.mjs` mở rộng palette19 rgb/rgba/named colors (không overwrite138 hex cũ), helper/test token cập nhật. Script idempotent. Không schema/API/migration mới.
+- **Editor S11:** lỗi GET media không còn thành audio=[] giả, musicId giữ nguyên, selector chưa tải bị khóa + alert/retry. Browser harness fake fetch rejection, xác nhận alert/không selector rỗng và retry khôi phục selector. Khối countdown vẫn nằm trong nhánh audio đã load (còn có thể tách để chỉnh countdown độc lập khi lỗi media).
+- **Kiểm chứng cuối S11:** frontend87/87, typecheck/build exit0; backend56/56 BUILD SUCCESS; Docker frontend/QA recreate; browser QA gồm9 theme/accent,12 viewport/theme, popup, modal, PIN/RSVP/media-retry pass. Contrast152 samples0 failures; ảnh/gradient/state phức tạp chưa chứng nhận. Log `s11-*`, artifacts gitignored. Không nâng DB Owner, QA vẫnV19.
+- **S10 mới nhất:** HEAD đầu phiên `ddb7965`, staged/unstaged cũ giữ nguyên; không stage/reset/commit/push. Thêm `color-tokens.css`, import đầu root layout; chuyển 138 màu hex ở globals/admin/design CSS sang compatibility vars giữ nguyên giá trị. Không alias status sang brand. Script `scripts/tokenize-css.mjs` chỉ chạy một lần, không chạy lại để ghi đè palette. Art tests resolve token qua helper; thêm 3 migration tests.
+- **Kết quả S10:** frontend86/86, typecheck/build pass; backend56/56; Docker frontend rebuild+QA recreate; Chrome regression S9 pass. Thêm matrix9 theme×accent390px + contrast12 cases/152 samples nền đặc/0 failures. Chữ trên ảnh/gradient/transparency vẫn skipped, không chứng nhận WCAG. Script tiếp tục sửa/phát hành chỉ QA8099, không Owner8088.
+- **TOK-002 vẫn IN_PROGRESS:** xong hex declarations; rgb/named colors đã chuyển S11; typography/spacing/radius cũ chưa toàn bộ chuyển token. Giữ compatibility palette để không thay màu đang phát hành; không hợp nhất bừa các màu gần nhau. Theme presets có ảnh screenshot tại `.qa-artifacts/preset-*.png`, cần Owner review ảnh thật, không tự đổi design Owner.
+- **S9 mới nhất:** HEAD vẫn `ddb7965`, giữ nguyên staged/unstaged cũ. Thay đổi `preview.tsx`, `design-editor.tsx`, `design.css`, QA harness; thêm `preview-window.test.mjs`, `contrast-audit.test.mjs`, `scripts/contrast-audit.mjs`. Không backend/schema/migration mới. Agent không stage/reset/commit/push.
+- **Kết quả S9:** frontend83/83, typecheck/build pass; backend56/56; Docker frontend rebuild + QA recreate; browser QA pass gồm popup mở/render/đóng ngoài/blocked fallback và toàn bộ regression S8. Contrast solid opaque samples38:0 failures,13 skipped (ảnh/gradient/opacity); fix tagline footer + số ảnh TRADITIONAL sang text-secondary. Artifacts `.qa-artifacts/contrast.json`, `s9-browser.log`, các log `s9-*`.
+- **Harness S9:** chờ cả frontend/backend ready; bringToFront trước screenshot sau popup để tránh viewport0. Popup mở trực tiếp trong click (không effect), close poll/timer cleanup và StrictMode close cancellation. Chưa E2E popup trong dev StrictMode/in-app browser.
+- HEAD đầu S8 `ddb7965`; code mới: V19/layout service/controller/editor/helper/tests, canvas render theo layout, browser QA PIN/RSVP/performance và fix loading CLS.
+- V19 thêm sáu phần MUSIC/COUNTDOWN/STORY/CONTENT/ALBUM/THANKS có thứ tự và enabled, snapshot DRAFT/PUBLISHED. Backend bắt đủ/duy nhất/allowlist/version; không cho cấu hình EVENTS/RSVP. Payload cũ fallback default. Layout editor preview cùng WeddingCanvas, reset không xóa nội dung/media; khóa chéo ba editor khi dirty.
+- Migration V17/V18/V19 chỉ áp QA, không nâng DB Owner. Số tiếp theo V20. Không deploy production hay restart stack Owner.
+- Kiểm thử: frontend **79/79**, typecheck/build pass; backend **56/56** BUILD SUCCESS; Docker build pass; QA V19 success. `verify-layout.ps1` pass draft isolation/409/publish order/hide/chặn EVENTS/restore. Chrome QA pass 12 theme/viewport, album0–5, Tab/Shift+Tab/Esc/1 ảnh, mobile editor, private open, **gửi RSVP persist, PIN sai/đúng**.
+- Performance lab 390x844 CPU4x latency150ms down1.6Mbps up750Kbps cache off, 5 bitmap fixtures, reduced motion, system fonts: trước fix LCP2008ms/CLS0.1197; sau min-height trang công khai: LCP2012ms/**CLS0**, transfer245151B, font ngoài0. Một lab run không thay field Web Vitals/ảnh cưới thật. Artifacts `.qa-artifacts/` gitignored.
+- Đọc đầu: tài liệu này, `LayoutService.java`, V19, `layout-editor.tsx`, `layout.ts`, `design.tsx`, `deploy/verify-layout.ps1`, `scripts/browser-qa.mjs`.
+- QA loopback8099 dùng DB/media tmpfs riêng. Browser script sửa ảnh/phát hành chỉ QA, không đổi origin sang8088. Rebuild image trước QA. Lệnh: frontend npm test/typecheck/build; backend mvn -o test; compose build backend frontend; QA compose up; verify-layout.ps1; node scripts/browser-qa.mjs.
+- Còn thật: EDITOR-001 nhóm1–13 chưa có model đầy đủ; Back guard/dev StrictMode popup; TOK-002 CSS tokens toàn bộ; theme polish; contrast trên ảnh/gradient và toàn bộ trạng thái, iOS/Zalo/Messenger/screen reader; perf ảnh cũ/ảnh thật; production backup/deploy/80–443. GIFT vẫn BLOCKED Owner scope, không tự thêm ngân hàng. Không tự đánh dấu tất cả DONE.
+- Không phá: session/access/PIN/CSRF/RSVP/QR/token; preview không grant/open/RSVP/storage token; events luôn trước optional blocks; version guards và publish transaction.
+
+### Checkpoint cuối S7
+
+- Frontend **77/77**, typecheck exit 0, production build exit 0; backend **52/52**, BUILD SUCCESS; Docker build cuối exit 0; browser CDP cuối exit 0; diff check sạch.
+- Browser cuối kiểm cả Tab/Shift+Tab, modal 1 ảnh, Esc restore; mobile editor panel; private sealed→open→RSVP không overflow. Đã chụp artifacts, chưa browser submit RSVP/PIN UI sâu. Chrome local QA không thay thế iOS/Zalo/Messenger và Owner review ảnh thật.
+- Navigation guard click link ở capture + beforeunload, không prompt hai lần trên media/events. Khi một editor đang dirty, editor kia bị khóa để tránh save/reload ghi mất form. Popup riêng chưa có E2E, browser có thể chặn và UI báo lỗi.
+- **Không phải tất cả task DONE**: nhóm 1–13 đầy đủ, section lõi reorder, token migration, theme polish, perf mobile và production vẫn còn; GIFT blocked. Không deploy production hoặc tự sửa media cũ chỉ để đóng task.
+
+### Checkpoint cuối S8
+
+Frontend79/79/typecheck/build, backend56/56; HTTP layout và browser PIN/RSVP/performance pass. Layout preview trực tiếp đã build/test; Docker frontend cuối đã rebuild, QA recreate và `s8-browser-final.log` xác nhận PASS. Lần lab cuối LCP2004ms/CLS0/245148B (biến động nhỏ giữa lần chạy). Không nâng DB Owner. Không tuyên bố toàn bộ backlog hoàn tất.
+
+### Checkpoint cuối S10
+
+- Frontend86/86, typecheck/build, backend56/56, Docker và Chrome QA đều pass. Palette tokens được popup stylesheet copy đúng, popup regression vẫn pass.
+- Regression browser: 12 theme/viewport +9 theme/accent, focus/Esc, popup lifecycle/blocked, private open/RSVP/PIN. Solid-background contrast152 mẫu0 lỗi, còn ảnh/gradient/state chưa đo hết.
+- Không schema/migration mới; QA vẫnV19, DB Owner giữ nguyên. Còn editor nhóm1–13/Back navigation, token non-hex + typography/spacing, thiết bị thật, production và gift scope; không tuyên bố tất cả DONE.
+
+### Checkpoint cuối S11
+
+Frontend87/87, typecheck/build, backend56/56, Docker/Chrome QA pass; diff check sạch. Color-token migration bao phủ hex+rgb/rgba/named trong component declarations, giữ nguyên màu cũ. Font/spacing/radius, editor nhóm1–13/Back guard, thiết bị thật và production vẫn còn; GIFT blocked. Không tuyên bố mọi task DONE.

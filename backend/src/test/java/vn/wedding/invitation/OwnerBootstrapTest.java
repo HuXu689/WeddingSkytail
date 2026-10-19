@@ -20,4 +20,10 @@ class OwnerBootstrapTest {
         when(db.queryForObject("SELECT count(*) FROM admin_users",Integer.class)).thenReturn(0);
         assertThrows(IllegalArgumentException.class,()->new OwnerBootstrap(db,"owner","").run(null));
     }
+    @Test void freshBootstrapUsesIdentityRatherThanHardcodedOwnerId() {
+        var db=mock(JdbcTemplate.class);
+        when(db.queryForObject("SELECT count(*) FROM admin_users",Integer.class)).thenReturn(0);
+        new OwnerBootstrap(db,"owner","long-enough-password").run(null);
+        verify(db).update(eq("INSERT INTO admin_users(username,password_hash) VALUES(?,?)"),eq("owner"),startsWith("{bcrypt}"));
+    }
 }

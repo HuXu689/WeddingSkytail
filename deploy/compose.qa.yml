@@ -1,0 +1,39 @@
+# Isolated disposable QA database/media. Never mounts Owner's production volumes.
+name: wedding-qa
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: wedding
+      POSTGRES_USER: wedding
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U wedding -d wedding']
+      interval: 2s
+      retries: 30
+  backend:
+    image: wedding-backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/wedding
+      DB_USER: wedding
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?Set ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
+      TOKEN_KEY: ${TOKEN_KEY:?Set TOKEN_KEY}
+      APP_PUBLIC_ORIGIN: http://localhost:8099
+      COOKIE_SECURE: 'false'
+      MEDIA_ROOT: /data/media
+    tmpfs: [/data/media]
+    depends_on:
+      db: {condition: service_healthy}
+  frontend:
+    image: wedding-frontend
+    depends_on: [backend]
+  edge:
+    image: caddy:2-alpine
+    environment:
+      SITE_ADDRESS: ':80'
+    ports: ['127.0.0.1:8099:80']
+    volumes: ['./Caddyfile:/etc/caddy/Caddyfile:ro']
+    depends_on: [backend,frontend]

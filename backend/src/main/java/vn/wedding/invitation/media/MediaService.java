@@ -34,6 +34,7 @@ public class MediaService {
             ApiErrors.require(image!=null,"Tệp tải lên không phải ảnh hợp lệ hoặc định dạng chưa được hỗ trợ.");
             ApiErrors.require(image.getWidth()<=12000&&image.getHeight()<=12000,"Kích thước ảnh vượt giới hạn cho phép.");
             ApiErrors.require((long)image.getWidth()*image.getHeight()<=80_000_000L,"Ảnh có kích thước điểm ảnh quá lớn.");
+            image=boundedImage(image);
             UUID id=UUID.randomUUID();String storage=id+".jpg";Path path=root.resolve(storage).normalize();
             ApiErrors.require(path.getParent().equals(root),"Đường dẫn tệp không hợp lệ.");
             ApiErrors.require(ImageIO.write(image,"JPEG",path.toFile()),"Máy chủ không thể xử lý ảnh.");
@@ -90,6 +91,15 @@ public class MediaService {
     private String musicUrl(String surface){ boolean draft="DRAFT".equals(surface); var rows=db.queryForList("SELECT "+(draft?"draft_music_id":"music_id")+" FROM wedding WHERE id=1"); if(rows.isEmpty()||rows.getFirst().get(draft?"draft_music_id":"music_id")==null) return null; return draft?publicOrigin+"/api/v1/admin/media/audio":publicOrigin+"/api/v1/media/audio"; }
     public void publishSelection(){db.update("DELETE FROM wedding_media_selection WHERE surface='PUBLISHED'");db.update("INSERT INTO wedding_media_selection(media_id,surface,slot,sort_order,focal_x,focal_y) SELECT media_id,'PUBLISHED',slot,sort_order,focal_x,focal_y FROM wedding_media_selection WHERE surface='DRAFT'");}
     private void exists(UUID id){ApiErrors.require(id!=null&&db.query("SELECT id FROM media_assets WHERE id=?",(rs,n)->rs.getObject(1),id).size()==1,"Ảnh không tồn tại.");}
+    /** Bound decoded uploads before JPEG storage; flatten transparent PNG on white. */
+    public static BufferedImage boundedImage(BufferedImage source){
+        double scale=Math.min(1d,2400d/Math.max(source.getWidth(),source.getHeight()));
+        int width=Math.max(1,(int)Math.round(source.getWidth()*scale)),height=Math.max(1,(int)Math.round(source.getHeight()*scale));
+        var output=new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+        var graphics=output.createGraphics();
+        try{graphics.setColor(java.awt.Color.WHITE);graphics.fillRect(0,0,width,height);graphics.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);graphics.drawImage(source,0,0,width,height,null);}finally{graphics.dispose();}
+        return output;
+    }
     public void requireAudio(UUID id){ApiErrors.require(id!=null&&db.query("SELECT id FROM media_assets WHERE id=? AND kind='AUDIO'",(rs,n)->rs.getObject(1),id).size()==1,"Tệp nhạc không tồn tại.");}
     private static void checkSurface(String surface){ApiErrors.require("DRAFT".equals(surface)||"PUBLISHED".equals(surface),"Bề mặt ảnh không hợp lệ.");}
 }

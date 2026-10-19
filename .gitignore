@@ -7,3 +7,6 @@ frontend/*.tsbuildinfo
 *.log
 *.dump
 demo-links.txt
+.qa-browser/
+.qa-artifacts/
+s7-mobile.png

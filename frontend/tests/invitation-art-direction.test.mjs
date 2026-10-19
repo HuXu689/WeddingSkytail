@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {resolveCompatibilityColors} from './helpers/css-tokens.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
@@ -10,7 +11,7 @@ import {readFileSync} from 'node:fs';
  * khung hẹp, bảng màu chỉ áp cho một mẫu, hoạ tiết không chặn click) là thứ dễ bị phá lặng lẽ
  * khi sửa CSS ở phiên sau.
  */
-const css = readFileSync(new URL('../src/features/invitation/design.css', import.meta.url), 'utf8');
+const css = resolveCompatibilityColors(readFileSync(new URL('../src/features/invitation/design.css', import.meta.url), 'utf8'));
 const globals = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
 
 const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

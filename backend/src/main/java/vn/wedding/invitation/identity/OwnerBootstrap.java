@@ -26,7 +26,7 @@ public class OwnerBootstrap implements ApplicationRunner {
         if(db.queryForObject("SELECT count(*) FROM admin_users",Integer.class)>0) return;
         if(username.isBlank() || username.length()>100 || password.length()<12 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length>72)
             throw new IllegalArgumentException("First bootstrap requires username and password of 12 characters minimum / 72 UTF-8 bytes maximum");
-        db.update("INSERT INTO admin_users(id,username,password_hash) VALUES(1,?,?)",
+        db.update("INSERT INTO admin_users(username,password_hash) VALUES(?,?)",
             username,"{bcrypt}"+new BCryptPasswordEncoder(12).encode(password));
         db.update("INSERT INTO audit(action,target) VALUES('OWNER_BOOTSTRAP','1')");
     }

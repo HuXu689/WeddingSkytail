@@ -28,7 +28,7 @@ public class AdminService {
     public record GuestInput(@NotBlank @Size(max=200) String displayName,@NotNull @Size(max=100) String groupName,@NotBlank @Size(max=80) String salutation,@NotEmpty @Size(max=20) List<@Valid Assignment> assignments) {}
     public record PolicyInput(@Pattern(regexp="INHERIT|MANUAL_OPEN|MANUAL_CLOSED|SCHEDULED") @NotNull String mode,Instant openAt,Instant closeAt,long expectedVersion) {}
     public record TrackingInput(boolean enabled,long expectedVersion) {}
-    public Map<String,Object> wedding() { var result=new HashMap<>(db.queryForMap("SELECT * FROM wedding WHERE id=1")); result.putAll(media.draft()); return result; }
+    public Map<String,Object> wedding() { var result=new HashMap<>(db.queryForMap("SELECT * FROM wedding WHERE id=1")); result.putAll(media.draft()); result.put("layout",vn.wedding.invitation.wedding.LayoutService.list(db,true)); return result; }
     private Map<String,Object> lockWedding() { return db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE"); }
     /** Every admin action is attributed to the account that performed it (T25). */
     public void audit(String action,Object target) { db.update("INSERT INTO audit(action,target,actor) VALUES(?,?,?)",action,target.toString(),actor()); }
@@ -39,7 +39,7 @@ public class AdminService {
     }
     public void publishWedding(boolean published,long version) {
         ApiErrors.version(number(lockWedding(),"version"),version);
-        if(published) { db.update("UPDATE wedding SET names=draft_names,message=draft_message,theme=draft_theme,accent=draft_accent,story=draft_story,footer=draft_footer,show_story=draft_show_story,music_id=draft_music_id,show_countdown=draft_show_countdown,published=true,version=version+1 WHERE id=1"); media.publishSelection(); }
+        if(published) { db.update("UPDATE wedding SET names=draft_names,message=draft_message,theme=draft_theme,accent=draft_accent,story=draft_story,footer=draft_footer,show_story=draft_show_story,music_id=draft_music_id,show_countdown=draft_show_countdown,published=true,version=version+1 WHERE id=1"); media.publishSelection(); db.update("DELETE FROM wedding_layout WHERE surface='PUBLISHED'"); db.update("INSERT INTO wedding_layout SELECT 'PUBLISHED',position,section,enabled FROM wedding_layout WHERE surface='DRAFT'"); db.update("DELETE FROM wedding_sections WHERE surface='PUBLISHED'"); db.update("INSERT INTO wedding_sections SELECT 'PUBLISHED',position,kind,audience,enabled,title,body,starts_at,color FROM wedding_sections WHERE surface='DRAFT'"); }
         else db.update("UPDATE wedding SET published=false,version=version+1 WHERE id=1");
         audit(published?"WEDDING_PUBLISH":"WEDDING_UNPUBLISH",1);
     }
