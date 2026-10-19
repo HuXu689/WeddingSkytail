@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.invitations.TokenService;
 import vn.wedding.invitation.media.MediaService;
 import vn.wedding.invitation.common.ApiErrors;
+import vn.wedding.invitation.common.Texts;
 import static vn.wedding.invitation.access.AccessGate.number;
 
 @Service
@@ -34,7 +35,7 @@ public class AdminService {
     private static String actor() { var authentication=SecurityContextHolder.getContext().getAuthentication(); return authentication==null||authentication.getName()==null?"owner":authentication.getName(); }
     public void saveWedding(WeddingInput input) {
         ApiErrors.version(number(lockWedding(),"version"),input.expectedVersion());
-        db.update("UPDATE wedding SET draft_names=?,draft_message=?,version=version+1 WHERE id=1",input.names(),input.message()); audit("WEDDING_DRAFT",1);
+        db.update("UPDATE wedding SET draft_names=?,draft_message=?,version=version+1 WHERE id=1",Texts.oneLine(input.names()),Texts.text(input.message())); audit("WEDDING_DRAFT",1);
     }
     public void publishWedding(boolean published,long version) {
         ApiErrors.version(number(lockWedding(),"version"),version);
@@ -53,11 +54,11 @@ public class AdminService {
         lockWedding(); ZoneId.of(input.timezone()); requireWindow(input);
         String maps=maps(input.mapsUrl()),dress=optional(input.dressCode(),200,"Trang phục"),parking=optional(input.parking(),500,"Chỗ đỗ xe"),note=text(input.note(),500,"Ghi chú");
         if(id==null) {
-            id=UUID.randomUUID(); String eventCode="E-"+UUID.randomUUID().toString().replace("-","").substring(0,8).toUpperCase(Locale.ROOT); db.update("INSERT INTO events(id,event_code,title,start_at,deadline,venue,address,timezone,capacity,maps_url,dress_code,parking,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",id,eventCode,input.title(),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),input.venue(),input.address(),input.timezone(),input.capacity(),maps,dress,parking,note);
+            id=UUID.randomUUID(); String eventCode="E-"+UUID.randomUUID().toString().replace("-","").substring(0,8).toUpperCase(Locale.ROOT); db.update("INSERT INTO events(id,event_code,title,start_at,deadline,venue,address,timezone,capacity,maps_url,dress_code,parking,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",id,eventCode,line(input.title(),200,"Tên buổi tiệc"),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),line(input.venue(),200,"Địa điểm"),line(input.address(),500,"Địa chỉ"),input.timezone(),input.capacity(),maps,dress,parking,note);
         } else {
             var row=db.queryForMap("SELECT * FROM events WHERE id=? FOR UPDATE",id); ApiErrors.version(number(row,"version"),input.expectedVersion());
             ApiErrors.require("DRAFT".equals(row.get("state")),"Chỉ sửa buổi tiệc nháp ở đây. Buổi đã phát hành dùng “Phát hành phiên bản mới”.");
-            db.update("UPDATE events SET title=?,start_at=?,deadline=?,venue=?,address=?,timezone=?,capacity=?,maps_url=?,dress_code=?,parking=?,note=?,version=version+1 WHERE id=?",input.title(),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),input.venue(),input.address(),input.timezone(),input.capacity(),maps,dress,parking,note,id);
+            db.update("UPDATE events SET title=?,start_at=?,deadline=?,venue=?,address=?,timezone=?,capacity=?,maps_url=?,dress_code=?,parking=?,note=?,version=version+1 WHERE id=?",line(input.title(),200,"Tên buổi tiệc"),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),line(input.venue(),200,"Địa điểm"),line(input.address(),500,"Địa chỉ"),input.timezone(),input.capacity(),maps,dress,parking,note,id);
         }
         audit("EVENT_SAVE",id); return id;
     }
@@ -71,12 +72,14 @@ public class AdminService {
         boolean timeChanged=((java.sql.Timestamp)row.get("start_at")).toInstant().getEpochSecond()!=input.startAt().getEpochSecond();
         boolean placeChanged=!input.venue().equals(row.get("venue"))||!input.address().equals(row.get("address"));
         ApiErrors.require(!(timeChanged||placeChanged)||notice!=null,"Hãy viết thông báo thay đổi khi sửa giờ hoặc địa điểm của buổi tiệc đã phát hành.");
-        db.update("UPDATE events SET title=?,start_at=?,deadline=?,venue=?,address=?,timezone=?,capacity=?,maps_url=?,dress_code=?,parking=?,note=?,change_notice=COALESCE(?,change_notice),revision=revision+1,version=version+1 WHERE id=?",input.title(),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),input.venue(),input.address(),input.timezone(),input.capacity(),maps,dress,parking,note,notice,id);
+        db.update("UPDATE events SET title=?,start_at=?,deadline=?,venue=?,address=?,timezone=?,capacity=?,maps_url=?,dress_code=?,parking=?,note=?,change_notice=COALESCE(?,change_notice),revision=revision+1,version=version+1 WHERE id=?",line(input.title(),200,"Tên buổi tiệc"),java.sql.Timestamp.from(input.startAt()),java.sql.Timestamp.from(input.deadline()),line(input.venue(),200,"Địa điểm"),line(input.address(),500,"Địa chỉ"),input.timezone(),input.capacity(),maps,dress,parking,note,notice,id);
         audit("EVENT_REVISE",id);
     }
     private static void requireWindow(EventInput input) { ApiErrors.require(!input.deadline().isAfter(input.startAt()),"Hạn phản hồi phải trước giờ tiệc."); }
-    private static String optional(String value,int max,String label) { if(value==null||value.isBlank()) return null; String trimmed=value.strip(); ApiErrors.require(trimmed.length()<=max,label+" quá dài."); return trimmed; }
+    private static String optional(String value,int max,String label) { if(value==null||value.isBlank()) return null; String trimmed=Texts.text(value).strip(); ApiErrors.require(trimmed.length()<=max,label+" quá dài."); return trimmed; }
     private static String text(String value,int max,String label) { String trimmed=optional(value,max,label); return trimmed==null?"":trimmed; }
+    /** Single-line fields (event title, venue, address): NFC + no stray newlines. */
+    private static String line(String value,int max,String label) { return Texts.oneLine(text(value,max,label)); }
     private static String maps(String url) { String value=optional(url,500,"Liên kết bản đồ"); ApiErrors.require(value==null||value.startsWith("https://"),"Liên kết bản đồ phải bắt đầu bằng https://."); return value; }
     /** Guests must be told why a published event was cancelled, so the reason is mandatory (docs/02 §10). */
     private static String requireReason(String value) { String reason=optional(value,500,"Lý do hủy"); ApiErrors.require(reason!=null,"Hãy ghi lý do hủy buổi tiệc để lưu vào nhật ký và giải thích cho khách."); return reason; }
@@ -97,7 +100,7 @@ public class AdminService {
         lockWedding(); UUID id=UUID.randomUUID(); String token=tokens.mint();
         ApiErrors.require(input.assignments().stream().map(Assignment::eventId).distinct().count()==input.assignments().size(),"Buổi tiệc bị trùng.");
         for(var a:input.assignments()) ApiErrors.require(db.queryForObject("SELECT count(*) FROM events WHERE id=? AND state<>'CANCELLED'",Integer.class,a.eventId())==1,"Buổi tiệc không hợp lệ.");
-        db.update("INSERT INTO invitations(id,display_name,group_name,salutation,token_hash,token_cipher) VALUES(?,?,?,?,?,?)",id,input.displayName(),input.groupName(),input.salutation(),TokenService.hash(token),tokens.encrypt(token,id));
+        db.update("INSERT INTO invitations(id,display_name,group_name,salutation,token_hash,token_cipher) VALUES(?,?,?,?,?,?)",id,Texts.oneLine(input.displayName()),Texts.oneLine(input.groupName()),Texts.oneLine(input.salutation()),TokenService.hash(token),tokens.encrypt(token,id));
         for(var a:input.assignments()) db.update("INSERT INTO assignments VALUES(?,?,?)",id,a.eventId(),a.maxPeople());
         audit("INVITATION_CREATE",id); return id;
     }

@@ -116,3 +116,27 @@ test('vai trò chủ tiệc và trợ lý nội dung có đủ thành phần qu�
     assert.equal(shell.includes(phrase), true, `Thiếu thành phần vai trò ở sidebar: ${phrase}`);
   }
 });
+
+test('card buổi tiệc không hiển thị số 0 vô nghĩa, dùng số thứ tự thật (L1)',()=>{
+  const guest = fs.readFileSync(path.join(sourceRoot,'app','invitation','[id]','page.tsx'),'utf8');
+  assert.equal(guest.includes("?'×':'0'"), false, 'Còn literal 0 hard-code ở card buổi tiệc');
+  assert.match(guest,/publishedIndex\.get\(event\.id\)/);
+  assert.match(guest,/className="sr-only"/);
+});
+
+test('ghi chú sự kiện tách khỏi lời nhắn riêng của khách (RSVP-001)',()=>{
+  const guest = fs.readFileSync(path.join(sourceRoot,'app','invitation','[id]','page.tsx'),'utf8');
+  // Card hiển thị ghi chú của chủ tiệc; textarea RSVP chỉ prefill lời nhắn của chính khách.
+  assert.match(guest,/event\.event_note/);
+  assert.match(guest,/\[note,setNote\]=useState\(text\(event\.note\|\|''\)\)/);
+  assert.equal(guest.includes('{event.note&&'), false, 'Không được render lời nhắn riêng của khách ra thiệp');
+});
+
+test('nội dung hiển thị đi qua hàm chuẩn hoá dùng chung (UI-006)',()=>{
+  const design = fs.readFileSync(path.join(sourceRoot,'features','invitation','design.tsx'),'utf8');
+  assert.match(design,/from '@\/shared\/text'/);
+  assert.match(design,/coupleNames\(/);
+  assert.match(design,/oneLine\(/);
+  const book = fs.readFileSync(path.join(sourceRoot,'features','invitation','wish-book.tsx'),'utf8');
+  assert.match(book,/from '@\/shared\/text'/);
+});

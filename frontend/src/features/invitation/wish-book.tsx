@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
 import {api,ApiError} from '@/shared/api';
+import {oneLine,text} from '@/shared/text';
 export interface Wish {id?:string;display_name:string;message:string;state?:string;created_at:string}
 /** T24: guests write wishes, the owner approves them, and only approved ones are shown to everyone. */
 export function WishBook({id,approved,reload}:{id:string;approved:Wish[];reload:()=>Promise<void>}){
@@ -21,7 +22,7 @@ export function WishBook({id,approved,reload}:{id:string;approved:Wish[];reload:
    {error&&<p role="alert" className="error">{error}</p>}{notice&&<p className="success" role="status">{notice}</p>}
    <div className="row"><button disabled={busy||message.trim().length<2}>{busy?'Đang gửi…':'Gửi lời chúc'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>void loadMine()}>Xem lời chúc của bạn</button></div>
   </form>
-  {mine&&<div className="wish-mine"><h3>Lời chúc bạn đã gửi</h3>{mine.length===0?<p className="field-hint">Bạn chưa gửi lời chúc nào.</p>:<ul>{mine.map((item,index)=><li key={item.id??index}><span className={`wish-state ${item.state==='APPROVED'?'approved':item.state==='REJECTED'?'rejected':'pending'}`}>{item.state==='APPROVED'?'Đã duyệt':item.state==='REJECTED'?'Không hiển thị':'Đang chờ duyệt'}</span><p>{item.message}</p></li>)}</ul>}</div>}
-  <div className="wish-list">{approved.length===0?<p className="field-hint">Chưa có lời chúc nào được duyệt. Bạn có thể là người đầu tiên.</p>:approved.map((wish,index)=><blockquote className="wish-item" key={`${wish.display_name}-${index}`}><p>{wish.message}</p><cite>{wish.display_name}</cite></blockquote>)}</div>
+  {mine&&<div className="wish-mine"><h3>Lời chúc bạn đã gửi</h3>{mine.length===0?<p className="field-hint">Bạn chưa gửi lời chúc nào.</p>:<ul>{mine.map((item,index)=><li key={item.id??index}><span className={`wish-state ${item.state==='APPROVED'?'approved':item.state==='REJECTED'?'rejected':'pending'}`}>{item.state==='APPROVED'?'Đã duyệt':item.state==='REJECTED'?'Không hiển thị':'Đang chờ duyệt'}</span><p>{text(item.message)}</p></li>)}</ul>}</div>}
+  <div className="wish-list">{approved.length===0?<p className="field-hint">Chưa có lời chúc nào được duyệt. Bạn có thể là người đầu tiên.</p>:approved.map((wish,index)=><blockquote className="wish-item" key={`${wish.display_name}-${index}`}><p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}</cite></blockquote>)}</div>
  </section>;
 }

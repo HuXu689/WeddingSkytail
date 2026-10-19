@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.access.AccessGate;
 import vn.wedding.invitation.common.ApiErrors;
+import vn.wedding.invitation.common.Texts;
 import static vn.wedding.invitation.access.AccessGate.number;
 
 @Service
@@ -116,7 +117,7 @@ public class GuestManagementService {
         if(requested.isEmpty()) protectedRows=db.queryForList("SELECT a.event_id FROM assignments a JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=?",id);
         else protectedRows=db.queryForList("SELECT a.event_id FROM assignments a JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND a.event_id<>ALL(?::uuid[])",id,requested.toArray(new UUID[0]));
         ApiErrors.require(protectedRows.isEmpty(),"Không thể bỏ buổi đã có RSVP. Hãy giữ buổi này trong lời mời hoặc xử lý RSVP trước.");
-        db.update("UPDATE invitations SET display_name=?,group_name=?,salutation=?,internal_note=?,version=version+1 WHERE id=?",input.displayName(),input.groupName(),input.salutation(),input.internalNote(),id);
+        db.update("UPDATE invitations SET display_name=?,group_name=?,salutation=?,internal_note=?,version=version+1 WHERE id=?",Texts.oneLine(input.displayName()),Texts.oneLine(input.groupName()),Texts.oneLine(input.salutation()),Texts.text(input.internalNote()),id);
         for(var a:input.assignments())db.update("INSERT INTO assignments(invitation_id,event_id,max_people) VALUES(?,?,?) ON CONFLICT(invitation_id,event_id) DO UPDATE SET max_people=EXCLUDED.max_people",id,a.eventId(),a.maxPeople());
         if(requested.isEmpty())db.update("DELETE FROM assignments WHERE invitation_id=?",id);else db.update("DELETE FROM assignments WHERE invitation_id=? AND event_id<>ALL(?::uuid[])",id,requested.toArray(new UUID[0]));
         db.update("INSERT INTO audit(action,target) VALUES('INVITATION_UPDATE',?)",id);return Map.of("id",id,"warnings",warnings);

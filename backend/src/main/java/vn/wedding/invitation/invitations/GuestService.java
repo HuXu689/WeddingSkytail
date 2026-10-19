@@ -42,7 +42,7 @@ public class GuestService {
     public Map<String,Object> view(UUID id,HttpSession session) {
         var invitation=gate.check(id,session,true);
         var wedding=db.queryForMap("SELECT names,message,theme,accent,story,footer,show_story,show_countdown FROM wedding WHERE id=1");
-        var events=db.queryForList("SELECT e.id,e.title,e.start_at,e.deadline,e.timezone,e.venue,e.address,e.maps_url,e.dress_code,e.parking,e.note,e.change_notice,e.revision,e.state,a.max_people,r.status,r.total_people,r.note,coalesce(r.version,0) response_version,(e.state='PUBLISHED' AND now()<e.deadline) rsvp_open FROM assignments a JOIN events e ON e.id=a.event_id LEFT JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND e.state IN ('PUBLISHED','CANCELLED') ORDER BY e.start_at",id);
+        var events=db.queryForList("SELECT e.id,e.title,e.start_at,e.deadline,e.timezone,e.venue,e.address,e.maps_url,e.dress_code,e.parking,e.note AS event_note,e.change_notice,e.revision,e.state,a.max_people,r.status,r.total_people,r.note AS note,coalesce(r.version,0) response_version,(e.state='PUBLISHED' AND now()<e.deadline) rsvp_open FROM assignments a JOIN events e ON e.id=a.event_id LEFT JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND e.state IN ('PUBLISHED','CANCELLED') ORDER BY e.start_at",id);
         var design=new HashMap<String,Object>(wedding); design.putAll(media.published());
         return Map.of("invitationId",id,"displayName",invitation.get("display_name"),"salutation",invitation.get("salutation"),"wedding",design,"events",events,"wishes",wishes.approved(id));
     }

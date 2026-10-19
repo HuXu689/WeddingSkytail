@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.access.AccessGate;
 import vn.wedding.invitation.common.ApiErrors;
+import vn.wedding.invitation.common.Texts;
 import static vn.wedding.invitation.access.AccessGate.number;
 
 /**
@@ -52,7 +53,7 @@ public class WishService {
     static String clean(String value) {
         if(value==null) return "";
         String text=CONTROL.matcher(value.replace("\r\n","\n").replace('\r','\n')).replaceAll("").replace('\t',' ').trim();
-        return text.replaceAll(" {2,}"," ").replaceAll("\n{3,}","\n\n").replaceAll(" *\n *","\n");
+        return Texts.nfc(text.replaceAll(" {2,}"," ").replaceAll("\n{3,}","\n\n").replaceAll(" *\n *","\n"));
     }
     /** Moderation queue: pending items first, then everything already decided. */
     public Map<String,Object> queue(int page,String state,String query) {
