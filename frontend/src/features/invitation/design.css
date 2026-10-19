@@ -64,3 +64,21 @@ main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 .countdown-note{margin:14px 0 0;font-size:12px;color:#7b837a}
 @media(max-width:700px){.countdown-units{gap:12px}.countdown-units strong{font-size:22px}.music-control{flex-direction:column;text-align:center}}
 @media(prefers-reduced-motion:reduce){.music-control,.wedding-countdown{animation:none;transition:none}}
+/* Guest wish book (T24): guests write, only approved wishes are listed here. */
+.wish-book{margin:0 auto 28px;max-width:640px;padding:22px 20px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.06)}
+.wish-book .section-intro{text-align:center;margin-bottom:16px}
+.wish-form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.wish-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#3c443b}
+.wish-form input,.wish-form textarea{font-weight:400;font-family:inherit}
+.wish-mine{margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,.07)}
+.wish-mine ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.wish-mine li{display:grid;gap:6px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.6)}
+.wish-mine p{margin:0;font-size:14px;line-height:1.6}
+.wish-state{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+.wish-state.pending{color:#8a6d2f;background:rgba(180,150,60,.16)}
+.wish-state.approved{color:#3f6b3a;background:rgba(82,102,76,.14)}
+.wish-state.rejected{color:#8c3a3a;background:rgba(140,58,58,.14)}
+.wish-list{display:grid;gap:14px;margin-top:22px}
+.wish-item{margin:0;padding:16px 18px;border-left:3px solid var(--wedding-accent);background:rgba(255,255,255,.7);border-radius:0 16px 16px 0}
+.wish-item p{margin:0 0 8px;font-size:15px;line-height:1.7;white-space:pre-line}
+.wish-item cite{font-size:12px;font-style:normal;letter-spacing:.05em;color:#596354}

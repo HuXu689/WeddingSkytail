@@ -41,7 +41,7 @@ Baseline v1.0 khoảng20–30 ngày công, không phải20–30 ngày lịch và
 | T22 | P0 | UAT/physical print/release approval | T14,T17,T18,T20,T21 | Owner signoff, sample QR print |
 | T23 | P1 | Calendar ICS/music/countdown | T22 | no autoplay; timezone correct |
 | T24 | P1 | Wishes moderation | T22 | default hidden, sanitize/review |
-| T25 | P1 | Editor role/OTP | T22 | threat model+permissions updated |
+| T25 | P1 | Editor role/OTP **— đã xong phần vai trò (V16, `docs/16`); OTP giữ ở P2** | T22 | threat model+permissions updated |
 
 ## 4. Dev handoff theo mỗi ticket
 - Clarify acceptance trước code, DTO/API và schema migration đi cùng.
@@ -76,5 +76,7 @@ Nếu cần rút ngắn: bỏ story dài/nhạc/wishes/ICS/QR ZIP và hỗ trợ
 | T34 | P0 | Access+tracking E2E/security/clock/regression | T27,T28,T29,T30 | QA41–QA56/QA58–QA60 pass |
 
 T22 release/UAT phải đợi T34 cho scope v1.1; baseline T22 dependencies vẫn giữ nhưng chưa đủ. Nếu include PIN, T22 cũng đợi T31 và QA57. Không đưa P1 vào scope mà không cập nhật thời gian.
+
+**Trạng thái v1.1 (đã kiểm chứng):** T23 (ICS/nhạc/đếm ngược), T24 (sổ lời chúc có duyệt — `V15`, `verify-wishes.ps1`), T25 (vai trò trợ lý nội dung — `V16`, `docs/16`, `verify-editor.ps1`), T31 (PIN — `V13`, `verify-dot4-pin.ps1`), T32 (worklist nhắc RSVP) và T34 (E2E/security) đã hoàn tất, mỗi hạng mục có script xác minh chạy trên stack thật. T33 dùng worklist nhắc thủ công tách khỏi `open_events`. Các hạng mục P2 đóng theo `docs/15-p2-out-of-scope-decisions.md`; phần OTP của T25 giữ ở P2 vì cần provider/chi phí/đồng thuận.
 
 Demo4 v1.1: close global → QR scan không lộ recipient → schedule open → click open recorded → close same session blocked → reopen same QR usable → admin filter opened/no response. Preview test không tạo event.

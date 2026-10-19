@@ -15,7 +15,7 @@ Thêm chức năng giải quyết việc thật: không mời nhầm buổi, kh�
 | Lịch mở/đóng event riêng | P1 | Cùng link phát hành hai buổi khác lúc | Event publication scheduler/gate riêng | Thêm schema/tests, chưa được invitation gate làm sẵn |
 | Mẫu lời mời theo nhóm | P1 | Xưng hô phù hợp | Template variables allowlist + preview generated text | Group không cấp event permissions |
 | Guest tìm lại thiệp | P2 | Mất link | Owner assisted resend; nếu self-service cần verification | Không public search tên/phone |
-| Sổ lời chúc có duyệt | P1 | Tăng cảm xúc | Queue approve/reject, sanitize, default private | Tránh spam/lộ notes RSVP |
+| Sổ lời chúc có duyệt **— đã xong (V15)** | P1 | Tăng cảm xúc | Queue approve/reject, sanitize, default private | Tránh spam/lộ notes RSVP |
 | File lịch ICS | P1 | Khách nhớ lịch | Theo event/grant/gate, timezone đúng | Link lịch private không bypass close |
 | Checklist phát thiệp | P1 | Tránh sót | Nội dung approved, printed/self-reported sent/contacted | Không nhận định máy in đã in thật |
 | Seating/check-in | P2 | Hữu ích tiệc lớn | Allocation/check-in identity/race riêng | Không cần để phát thiệp online |

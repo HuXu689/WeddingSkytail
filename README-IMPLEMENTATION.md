@@ -1,5 +1,27 @@
 # Wedding website — bản lõi 0.1.0
 
+## Cập nhật đợt 6 — vai trò trợ lý nội dung (T25)
+
+- Migration `V16__editor_role.sql`: `admin_users` bỏ ràng buộc một dòng (`id` chuyển sang identity, giữ nguyên chủ tiệc hiện có), thêm `role` (OWNER/EDITOR), `display_name`, `created_by`; `audit` thêm `actor` để ghi **ai** đã thực hiện.
+- **Threat model + ma trận quyền** (`docs/16-editor-role-and-permission-matrix.md`) được viết **trước** khi code, đúng 5 nguyên tắc đã cam kết ở `docs/15`.
+- `AdminPermissions` (hàm thuần, có unit test) + `EditorAccessFilter` thực thi ma trận: trợ lý giữ được nội dung/khách/RSVP/lời chúc/nhắc nhở/thư viện/nháp thiết kế nhưng **bị chặn 403** ở quản trị người dùng, nhật ký, PIN, link-reveal/revoke/rotate, chính sách truy cập (chung và theo lời mời), bulk policy, phát hành/ngừng phát hành thiết kế, ghi nhận lượt mở, xuất/báo cáo/CSV, ghi dữ liệu nhập hàng loạt và phát hành/hủy buổi tiệc. Vai trò lạ ⇒ từ chối; chưa đăng nhập vẫn 401.
+- Tài khoản: chủ tiệc tạo, đổi vai trò, khóa, xóa, đặt lại mật khẩu; trợ lý tự đổi mật khẩu ở `/admin/account`. Mật khẩu ≥12 ký tự (≤72 byte UTF-8), băm BCrypt cost 12, chỉ lưu băm và không bao giờ trả về API.
+- An toàn vận hành: luôn giữ **ít nhất một chủ tiệc đang hoạt động**; không tự khóa/tự xóa chính mình; **khóa, xóa hoặc đặt lại mật khẩu sẽ hủy phiên đang mở ngay lập tức** (xóa bản ghi trong `spring_session`).
+- Giao diện: sidebar hiện nhãn vai trò và **ẩn** các mục chỉ dành cho chủ tiệc; thêm trang “Quản trị người dùng” (chủ tiệc) và “Tài khoản của tôi” (cả hai vai trò).
+- Kiểm thử: `AdminPermissionsTest` (4 ca) — backend **33/33**; frontend **20/20** + typecheck + build; `deploy/verify-editor.ps1` **33 khẳng định pass** trên stack thật. Hồi quy `smoke.ps1`, `verify-dot3.ps1` (35), `verify-dot4-pin.ps1` (27), `verify-dot4b.ps1` (48) và `verify-wishes.ps1` vẫn pass.
+- **Kết luận:** mọi ticket P0/P1 trong phạm vi v1.1 đã hoàn tất và có bằng chứng chạy thật; các hạng mục P2 giữ nguyên quyết định tại `docs/15` (OTP/MFA vẫn là P2, không có trong bản này).
+
+## Cập nhật đợt 5 — sổ lời chúc có duyệt (T24) và đóng P2
+
+- Migration `V15__wishes.sql`: bảng `wishes` với `state` mặc định **PENDING** (ràng buộc `(state='PENDING') = (moderated_at IS NULL)`), nội dung 2–600 ký tự, index theo hàng chờ và theo lời mời.
+- `WishService`: khách gửi lời chúc **sau khi đã mở thiệp** (đi đúng access gate: grant + dấu đã mở + cửa sổ mở/đóng + PIN), tối đa 3 lời chúc cho mỗi lời mời, làm sạch nội dung (bỏ ký tự điều khiển, giữ dấu xuống dòng, chuẩn hoá khoảng trắng), để trống tên thì dùng tên trên thiệp; `RequestLimits` thêm ngưỡng 20 lần/phút cho endpoint này và lời chúc quá ngắn/dài trả 422 kèm thông báo cụ thể.
+- Duyệt thủ công: `GET /admin/wishes` (hàng chờ + bộ đếm + lọc trạng thái/từ khoá), `PUT /admin/wishes/{id}` (sửa nội dung, version-guarded), `POST /admin/wishes/{id}` (duyệt/từ chối), `DELETE /admin/wishes/{id}`; audit `WISH_SUBMIT/WISH_APPROVE/WISH_REJECT/WISH_UPDATE/WISH_DELETE`.
+- **Chỉ lời chúc đã duyệt** mới xuất hiện trên thiệp khách và thiệp chung; chính khách gửi vẫn thấy trạng thái chờ/đã duyệt/không hiển thị qua “Xem lời chúc của bạn”. Sổ lời chúc **tách hoàn toàn** khỏi ghi chú RSVP và khỏi dữ liệu lượt mở.
+- Giao diện: khối “Sổ lời chúc” trên thiệp khách (gửi + xem lại) và trang `/admin/wishes` (hàng chờ duyệt, sửa trước khi duyệt, duyệt/từ chối/xoá có xác nhận), thêm mục “Sổ lời chúc” vào sidebar.
+- Kiểm thử: `WishCleanTest` — backend **29/29**; frontend **19/19** + typecheck + build; `deploy/verify-wishes.ps1` **23/23 khẳng định pass** trên stack thật. `smoke.ps1`, `verify-dot3.ps1`, `verify-dot4-pin.ps1` và `verify-dot4b.ps1` vẫn pass sau khi thêm T24.
+- **Đóng P2:** `docs/15-p2-out-of-scope-decisions.md` ghi quyết định cho 12 hạng mục P2 (SaaS nhiều đám cưới, thanh toán/bán theme, check-in/phân bàn, chấm “đã đọc”, SMS/Zalo tự động, đồng bộ danh bạ, guest tự tìm lại thiệp, OTP, phân loại thiết bị thô, scroll/GPS, QR ZIP/XLSX, editor đa người) kèm lý do, điều kiện mở lại và guardrail đã có sẵn. Không hạng mục nào được thêm chỉ vì “có thể làm”.
+- **Kết luận phạm vi v1.1:** P0/P1 trong phạm vi đã hoàn tất và có bằng chứng chạy thật ở cả 5 script xác minh (`smoke`, `dot3`, `dot4-pin`, `dot4b`, `wishes`).
+
 ## Cập nhật đợt 4B — worklist nhắc RSVP, tệp lịch, nhạc nền và đếm ngược
 
 - Migration `V14__reminders_music_countdown.sql`: bảng `invitation_reminders(invitation_id,event_id,contacted_at,contacted_by,note)`; `wedding` thêm `draft_music_id/music_id/draft_show_countdown/show_countdown`; `media_assets` thêm `kind` (IMAGE/AUDIO) và nới CHECK mime cho `audio/mpeg`, `audio/mp4`, `audio/ogg` — ảnh vẫn chỉ `image/jpeg` và bắt buộc kích thước điểm ảnh, nhạc để NULL.

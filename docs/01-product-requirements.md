@@ -34,6 +34,7 @@ Nhạc nền chủ động bật; countdown; file lịch ICS; QR song ngữ; l�
 
 ### P2 / ngoài phạm vi
 SaaS nhiều đám cưới, bán theme, thanh toán, check-in, phân bàn, chấm khách “đã đọc”, gửi SMS/Zalo tự động, đồng bộ danh bạ. Không thêm các chức năng này chỉ vì “có thể làm”.
+Quyết định chi tiết cho từng hạng mục P2, điều kiện mở lại và guardrail đã có sẵn: `docs/15-p2-out-of-scope-decisions.md`.
 
 ## 4. Yêu cầu có mã
 | ID | Yêu cầu | Tiêu chí chính |

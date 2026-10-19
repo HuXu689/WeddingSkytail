@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.invitations.TokenService;
 import vn.wedding.invitation.media.MediaService;
@@ -28,7 +29,9 @@ public class AdminService {
     public record TrackingInput(boolean enabled,long expectedVersion) {}
     public Map<String,Object> wedding() { var result=new HashMap<>(db.queryForMap("SELECT * FROM wedding WHERE id=1")); result.putAll(media.draft()); return result; }
     private Map<String,Object> lockWedding() { return db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE"); }
-    public void audit(String action,Object target) { db.update("INSERT INTO audit(action,target) VALUES(?,?)",action,target.toString()); }
+    /** Every admin action is attributed to the account that performed it (T25). */
+    public void audit(String action,Object target) { db.update("INSERT INTO audit(action,target,actor) VALUES(?,?,?)",action,target.toString(),actor()); }
+    private static String actor() { var authentication=SecurityContextHolder.getContext().getAuthentication(); return authentication==null||authentication.getName()==null?"owner":authentication.getName(); }
     public void saveWedding(WeddingInput input) {
         ApiErrors.version(number(lockWedding(),"version"),input.expectedVersion());
         db.update("UPDATE wedding SET draft_names=?,draft_message=?,version=version+1 WHERE id=1",input.names(),input.message()); audit("WEDDING_DRAFT",1);

@@ -4,6 +4,7 @@ import java.util.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.wedding.invitation.access.AccessGate;
@@ -17,7 +18,9 @@ public class GuestManagementService {
     public GuestManagementService(JdbcTemplate db){this.db=db;}
     /** Bulk changes share the wedding row lock with AdminService so a global policy flip cannot interleave (docs/13 §5). */
     private Map<String,Object> lockWedding(){return db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE");}
-    private void audit(String action,Object target){db.update("INSERT INTO audit(action,target) VALUES(?,?)",action,target.toString());}
+    private void audit(String action,Object target){db.update("INSERT INTO audit(action,target,actor) VALUES(?,?,?)",action,target.toString(),actor());}
+    /** Actions are attributed to the account that performed them, not just to "the owner" (T25). */
+    private static String actor(){var authentication=SecurityContextHolder.getContext().getAuthentication();return authentication==null||authentication.getName()==null?"owner":authentication.getName();}
     public record Assignment(@NotNull UUID eventId,@Min(1) @Max(20) int maxPeople){}
     /** Effective access state is computed at request time; the database only stores mode/window (docs/13 §3). */
     private static final String GLOBAL_OPEN="(SELECT (published AND (mode='MANUAL_OPEN' OR (mode='SCHEDULED' AND open_at IS NOT NULL AND now()>=open_at AND (close_at IS NULL OR now()<close_at)))) FROM wedding WHERE id=1)";

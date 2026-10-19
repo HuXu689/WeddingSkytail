@@ -90,3 +90,29 @@ test('worklist nhắc RSVP, tệp lịch, nhạc nền và đếm ngược có �
     assert.equal(editor.includes(phrase), true, `Thiếu mục chọn nhạc trong thiết kế: ${phrase}`);
   }
 });
+
+test('sổ lời chúc có duyệt có đủ thành phần ở thiệp khách và trang quản trị', () => {
+  const book = fs.readFileSync(path.join(sourceRoot,'features','invitation','wish-book.tsx'),'utf8');
+  for (const phrase of ['Sổ lời chúc','Gửi lời chúc','sau khi chủ tiệc duyệt','Xem lời chúc của bạn','Đang chờ duyệt']) {
+    assert.equal(book.includes(phrase), true, `Thiếu thành phần sổ lời chúc: ${phrase}`);
+  }
+  const admin = fs.readFileSync(path.join(sourceRoot,'app','admin','wishes','page.tsx'),'utf8');
+  for (const phrase of ['Hàng chờ duyệt','Chờ duyệt','Không hiển thị','Xóa lời chúc này?','mọi lời chúc đều ở trạng thái chờ duyệt']) {
+    assert.equal(admin.includes(phrase), true, `Thiếu thành phần duyệt lời chúc: ${phrase}`);
+  }
+});
+
+test('vai trò chủ tiệc và trợ lý nội dung có đủ thành phần quản trị', () => {
+  const users = fs.readFileSync(path.join(sourceRoot,'app','admin','users','page.tsx'),'utf8');
+  for (const phrase of ['Quản trị người dùng','Trợ lý nội dung','Tạo tài khoản','Đặt lại mật khẩu','Khóa tài khoản','Xóa tài khoản này?','ít nhất một chủ tiệc đang hoạt động']) {
+    assert.equal(users.includes(phrase), true, `Thiếu thành phần quản trị người dùng: ${phrase}`);
+  }
+  const account = fs.readFileSync(path.join(sourceRoot,'app','admin','account','page.tsx'),'utf8');
+  for (const phrase of ['Tài khoản của tôi','Vai trò của bạn','Đổi mật khẩu','Mật khẩu hiện tại','không được trùng mật khẩu cũ']) {
+    assert.equal(account.includes(phrase), true, `Thiếu thành phần tài khoản: ${phrase}`);
+  }
+  const shell = fs.readFileSync(path.join(sourceRoot,'features','admin','shell.tsx'),'utf8');
+  for (const phrase of ['/auth/me','/admin/users','/admin/account','role-badge','Trợ lý nội dung','ownerOnly']) {
+    assert.equal(shell.includes(phrase), true, `Thiếu thành phần vai trò ở sidebar: ${phrase}`);
+  }
+});
