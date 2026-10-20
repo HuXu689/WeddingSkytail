@@ -22,7 +22,7 @@ test('wish disclosure wraps the draft and private status, not the approved feed'
  const wish=read('../src/features/invitation/wish-book.tsx');
  assert.ok(wish.indexOf('<GuestDisclosure')<wish.indexOf('<form className="wish-form"'));
  assert.ok(wish.indexOf('</GuestDisclosure>')>wish.indexOf('className="wish-mine"'));
- assert.ok(wish.indexOf('</GuestDisclosure>')<wish.indexOf('className="wish-list"'));
+ assert.ok(wish.indexOf('</GuestDisclosure>')<wish.indexOf('<WishFeed'));
  assert.doesNotMatch(source,/useState|onClick|role="button"|aria-expanded|&&\s*children/);
 });
 test('disclosure supplies keyboard focus, bounded marker motion and reduced-motion override',()=>{

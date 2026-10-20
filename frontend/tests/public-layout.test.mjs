@@ -11,7 +11,8 @@ test('public wedding uses a full-width route wrapper rather than the entry card'
   assert.match(css,/main\.public-wedding-page\{width:100%;max-width:none;padding:0;margin:0\}/);
 });
 test('public notice does not generate a private event section',()=>{
-  assert.match(page,/<WeddingCanvas design=\{data\}\/>/);
+  assert.match(page,/<WeddingCanvas design=\{data\} calendar=\{/);
+  assert.match(page,/publicCalendar\(data.sections\?\?\[\]\)/);
   assert.doesNotMatch(page,/recipient=|\/guest\/|rsvp_open/);
 });
 test('public layout bounds reading width and uses container-responsive story',()=>{

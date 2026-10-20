@@ -62,10 +62,11 @@ public class WishService {
         if(state!=null&&!state.isBlank()) { String normalized=state.toUpperCase(Locale.ROOT); ApiErrors.require(STATES.contains(normalized),"Trạng thái lời chúc không hợp lệ."); where.add("w.state=?"); args.add(normalized); }
         if(query!=null&&!query.isBlank()) { where.add("(w.display_name ILIKE ? OR w.message ILIKE ?)"); args.add("%"+query.trim()+"%"); args.add("%"+query.trim()+"%"); }
         String filter=where.isEmpty()?"":" WHERE "+String.join(" AND ",where);
-        args.add(page*50);
         Map<String,Object> answer=new LinkedHashMap<>();
+        answer.put("total",db.queryForObject("SELECT count(*) FROM wishes w"+filter,Long.class,args.toArray()));
+        args.add(page*50);
         answer.put("counts",db.queryForMap("SELECT count(*) FILTER (WHERE state='PENDING') pending,count(*) FILTER (WHERE state='APPROVED') approved,count(*) FILTER (WHERE state='REJECTED') rejected FROM wishes"));
-        answer.put("rows",db.queryForList("SELECT w.id,w.display_name,w.message,w.state,w.created_at,w.moderated_at,w.moderated_by,w.revision,i.id invitation_id,i.display_name invitation_name,i.group_name,(SELECT string_agg(e.title,' · ' ORDER BY e.start_at) FROM assignments a JOIN events e ON e.id=a.event_id WHERE a.invitation_id=i.id AND e.state<>'CANCELLED') assigned_events FROM wishes w JOIN invitations i ON i.id=w.invitation_id"+filter+" ORDER BY case when w.state='PENDING' then 0 else 1 end,w.created_at DESC LIMIT 50 OFFSET ?",args.toArray()));
+        answer.put("rows",db.queryForList("SELECT w.id,w.display_name,w.message,w.state,w.created_at,w.moderated_at,w.moderated_by,w.revision,i.id invitation_id,i.display_name invitation_name,i.group_name,(SELECT string_agg(e.title,' · ' ORDER BY e.start_at) FROM assignments a JOIN events e ON e.id=a.event_id WHERE a.invitation_id=i.id AND e.state<>'CANCELLED') assigned_events FROM wishes w JOIN invitations i ON i.id=w.invitation_id"+filter+" ORDER BY case when w.state='PENDING' then 0 else 1 end,w.created_at DESC,w.id DESC LIMIT 50 OFFSET ?",args.toArray()));
         return answer;
     }
     public Map<String,Object> moderate(UUID wishId,String state,long expectedVersion,java.security.Principal principal) {

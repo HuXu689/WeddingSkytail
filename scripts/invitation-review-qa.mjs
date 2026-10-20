@@ -28,6 +28,7 @@ try{
  const party={id:'party',title:long,start_at:'2027-12-20T10:00:00Z',timezone:'Asia/Ho_Chi_Minh',venue:long,address:long,state:'PUBLISHED',max_people:5,status:null,total_people:null,note:null,event_note:long,response_version:0,rsvp_open:true,maps_url:'https://maps.google.com',dress_code:long,parking:long,change_notice:long,revision:1};
  const fixture={displayName:long,salutation:'Trân trọng kính mời',wedding:{names:'Nguyễn Hoàng Minh Anh & Trần Nguyễn Quốc Bảo',message:long,theme:'ELEGANT',accent:'OLIVE',story:long,footer:long,show_story:true,heroUrl:picture,albumUrls:Array(5).fill(picture),show_countdown:true},events:[party,{...party,id:'cancelled',state:'CANCELLED',status:'ATTENDING',rsvp_open:false}],wishes:[{display_name:long,message:long,created_at:'2026-10-20T00:00:00Z'}]};
  party.deadline='2027-12-19T10:00:00Z';fixture.events[1].deadline=party.deadline;
+ party.latitude=0;party.longitude=0;fixture.events[1].latitude=null;fixture.events[1].longitude=null;
  // Nội dung 5 phần (content schema 2). Thiệp khách hợp lệ nhận cả mục riêng tư vì máy chủ đã cấp quyền.
 const contrastSource=readFileSync(resolve('scripts/contrast-audit.mjs'),'utf8').replace(/export\s+/g,'');
 /**
@@ -81,6 +82,8 @@ const sectionsShort=[
 ];
 fixture.wedding.sections=sectionsLong;
  await command('Page.enable');await command('Runtime.enable');
+ // Keep OSM offline in automated QA: assert consent/src/fallback without contacting a third party.
+ await command('Network.enable');await command('Network.setBlockedURLs',{urls:['*://*.openstreetmap.org/*']});
  await command('Page.addScriptToEvaluateOnNewDocument',{source:`
  window.fixture=${JSON.stringify(fixture)};window.saved=0;
  const nativeFetch=window.fetch;window.fetch=async(input,init)=>{
@@ -90,15 +93,32 @@ fixture.wedding.sections=sectionsLong;
   else if(url.endsWith('/state')){result={opened:!location.pathname.endsWith('/sealed')};if(location.pathname.endsWith('/pin')&&!window.pinAccepted){status=428;result={detail:'PIN required'};}}
   else if(url.endsWith('/pin')&&init?.method==='POST'){window.pinAccepted=JSON.parse(init.body).pin==='582649';result={};if(!window.pinAccepted){status=403;result={detail:'Wrong PIN'};}}
   else if(url.endsWith('/open'))result={};
-  else if(url.endsWith('/wishes'))result=[];
+  else if(url.includes('/approved-wishes')||url.includes('/public/weddings/')&&url.includes('/wishes')){
+   await new Promise(resolve=>setTimeout(resolve,100));
+   if(window.feedFailure){window.feedFailure=false;status=503;result={detail:'QA feed retry'};}
+   else{const item=id=>({id,display_name:'Khách minh họa',message:'Lời chúc minh họa '+id,created_at:'2026-10-20T00:00:00Z'});result=url.includes('cursor=')?{items:[item('first'),item('second')],nextCursor:null}:{items:[item('first')],nextCursor:'qa-cursor'};}
+  }
+  else if(url.endsWith('/wishes')){result=[];if(init?.method==='POST'){window.wishSaves=(window.wishSaves??0)+1;await new Promise(resolve=>setTimeout(resolve,100));if(window.wishFailure){window.wishFailure=false;status=503;result={detail:'QA wish retry'};}}}
   else if(url.endsWith('/rsvp')){
-   window.saved++;await new Promise(resolve=>setTimeout(resolve,150));const body=JSON.parse(init.body);
+   window.saved++;(window.rsvpKeys??=[]).push(init.headers['Idempotency-Key']);await new Promise(resolve=>setTimeout(resolve,150));const body=JSON.parse(init.body);
+   if(window.rsvpFailure){window.rsvpFailure=false;return new Response(JSON.stringify({detail:'QA RSVP retry'}),{status:503});}
    if(window.conflict){Object.assign(window.fixture.events[0],{status:'DECLINED',total_people:0,note:'Phản hồi từ thiết bị khác',response_version:2});status=409;result={detail:'Conflict'};window.conflict=false;}
    else{Object.assign(window.fixture.events[0],{status:body.status,total_people:body.totalPeople,note:body.note,response_version:window.fixture.events[0].response_version+1});result={};}
   }
   return new Response(JSON.stringify(result),{status,headers:{'Content-Type':'application/json'}});
  };`});
  const report=[];
+ await command('Page.navigate',{url:`${origin}/invitation/feed-review`});
+ await until(`document.querySelectorAll('.wish-feed .wish-item').length===1`);
+ await evaluate(`window.feedFailure=true;[...document.querySelectorAll('.wish-feed button')].find(b=>b.textContent.includes('Xem thêm')).click();true`);
+ await until(`document.querySelector('.wish-feed [role=alert]')`);
+ assert.equal(await evaluate(`document.querySelectorAll('.wish-feed .wish-item').length`),1);
+ await evaluate(`[...document.querySelectorAll('.wish-feed button')].find(b=>b.textContent.includes('Thử tải')).click();true`);
+ await until(`document.querySelectorAll('.wish-feed .wish-item').length===2`);
+ assert.equal(await evaluate(`[...document.querySelectorAll('.wish-feed button')].some(b=>b.textContent.includes('Xem thêm'))`),false);
+ await evaluate(`[...document.querySelectorAll('.wish-feed button')].find(b=>b.textContent.includes('Làm mới')).click();true`);
+ await until(`document.querySelectorAll('.wish-feed .wish-item').length===1`);
+ report.push({wishFeed:{pagination:true,retryRetainsItems:true,deduplicates:true,refreshResets:true}});
  for(const theme of ['ELEGANT','TRADITIONAL','MODERN']){
   await command('Page.addScriptToEvaluateOnNewDocument',{source:`window.fixture.wedding.theme=${JSON.stringify(theme)};`});
   await command('Page.navigate',{url:`${origin}/invitation/review`});await until(`document.querySelector('.wedding-canvas')`);
@@ -110,36 +130,63 @@ fixture.wedding.sections=sectionsLong;
   }
  }
  assert.equal(await evaluate(`document.querySelector('.rsvp-summary strong').textContent`),'Đã phản hồi 0/1 buổi tiệc');
+ await until(`document.querySelector('.wedding-month-calendar .calendar-day')`);
+ assert.equal(await evaluate(`document.querySelector('.month-navigation h3').textContent`),'Tháng 12 · 2027');
+ assert.equal(await evaluate(`document.querySelector('.calendar-day small').textContent`),'2 mốc');
+ assert.equal(await evaluate(`document.querySelectorAll('.calendar-details li').length`),2);
+ assert.equal(await evaluate(`document.querySelectorAll('.calendar-details a').length`),1,'Cancelled event must not export ICS');
+ await evaluate(`document.querySelector('[aria-label="Tháng sau"]').click();true`);
+ await until(`document.querySelector('.month-navigation h3').textContent==='Tháng 1 · 2028'`);
+ await evaluate(`[...document.querySelectorAll('.wedding-month-calendar button')].find(b=>b.textContent==='Về ngày sự kiện').click();true`);
+ for(const width of [320,768,1440]){await metrics(width);await evaluate(`document.querySelector('.calendar-day').focus();true`);assert.equal(await evaluate('document.documentElement.scrollWidth'),width);await screenshot(`calendar-${width}`);}
+ report.push({calendar:{mondayFirst:true,sameDayCount:2,cancelledNoIcs:true,yearNavigation:true,widths:[320,768,1440]}});
  // F04: use actual keyboard input against the native disclosure, not scripted click toggling.
  const disclosureKey=async(key,code,value)=>{await command('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:value,...(key==='Enter'?{text:'\r',unmodifiedText:'\r'}:key===' '?{text:' ',unmodifiedText:' '}:{})});await command('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:value});};
- assert.equal(await evaluate(`document.querySelector('.guest-disclosure').open`),false);
+ assert.equal(await evaluate(`document.querySelector('.wish-book .guest-disclosure').open`),false);
  assert.equal(await evaluate(`document.querySelector('.wish-form textarea').checkVisibility()`),false);
  assert.ok(await evaluate(`document.querySelector('.wish-list').getBoundingClientRect().height>0`));
  for(const width of [320,768,1440]){
-  await metrics(width);await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);
-  await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.guest-disclosure').open`);
-  assert.equal(await evaluate(`document.activeElement.matches('.guest-disclosure>summary')`),true);
+  await metrics(width);await evaluate(`document.querySelector('.wish-book .guest-disclosure>summary').focus();true`);
+  await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.wish-book .guest-disclosure').open`);
+  assert.equal(await evaluate(`document.activeElement.matches('.wish-book .guest-disclosure>summary')`),true);
   await disclosureKey('Tab','Tab',9);
   assert.equal(await evaluate(`document.activeElement.matches('.wish-form input')`),true);
   await evaluate(`document.querySelector('.wish-form textarea').focus();document.querySelector('.wish-form textarea').select();true`);await command('Input.insertText',{text:'Bản nháp giữ nguyên'});
-  await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);await disclosureKey(' ','Space',32);await until(`!document.querySelector('.guest-disclosure').open`);
-  await disclosureKey('Tab','Tab',9);assert.equal(await evaluate(`document.activeElement.closest('.guest-disclosure-body')!==null`),false);
-  await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.guest-disclosure').open`);
+  await evaluate(`document.querySelector('.wish-book .guest-disclosure>summary').focus();true`);await disclosureKey(' ','Space',32);await until(`!document.querySelector('.wish-book .guest-disclosure').open`);
+  await disclosureKey('Tab','Tab',9);assert.equal(await evaluate(`document.activeElement.closest('.wish-book .guest-disclosure-body')!==null`),false);
+  await evaluate(`document.querySelector('.wish-book .guest-disclosure>summary').focus();true`);await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.wish-book .guest-disclosure').open`);
   assert.equal(await evaluate(`document.querySelector('.wish-form textarea').value`),'Bản nháp giữ nguyên');
   assert.equal(await evaluate('document.documentElement.scrollWidth'),width);
-  await evaluate(`document.querySelector('.guest-disclosure').scrollIntoView({block:'center'});true`);await screenshot(`disclosure-${width}`);
-  await evaluate(`document.querySelector('.guest-disclosure').open=false;true`);
+  await evaluate(`document.querySelector('.wish-book .guest-disclosure').scrollIntoView({block:'center'});true`);await screenshot(`disclosure-${width}`);
+  await evaluate(`document.querySelector('.wish-book .guest-disclosure').open=false;true`);
  }
  await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
- assert.equal(await evaluate(`getComputedStyle(document.querySelector('.guest-disclosure-mark')).transitionDuration`),'0s');
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('.wish-book .guest-disclosure-mark')).transitionDuration`),'0s');
  report.push({disclosure:{widths:[320,768,1440],enter:true,space:true,tabOrder:true,retainedDraft:true,reducedMotion:true}});
  await command('Emulation.setEmulatedMedia',{features:[]});
- await evaluate(`document.querySelector('.guest-disclosure').open=true;true`);
+ await evaluate(`document.querySelector('.wish-book .guest-disclosure').open=true;true`);
+ // F07: RSVP is closed initially; CTA opens before focus and draft survives closing.
+ assert.equal(await evaluate(`document.querySelector('#response-party').open`),false);
+ await evaluate(`document.querySelector('.rsvp-summary a').focus();true`);
+ await disclosureKey('Enter','Enter',13);await until(`document.querySelector('#response-party').open`);
+ assert.equal(await evaluate(`document.activeElement.matches('.rsvp-form select')`),true);
+ await evaluate(`document.querySelector('.rsvp-form textarea').focus();true`);await command('Input.insertText',{text:'Nháp đóng mở'});
+ await evaluate(`document.querySelector('#response-party>summary').focus();true`);await disclosureKey(' ','Space',32);await until(`!document.querySelector('#response-party').open`);
+ await evaluate(`document.querySelector('.rsvp-summary a').focus();true`);await disclosureKey('Enter','Enter',13);await until(`document.querySelector('#response-party').open`);
+ assert.equal(await evaluate(`document.querySelector('.rsvp-form textarea').value`),'Nháp đóng mở');
+ await evaluate(`document.querySelector('.rsvp-form textarea').focus();document.querySelector('.rsvp-form textarea').select();true`);await command('Input.insertText',{text:'Bản nháp đang viết'});
+ report.push({rsvpDisclosure:{closedInitially:true,ctaKeyboard:true,focusAfterOpen:true,draftRetained:true}});
  // A draft survives an unrelated data refresh from the wish book.
  await evaluate(`document.querySelector('.rsvp-form textarea').focus();true`);
- await command('Input.insertText',{text:'Bản nháp đang viết'});
+ await evaluate(`document.querySelector('.rsvp-form textarea').select();true`);await command('Input.insertText',{text:'Bản nháp đang viết'});
  await evaluate(`document.querySelector('.wish-form textarea').focus();true`);await command('Input.insertText',{text:'Chúc hai bạn hạnh phúc'});
+ await evaluate(`window.wishFailure=true;document.querySelector('.wish-form').requestSubmit();document.querySelector('.wish-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));true`);
+ await until(`document.querySelector('.wish-form [role=alert]')?.textContent.includes('QA wish retry')`);
+ assert.equal(await evaluate('window.wishSaves'),1);
+ assert.ok(await evaluate(`document.querySelector('.wish-form textarea').value.includes('Chúc hai bạn hạnh phúc')`));
  await evaluate(`document.querySelector('.wish-form').requestSubmit();true`);await until(`document.querySelector('.success')`);
+ assert.equal(await evaluate('window.wishSaves'),2);
+ assert.ok(await evaluate(`document.querySelector('.success').textContent.includes('sau khi chủ tiệc duyệt')`));
  assert.equal(await evaluate(`document.querySelector('.rsvp-form textarea').value`),'Bản nháp đang viết');
  await evaluate(`window.conflict=true;document.querySelector('.rsvp-form').requestSubmit();document.querySelector('.rsvp-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));true`);
  await until(`document.querySelector('.rsvp-message')?.textContent.includes('ở nơi khác')`);
@@ -147,10 +194,78 @@ fixture.wedding.sections=sectionsLong;
  assert.equal(await evaluate(`document.querySelector('.rsvp-form select').value`),'DECLINED');
  assert.equal(await evaluate(`document.querySelector('.rsvp-form textarea').value`),'Phản hồi từ thiết bị khác');
  await evaluate(`document.querySelector('.rsvp-form').requestSubmit();true`);await until(`document.querySelector('.rsvp-message')?.textContent.includes('Đã lưu phản hồi')`);
+ await evaluate(`window.rsvpFailure=true;document.querySelector('.rsvp-form').requestSubmit();true`);await until(`document.querySelector('.rsvp-message')?.textContent.includes('QA RSVP retry')`);
+ const retryKey=await evaluate('window.rsvpKeys.at(-1)');
+ await evaluate(`document.querySelector('.rsvp-form').requestSubmit();true`);await until(`document.querySelector('.rsvp-message')?.textContent.includes('Đã lưu phản hồi')`);
+ assert.equal(await evaluate('window.rsvpKeys.at(-1)'),retryKey,'Unchanged payload retry must reuse the idempotency key');
+ report.push({responseFailures:{wishRetainsDraft:true,wishDoubleSubmitGuard:true,pendingCopy:true,rsvpRetrySameKey:true}});
  assert.equal(await evaluate(`document.querySelector('.rsvp-summary strong').textContent`),'Đã phản hồi 1/1 buổi tiệc');
  await metrics(390);await evaluate(`document.querySelector('.event-tools').open=true;true`);await wait(100);
  assert.equal(await evaluate('document.documentElement.scrollWidth'),390);
  await screenshot('mobile-long-content');
+ await until(`document.querySelector('.event-tools .venue-map')`);
+ assert.equal(await evaluate(`document.querySelectorAll('.venue-map iframe').length`),0,'Map must not load before consent');
+ await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Đồng ý')).click();true`);
+ await until(`document.querySelector('.event-tools iframe')`);
+ const mapSource=await evaluate(`document.querySelector('.event-tools iframe').src`);
+ assert.equal(new URL(mapSource).searchParams.get('marker'),'0,0');
+ assert.equal(await evaluate(`document.querySelector('.event-tools iframe').referrerPolicy`),'no-referrer');
+ for(const width of [320,768,1440]){await metrics(width);assert.equal(await evaluate('document.documentElement.scrollWidth'),width);await evaluate(`document.querySelector('.event-tools iframe').scrollIntoView({block:'center'});true`);await screenshot(`map-offline-${width}`);}
+ await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Thử tải lại')).click();true`);
+ await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Ẩn bản đồ')).click();true`);
+ assert.equal(await evaluate(`document.querySelectorAll('.venue-map iframe').length`),0);
+ await evaluate(`document.querySelectorAll('.event-tools')[1].open=true;true`);await until(`document.querySelectorAll('.event-tools .venue-map').length===2`);
+ assert.ok(await evaluate(`document.querySelectorAll('.event-tools .venue-map')[1].textContent.includes('Chưa có vị trí')`));
+ report.push({venueMap:{marker:'0,0',consent:true,offlineFallback:true,retry:true,hide:true,widths:[320,768,1440]}});
+ if(process.env.MAP_QA_ONLINE==='1'){
+  // Explicit opt-in: only synthetic coordinates go to OSM. Never infer success from iframe onLoad.
+  await command('Network.setBlockedURLs',{urls:[]});
+  await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Đồng ý')).click();true`);
+  await evaluate(`document.querySelector('.event-tools iframe').scrollIntoView({block:'center'});true`);
+  let provider;
+  for(let attempt=0;attempt<45;attempt++){
+   try{
+    // Chrome site isolation puts cross-origin iframes in a separate DevTools target.
+    const targets=await(await fetch('http://127.0.0.1:9241/json')).json();
+    const target=targets.find(item=>item.type==='iframe'&&item.url.startsWith('https://www.openstreetmap.org/export/embed.html'));
+    if(target){
+     const frameSocket=new WebSocket(target.webSocketDebuggerUrl);
+     try{
+      await new Promise((resolve,reject)=>{frameSocket.onopen=resolve;frameSocket.onerror=reject;});
+      provider=await new Promise((resolve,reject)=>{
+       const timeout=setTimeout(()=>reject(Error('OSM frame evaluation timeout')),5000);
+       frameSocket.onmessage=event=>{const response=JSON.parse(event.data);if(response.id===1){clearTimeout(timeout);resolve(response.result?.result?.value);}};
+       frameSocket.send(JSON.stringify({id:1,method:'Runtime.evaluate',params:{returnByValue:true,expression:`(()=>{const marker=document.querySelector('.maplibregl-marker,.leaflet-marker-icon'),canvas=document.querySelector('.maplibregl-canvas'),tiles=[...document.querySelectorAll('.leaflet-tile')],resources=performance.getEntriesByType('resource').filter(item=>/tile|\\.pbf|\\.mvt|\\.png/.test(item.name));return {url:location.href,title:document.title,marker:Boolean(marker&&marker.getBoundingClientRect().width>0&&(marker.tagName!=='IMG'||marker.complete&&marker.naturalWidth>0)),canvas:Boolean(canvas&&canvas.width>0&&canvas.height>0),tiles:tiles.filter(img=>img.complete&&img.naturalWidth>0).length+resources.length,resources:resources.map(item=>({url:item.name,duration:item.duration})),attribution:document.querySelector('.maplibregl-ctrl-attrib-inner,.leaflet-control-attribution')?.textContent??''};})()`}}));
+      });
+     }finally{frameSocket.close();}
+     if(provider?.marker&&provider.tiles>0&&provider.attribution.includes('OpenStreetMap'))break;
+    }
+    const tree=await command('Page.getFrameTree');
+    const frame=tree.frameTree.childFrames?.find(item=>item.frame.url.startsWith('https://www.openstreetmap.org/export/embed.html'));
+    if(frame){
+     const world=await command('Page.createIsolatedWorld',{frameId:frame.frame.id,worldName:'map-qa'});
+     const result=await command('Runtime.evaluate',{contextId:world.executionContextId,returnByValue:true,expression:`(()=>{const marker=document.querySelector('.maplibregl-marker,.leaflet-marker-icon'),canvas=document.querySelector('.maplibregl-canvas'),tiles=[...document.querySelectorAll('.leaflet-tile')],resources=performance.getEntriesByType('resource').filter(item=>/tile|\\.pbf|\\.mvt|\\.png/.test(item.name));return {url:location.href,title:document.title,marker:Boolean(marker&&marker.getBoundingClientRect().width>0&&(marker.tagName!=='IMG'||marker.complete&&marker.naturalWidth>0)),canvas:Boolean(canvas&&canvas.width>0&&canvas.height>0),tiles:tiles.filter(img=>img.complete&&img.naturalWidth>0).length+resources.length,resources:resources.map(item=>({url:item.name,duration:item.duration})),attribution:document.querySelector('.maplibregl-ctrl-attrib-inner,.leaflet-control-attribution')?.textContent??''};})()`});
+     provider=result.result.value;
+     if(provider?.marker&&provider.tiles>0&&provider.attribution.includes('OpenStreetMap'))break;
+    }
+   }catch{/* Cross-origin process may still be attaching; keep the attempt bounded. */}
+   await wait(1000);
+  }
+  writeFileSync(`${directory}/map-online-result.json`,JSON.stringify(provider??{error:'No inspectable OSM frame/loaded tiles within 45 seconds'},null,2));
+  await screenshot('map-online');
+  assert.ok(provider?.marker&&provider.tiles>0&&provider.attribution.includes('OpenStreetMap'),'Online OSM tiles/marker not verified; inspect map-online-result.json (onLoad alone is not evidence)');
+  assert.equal(new URL(provider.url).searchParams.get('marker'),'0,0');
+  assert.ok(provider.canvas||provider.tiles>0);
+  await metrics(390);await evaluate(`document.querySelector('.event-tools iframe').scrollIntoView({block:'center'});document.querySelector('.event-tools iframe').focus();true`);
+  assert.equal(await evaluate(`document.activeElement.tagName`),'IFRAME');
+  // Exit provider content with focusable controls still present in the parent document.
+  await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Thử tải lại')).focus();true`);
+  assert.equal(await evaluate(`document.activeElement.textContent`),'Thử tải lại bản đồ');
+  await screenshot('map-online-mobile');
+  report.push({mapOnline:provider});
+  await evaluate(`[...document.querySelectorAll('.event-tools .venue-map button')].find(b=>b.textContent.includes('Ẩn bản đồ')).click();true`);
+  await command('Network.setBlockedURLs',{urls:['*://*.openstreetmap.org/*']});
+ }
  for(const [width,height] of [[320,640],[390,844],[844,390],[1440,900]]){
   await metrics(width,height);await evaluate(`document.querySelector('.album-main').click();true`);await until(`document.querySelector('dialog[open]')`);
   const box=await evaluate(`(()=>{const d=document.querySelector('dialog'),img=d.querySelector('img').getBoundingClientRect(),close=d.querySelector('.lightbox-close').getBoundingClientRect(),caption=d.querySelector('figcaption').getBoundingClientRect();return {width:innerWidth,height:innerHeight,imageTop:img.top,imageBottom:img.bottom,closeBottom:close.bottom,captionBottom:caption.bottom,scroll:d.scrollHeight,client:d.clientHeight};})()`);
@@ -318,6 +433,66 @@ fixture.wedding.sections=sectionsLong;
  }
  await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.wedding-inner')).animationName`),'none');
+ // F06 acceptance: deterministic clock and multiple days/months in synthetic invitations only.
+ await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+  if(location.pathname.includes('calendar-acceptance')){
+   const NativeDate=Date;window.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:['2027-12-20T00:00:00Z']));}static now(){return NativeDate.parse('2027-12-20T00:00:00Z');}};
+   const event=window.fixture.events[0];window.fixture.events=[{...event,title:'QA hôm nay',timezone:'UTC'},{...event,id:'second-day',title:'QA ngày kế tiếp',start_at:'2027-12-21T10:00:00Z',timezone:'UTC'},{...event,id:'next-month',title:'QA năm mới',start_at:'2028-01-01T10:00:00Z',timezone:'UTC'}];
+   if(location.pathname.endsWith('empty'))window.fixture.events=[];
+  }`});
+ await command('Page.navigate',{url:`${origin}/invitation/calendar-acceptance`});await until(`document.querySelectorAll('.calendar-day').length===2`);
+ assert.equal(await evaluate(`document.querySelector('.calendar-day[aria-current=date]').getAttribute('aria-label')`),'20/12/2027, 1 mốc, hôm nay');
+ const calendarKey=async(key,code,value)=>{await command('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:value,...(key==='Enter'?{text:'\r',unmodifiedText:'\r'}:key===' '?{text:' ',unmodifiedText:' '}:{})});await command('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:value});};
+ await evaluate(`document.querySelector('.calendar-day').focus();true`);await calendarKey('Tab','Tab',9);
+ assert.equal(await evaluate(`document.activeElement.getAttribute('aria-label')`),'21/12/2027, 1 mốc');
+ await calendarKey('Enter','Enter',13);await until(`document.querySelector('.calendar-details strong').textContent==='QA ngày kế tiếp'`);
+ assert.equal(await evaluate(`document.activeElement.getAttribute('aria-pressed')`),'true');
+ await evaluate(`document.querySelector('.calendar-day').focus();true`);await calendarKey(' ','Space',32);await until(`document.querySelector('.calendar-details strong').textContent==='QA hôm nay'`);
+ await evaluate(`document.querySelector('[aria-label="Tháng sau"]').focus();true`);await calendarKey('Enter','Enter',13);await until(`document.querySelector('.calendar-day')?.getAttribute('aria-label')==='1/1/2028, 1 mốc'`);
+ await calendarKey('Tab','Tab',9);await calendarKey('Enter','Enter',13);await until(`document.querySelector('.calendar-details strong').textContent==='QA năm mới'`);
+ await evaluate(`[...document.querySelectorAll('.wedding-month-calendar button')].find(b=>b.textContent==='Về ngày sự kiện').click();true`);
+ await metrics(320);
+ const calendarTargets=await evaluate(`Array.from(document.querySelectorAll('.calendar-day')).map(e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))`);
+ assert.ok(calendarTargets.every(box=>box.width>=24&&box.height>=44),'Calendar touch targets must remain at least 24 CSS px wide and 44 high at 320px');
+ assert.equal(await evaluate('document.documentElement.scrollWidth'),320);
+ await evaluate(`document.querySelector('.wedding-month-calendar').scrollIntoView();true`);await screenshot('calendar-today-keyboard-320');
+ for(const empty of ['empty']){
+  await command('Page.navigate',{url:`${origin}/invitation/calendar-acceptance-${empty}`});await until(`document.querySelector('.wedding-canvas')`);
+  assert.equal(await evaluate(`document.querySelector('.wedding-month-calendar')`),null);
+ }
+ report.push({calendarAcceptance:{enter:true,space:true,tab:true,focusRetained:true,today:true,empty:true,multipleMonths:true,touchTargets320:calendarTargets}});
+ // Public calendar receives only the server-projected PUBLIC timeline fixture, never guest events.
+ await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+  const previousPublicFetch=window.fetch;
+  window.fetch=async(input,init)=>String(input).includes('/public/weddings/')&&!String(input).includes('/wishes')?new Response(JSON.stringify({...window.fixture.wedding,sections:window.fixture.wedding.sections.filter(s=>s.audience==='PUBLIC').map(s=>({...s,payload:s.payload?.timeline?{...s.payload,timeline:s.payload.timeline.filter(t=>t.audience==='PUBLIC')}:s.payload}))}),{status:200}):previousPublicFetch(input,init);`});
+ await command('Page.navigate',{url:`${origin}/w/calendar-fixture`});await until(`document.querySelector('.wedding-month-calendar')`);
+ assert.equal(await evaluate(`document.querySelectorAll('.wedding-month-calendar a[href*="calendar.ics"]').length`),0);
+ assert.equal(await evaluate(`document.querySelector('.calendar-details').textContent.includes('Lễ gia tiên')`),false);
+ assert.equal(await evaluate(`document.querySelectorAll('.event-card,.rsvp-form').length`),0);
+ await metrics(390);assert.equal(await evaluate('document.documentElement.scrollWidth'),390);await evaluate(`document.querySelector('.wedding-month-calendar').scrollIntoView();true`);await screenshot('calendar-public-390');
+ report.push({calendarPublic:{publicMilestonesOnly:true,noIcs:true,noGuestEventCards:true}});
+ // Admin location slice uses fixtures, not backend mutations.
+ await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+  const previous=window.fetch;window.locationWrites=[];
+  window.fetch=async(input,init)=>{const url=String(input);let result;
+   if(url.endsWith('/auth/me'))result={username:'fixture',role:'OWNER'};
+   else if(url.endsWith('/admin/events'))result=[{...window.fixture.events[0],id:'map-fixture',title:'QA map fixture',venue:'QA venue',address:'QA address',event_code:'QA',version:3,capacity:10,latitude:0,longitude:0}];
+   else if(url.endsWith('/location')){window.locationWrites.push(JSON.parse(init.body));return new Response(JSON.stringify({detail:'QA conflict'}),{status:409});}
+   else return previous(input,init);
+   return new Response(JSON.stringify(result),{status:200});
+  };`});
+ await command('Page.navigate',{url:`${origin}/admin/events`});await until(`document.querySelector('.event-location-editor')`);
+ await evaluate(`document.querySelector('.event-location-editor').open=true;true`);
+ await evaluate(`document.querySelector('.event-location-editor textarea').focus();true`);await command('Input.insertText',{text:'QA vị trí thay đổi'});
+ await evaluate(`document.querySelector('.event-location-editor form').requestSubmit();true`);await until(`document.querySelector('.event-location-editor [role=alert]')`);
+ assert.equal(await evaluate('window.locationWrites.length'),0);
+ await evaluate(`document.querySelector('.event-location-editor input[type=checkbox]').click();true`);
+ await evaluate(`document.querySelector('.event-location-editor form').requestSubmit();true`);await until(`window.locationWrites.length===1`);
+ assert.deepEqual(await evaluate('window.locationWrites[0]'),{latitude:0,longitude:0,confirmed:true,changeNotice:'QA vị trí thay đổi',expectedVersion:3});
+ await until(`document.querySelector('.admin-main').textContent.includes('QA conflict')`);
+ assert.equal(await evaluate(`document.querySelector('.event-location-editor textarea').value`),'QA vị trí thay đổi');
+ for(const width of [390,1440]){await metrics(width);assert.equal(await evaluate('document.documentElement.scrollWidth'),width);await evaluate(`document.querySelector('.event-location-editor').scrollIntoView();true`);await screenshot(`map-admin-${width}`);}
+ report.push({mapAdmin:{validation:true,version:3,notice:true,conflictRetainsDraft:true}});
  assert.deepEqual(errors,[],'Uncaught browser exceptions');
  writeFileSync(`${directory}/report.json`,JSON.stringify(report,null,2));
  console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, albums 1–5; 6 short-copy desktop/mobile layouts, control padding, story/title geometry, 125–200% zoom-equivalent viewports, textarea resize, reduced motion; 5 phần nội dung (INTRO/FAMILY/CEREMONY/TIMELINE/DRESS_CODE) với thứ tự, sắp theo thời gian, nhãn màu, swatch và contrast đo trong browser. Artifacts: ${directory}`);

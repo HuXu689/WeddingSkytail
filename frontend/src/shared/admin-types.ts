@@ -11,7 +11,7 @@ export interface ReminderRow { invitation_id:string; display_name:string; group_
 export interface ReminderWorklist { event:ReminderEvent; events:ReminderEvent[]; filter:string; generatedAt:string; counts:{unanswered:number;no_open:number;opened_no_response:number;contacted:number}; rows:ReminderRow[] }
 /** Wish book moderation (T24): guests write, the owner decides, only approved wishes become public. */
 export interface WishRow { id:string; display_name:string; message:string; state:'PENDING'|'APPROVED'|'REJECTED'; created_at:string; moderated_at:string|null; moderated_by:string|null; revision:number; invitation_id:string; invitation_name:string; group_name:string; assigned_events:string|null }
-export interface WishQueue { counts:{pending:number;approved:number;rejected:number}; rows:WishRow[] }
+export interface WishQueue { counts:{pending:number;approved:number;rejected:number}; rows:WishRow[]; total:number }
 /** T25: two roles. OWNER keeps every right; EDITOR never sees credentials, link/PIN secrets or exports. */
 export type AdminRole = 'OWNER'|'EDITOR';
 export interface AdminUser { username:string; role:AdminRole; display_name:string; enabled:boolean; created_at:string; created_by:string|null }

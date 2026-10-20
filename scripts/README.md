@@ -24,6 +24,15 @@ thật. Test headless xác nhận giải mã/thời gian phát, không xác nh�
 
 ## QA persistence các tính năng thiệp (F03)
 
+Map provider online (F05) là kiểm tra opt-in trên frontend local đang chạy:
+`$env:MAP_QA_ONLINE='1'; node scripts/invitation-review-qa.mjs`.
+Xóa biến sau chạy: `Remove-Item Env:MAP_QA_ONLINE`.
+Mặc định script vẫn chặn OSM để kiểm offline/consent. Opt-in gửi tọa độ fixture 0/0
+tới OpenStreetMap, kiểm iframe cross-origin qua CDP (MapLibre/Leaflet), marker/canvas,
+tile resource và attribution; lưu `map-online-result.json`, `map-online*.png` trong artifacts.
+Ảnh đại dương ở 0/0 không phải địa điểm cưới thật. Không dùng onLoad riêng để kết luận provider hoạt động;
+kiểm này cần internet và không thay nghiệm thu thiết bị/địa điểm thật.
+
 Từ repository root, chạy `./scripts/features-persistence-qa.ps1` bằng PowerShell.
 Cần Docker đang chạy, image `postgres:17-alpine` đã cached và Maven dependencies đã có
 (script dùng `mvn -B -o`, không tự tải/cài dependency).

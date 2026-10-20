@@ -1,6 +1,6 @@
 # PLAN_TASK_FEATURES — Bản đồ, lịch cưới, RSVP, lời chúc và hộp quà QR
 
-> CHECKPOINT 2026-10-21 00:06 +07:00: F01–F04 DONE trong phạm vi đã ghi. F04 GuestDisclosure đã dùng cho form lời chúc, keyboard/mobile/desktop/reduced-motion browser PASS; FE 135/135. F05–F13 TODO; RSVP/CTA chưa đổi, API map/feed/gift chưa nối UI. Không migrate/deploy stack wedding đang dùng.
+> CHECKPOINT 2026-10-21 05:47 +07:00: F01–F07 DONE; F08 IN_PROGRESS (feed cursor public/guest + admin pagination đã triển khai, chưa ghim/moderation acceptance đầy đủ). FE 151/151, types/build/browser PASS; BE 131 pass + 1 opt-in skip. F09–F13 TODO; không migrate/deploy stack wedding.
 > Đặt file này ở thư mục gốc website. Đây là kế hoạch thực thi và nơi lưu tiến độ cho nhiều phiên AI coding.
 > File liên quan nếu đã có: `PLAN_TASK.md` — kế hoạch thiết kế và cá nhân hóa các section thiệp cưới. Không tự đánh dấu task trong file đó là hoàn tất.
 
@@ -365,10 +365,10 @@ Chỉ một task triển khai chính IN_PROGRESS mỗi phiên; có thể tiếp 
 | F02 | Chốt UX, provider map, schema và quyền | F01 | DONE |
 | F03 | Contract dữ liệu, persistence, quyền và cache nền | F02 | DONE |
 | F04 | Primitives UI, tokens và chuyển động | F02 | DONE |
-| F05 | Map: quản trị, hiển thị, chỉ đường và fallback | F03, F04 | TODO |
-| F06 | Lịch tháng nội tuyến và liên kết sự kiện | F03, F04 | TODO |
-| F07 | Thu gọn RSVP/lời chúc và luồng submit | F03, F04 | TODO |
-| F08 | Feed lời chúc và moderation admin | F03, F04, F07 | TODO |
+| F05 | Map: quản trị, hiển thị, chỉ đường và fallback | F03, F04 | DONE |
+| F06 | Lịch tháng nội tuyến và liên kết sự kiện | F03, F04 | DONE |
+| F07 | Thu gọn RSVP/lời chúc và luồng submit | F03, F04 | DONE |
+| F08 | Feed lời chúc và moderation admin | F03, F04, F07 | IN_PROGRESS |
 | F09 | Cấu hình QR một/hai người nhận và upload | F03 | TODO |
 | F10 | Hộp quà, dialog QR, tải/copy và animation | F04, F09 | TODO |
 | F11 | Tích hợp public/private/editor, responsive và a11y | F05–F10 | TODO |
@@ -544,6 +544,7 @@ Bước tiếp theo cụ thể:
 
 | ID | Quyết định | Cơ sở / giới hạn | Task |
 |---|---|---|---|
+| DF16 | F08 thay payload wishes cũ bằng feed riêng, refresh có chủ đích; giữ thứ tự cursor DF11 | Không tải trùng LIMIT 20/30, không tự thêm realtime/polling. Ghim chưa triển khai: cần quyết định contract sắp xếp/cursor và migration additive trước khi đánh dấu F08 DONE | F08 |
 | DF01 | “Tất cả lời chúc” = tất cả lời chúc được duyệt và có quyền xem | Không công khai pending hoặc dữ liệu riêng | F03, F08 |
 | DF02 | Không chọn provider map trước khi khảo sát | Chưa biết tích hợp hiện tại, key và yêu cầu dịch vụ | F01, F02 |
 | DF03 | Chọn một pattern form chính, không mặc định xây cả accordion và modal | Giữ trải nghiệm và code gọn | F02, F07 |
@@ -625,6 +626,66 @@ Bước tiếp theo cụ thể:
 - Chạy Next production build local port 3000 bằng PID 25748, backend API được browser fixture intercept, không đăng nhập/ghi dữ liệu thật; không dùng stack 8088. Khôi phục đúng 2 import next-env.d.ts do build sinh. Không thêm dependency, sửa schema/backend, stage/commit/push/deploy. Chưa Safari/Zalo/screen reader thật; browser evidence không là WCAG certification.
 - Tiếp theo F05 map theo F03/F04; F07 cần tái dùng GuestDisclosure cho RSVP và mở trước focus CTA, giữ idempotency/draft. Không làm lại F04 đã xác minh.
 
+### Checkpoint F05 — IN_PROGRESS — 2026-10-21 00:18 +07:00
+
+- Resume đọc Snapshot/Ledger/Decision/Test/Handoff và PLAN_TASK.md T21/T22; đối chiếu source/log F04 và cached/uncached diff. Index giữ nguyên, không phục hồi bằng migration/seed, không sửa backend/schema hoặc task DONE.
+- Thêm `frontend/src/shared/venue-map.ts`: chỉ lat/lng finite/range hợp lệ mới dựng OSM embed allowlist cố định, bbox clamp, marker và link Google directions cùng cặp tọa độ; không lấy token/ID/URL iframe tùy ý. Pair rỗng tắt map, pair thiếu bị chặn; 0/0 là tọa độ hợp lệ về kỹ thuật, không phải vị trí cưới.
+- Thêm `frontend/src/features/invitation/venue-map.tsx`: venue/address luôn bên ngoài iframe; chỉ tạo iframe sau consent rõ gửi IP tới OSM, lazy/no-referrer/title, attribution, retry/ẩn, giải thích fallback ngay cả khi load event không đến. Không coi onLoad là provider thành công. Consent reset theo vị trí/tên/địa chỉ; không xin geolocation, không lưu consent global.
+- EventTools dùng VenueMap theo từng event được mời, không chọn chung sai địa điểm; guest page truyền coordinates từ DTO đã gate. Không thêm events/private coordinates vào public wedding. Public không có nguồn tọa độ được cho phép theo DF07/DF10 nên không suy đoán hay tự công khai event.
+- Thêm `frontend/src/features/admin/event-location-form.tsx` và gắn `/admin/events`: form riêng sau khi event tồn tại, versioned location endpoint F03, kiểm pair/confirm/notice, reset confirm khi sửa tọa độ, giữ draft khi API lỗi, chặn double-submit. CANCELLED không có editor. Dùng `key=id:version` để reload thành công nhận version mới. Không gộp hai mutation event/location gây half-save; hướng dẫn rõ đổi venue/address sẽ clear marker qua V24 trigger, phải cấu hình lại. Form event chung vẫn giữ convention cũ.
+- Thêm CSS venue-map append, giữ token; thêm 5 tests `frontend/tests/venue-map.test.mjs`, cập nhật sections-contract test theo component delegation (vẫn kiểm address URL encoding). Mở rộng invitation-review-qa fixture browser: synthetic 0/0, block OSM bằng Network.setBlockedURLs để không gửi request bên thứ ba, kiểm consent/marker src/no-referrer/offline/retry/hide/no-coordinate; 320/768/1440 không overflow. Admin fixture kiểm không confirm không mutate, notice/version payload, 409 giữ bản nháp, 390/1440 không overflow.
+- Test cuối FE 140/140 + typecheck/build exit 0; browser toàn script PASS exit 0 (hồi quy F04/RSVP/lightbox/sections/contrast). Lượt đầu lỗi regex/source delegation, thiếu venue prop và màu fallback ngoài token đã sửa; admin test đầu bị native required validation chặn trước onSubmit, sửa fixture điền notice trước để kiểm đúng confirmation. Không bỏ validation để test qua.
+- Đã xem `map-offline-320.png`, `map-admin-390.png`: thông tin ngoài iframe và editor dùng được trên mobile. Khung trắng là provider bị chặn có chủ đích, **không có bằng chứng tiles/marker render online**. `.qa-artifacts/features-f05-*.log`, report.json có venueMap/mapAdmin; screenshot map-offline-*/map-admin-*.
+- **Chưa DONE:** cần kiểm embed provider online, marker thật và accessibility iframe/network thực tế; không xác nhận vị trí cưới thật. Chưa Safari/Zalo/device, không nối full flow admin→DB→guest browser phiên này (backend persistence/location API đã có bằng chứng F03). Không chạy lại DB, không cài thư viện/commit/push/deploy. Source mới cần V24/V25 trước chạy backend nhưng không migrate stack wedding trong phiên.
+- Next build local QA port 3000 PID 14380, fixture intercept API; dừng process của phiên sau QA. next-env.d.ts trả đúng import trước build. Tiếp theo tiếp F05 online QA, không mở F06 đồng thời và không làm lại implementation đã có.
+
+### Checkpoint F05 — DONE — 2026-10-21 00:29 +07:00
+
+- Resume đối chiếu Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22, diff/current files. Git khác lịch sử index: HEAD `2629058` đã có F04, index trống, còn F05 unstaged/untracked. Không tự commit/unstage hay phục hồi thay đổi đã được lưu vào HEAD; bảo toàn toàn bộ diff có trước.
+- Chỉ mở rộng `scripts/invitation-review-qa.mjs` bằng opt-in `MAP_QA_ONLINE=1`; mặc định vẫn block OSM, không biến hồi quy thường thành test phụ thuộc internet. Fixture gửi 0/0 (đại dương, không vị trí cưới thật), không guest token/ID/source riêng ra provider.
+- Online probe dùng Chrome CDP target iframe cross-origin (site isolation), hỗ trợ DOM MapLibre hiện tại và Leaflet legacy. Không coi iframe onLoad là bằng chứng; thu marker hiển thị, canvas thực, resource tile và attribution. Lượt đầu FAIL do harness chỉ kiểm Leaflet và frameTree parent, đã đọc DOM provider và sửa probe; không đổi production map để né assertion.
+- Final online browser exit 0: marker true, canvas true, 8 resource `tile.openstreetmap.org/...png`, attribution OpenStreetMap, embed marker=0,0 khớp directions. Đã xem ảnh `map-online.png`, `map-online-mobile.png`: marker và map đại dương render thật, attribution/zoom controls, địa chỉ + retry/hide/directions vẫn ngoài iframe. Focus iframe và trở về parent control kiểm bằng programmatic focus, **không tuyên bố đã kiểm Tab traversal bên trong provider hoặc screen reader**.
+- Chạy toàn script có online opt-in vẫn PASS hồi quy consent/offline/admin conflict, disclosure/RSVP/lightbox/sections/contrast. FE npm test 140/140 exit 0; node --check và diff --check pass. Không chạy lại build/typecheck vì production TS/CSS không đổi phiên này; dùng build và bằng chứng typecheck exit 0 phiên F05 trước.
+- Logs `.qa-artifacts/features-f05-online-final.log`, `features-f05-online-test.log`; provider result `.qa-artifacts/invitation-review/map-online-result.json`, report.json có mapOnline. Log các lần thử FAIL giữ lại ở online-browser.log trước final, final là bằng chứng ưu tiên. Không coi resource timing riêng là HTTP-success proof: kết hợp DOM + screenshot map/marker thực.
+- Kết luận F05 DONE implementation + provider fixture QA; địa điểm cưới thật vẫn cần chủ thiệp xác nhận qua editor. Chưa Safari/Zalo/AT thực, full browser admin→DB→guest cùng phiên, uptime/provider perf không bảo đảm; F03 đã kiểm riêng location API/trigger/persistence trên QA. Không sửa production code/schema, không DB/migration/seed/commit/push/deploy. Server QA local PID 24340 được dừng sau kiểm tra.
+- Tiếp theo F06 lịch tháng theo DF10, dùng guest events đã gate và public milestones PUBLIC; không tự đưa event private lên public, không làm lại F05 DONE.
+
+### Checkpoint F06 — IN_PROGRESS — 2026-10-21 00:45 +07:00
+
+- Resume đọc Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22 và source/diff trước sửa. F05 DONE có log online thực; không làm lại map/API/migration. Giữ diff F05 unstaged/untracked, không stage/commit.
+- Thêm `frontend/src/shared/wedding-calendar.ts`: discriminated items event/milestone, guestCalendar chỉ PUBLISHED/CANCELLED từ DTO đã gate, ICS chỉ PUBLISHED; publicCalendar chỉ enabled PUBLIC TIMELINE + PUBLIC milestones, legacy startsAt fallback, timezone Việt Nam như editor. Client filter bổ sung không thay server authorization.
+- localDay dùng Intl theo timezone event, không parse date-only qua UTC; month arithmetic dùng numeric year/month UTC; default nearest upcoming noncancelled, fallback gần nhất đã qua. CalendarItem IDs prefix tách nguồn, invalid instant/timezone bỏ qua an toàn.
+- Thêm `frontend/src/features/invitation/wedding-month-calendar.tsx`: table semantic Monday-first (không role=grid), tháng trước/sau qua năm, ngày có mốc có số lượng và aria-pressed/full date label, chi tiết inline nhiều sự kiện/cancelled/tentative/timezone/venue/address, return-to-event và ICS đúng scope. Không dữ liệu hợp lệ thì null. Ngày không mốc là text không control giả.
+- Nối guest page qua guestCalendar, public page qua publicCalendar. WeddingCanvas thêm calendar slot riêng trước children: không dùng children public để tránh sinh private/event section heading. Giữ content/album layout cũ. Không thêm events/private location vào payload public, không tạo ngày cưới giả.
+- Thêm CSS token-based và 5 unit tests month 28/29/30/31, Monday/Sunday start, year transition, midnight timezone, invalid data, default past/upcoming/cancelled, public filtering/legacy/no ICS, guest scopes. Cập nhật public-layout contract theo calendar slot (vẫn kiểm không recipient/guest/rsvp trên route public).
+- Browser fixture thêm same-day 2 mốc (1 cancelled), 1 ICS, next-year navigation/return, 320/768/1440 không overflow; public projected fixture không private milestone/ICS/event card; ảnh calendar-*.png và calendar-public-390.png đã xem. Lượt contrast đầu fail vì global small màu khác trên nút selected; sửa span/small inherit màu nút, không hạ threshold. Toàn script sau sửa PASS exit 0, gồm hồi quy map offline/admin/F04/RSVP/lightbox/sections/contrast.
+- FE 145/145 exit 0, typecheck/build exit 0; `.qa-artifacts/features-f06-test.log`, `features-f06-types.log`, `features-f06-build.log`, `features-f06-browser.log`; report.json có calendar/calendarPublic. Không chạy lại backend vì không đổi backend/schema. next-env.d.ts khôi phục 2 import trước build.
+- **Chưa DONE:** browser hiện kiểm focus ngày bằng programmatic focus và click navigation; chưa keyboard Enter/Space chọn ngày khác/chi tiết, today và empty-state thực tế, touch target ở 320px cần rà lại (7 cột trên container hẹp). Cần thêm ca nhiều ngày/tháng và refactor nhỏ tránh monthCells/localDay lặp nếu cần; không đánh DONE chỉ từ screenshot. Không kiểm Safari/Zalo/screen reader thật.
+- Server local QA PID 23588 được dừng sau test; API fixture intercept, không DB/migration/seed/deploy hay dữ liệu thật. Ngày 20/12/2027 trong ảnh là fixture cũ, không dùng làm ngày cưới thật.
+- Tiếp theo tiếp F06 keyboard/touch/today/empty QA từ source hiện có; không mở F07 song song. EventTools vẫn có mini-calendar cũ theo từng event, cần cân nhắc bỏ trùng phần lịch ngày sau khi calendar tháng được nghiệm thu, giữ map consent không đổi.
+
+### Checkpoint F06 — DONE — 2026-10-21 00:52 +07:00
+
+- Đối chiếu Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md và diff cached/uncached; F06 implementation đúng checkpoint, không phục hồi bằng migration hoặc làm lại F01–F05. Index trống; giữ mọi diff F05/F06 có trước.
+- Hoàn thiện `wedding-month-calendar.tsx`: today aria-current và gạch chân riêng với selected/event, giải thích timezone dùng để xác định hôm nay; monthCells chỉ tính một lần/render, nhóm items theo local day trước render thay vì tính Intl theo mỗi ô. Không đổi nguồn public/private/API/schema.
+- CSS narrow container giảm padding ngang cell để vùng chạm ở 320px tăng thành **36×48 CSS px** (đo browser), không overflow. Không tuyên bố đạt 44px cả hai chiều; ưu tiên bảng tháng 7 cột không cuộn ngang. Target vượt 24px mỗi chiều, nhưng thiết bị/thao tác ngón tay thật chưa nghiệm thu.
+- Browser acceptance thêm deterministic fixture clock 20/12/2027 UTC (không dữ liệu thật), nhiều ngày/tháng: Tab tới ngày 21, Enter đổi chi tiết và aria-pressed giữ focus, Space chọn ngày 20, Enter next month qua 2028 rồi Tab/Enter chọn mốc năm mới; về sự kiện mặc định; today 20 có nhãn/gạch chân; events=[] ẩn calendar. Invalid date/timezone tiếp tục có unit tests, không giả định đã test browser invalid cả trang guest.
+- Toàn `node scripts/invitation-review-qa.mjs` PASS exit 0; report.calendarAcceptance ghi enter/space/tab/focus/today/empty/multipleMonths và targets; giữ hồi quy public scope/no ICS, cancellation/many same-day, map offline/admin, disclosure/RSVP/lightbox/sections/contrast. Lượt đầu script syntax lỗi tên targets trùng biến cũ, sửa harness thành calendarTargets rồi node --check và toàn QA PASS; không sửa production để né test.
+- FE 145/145 PASS, build/typecheck exit 0; `.qa-artifacts/features-f06-acceptance-test.log`, `features-f06-acceptance-build.log`, `features-f06-acceptance-types.log`, `features-f06-acceptance-browser.log`. Đã xem `calendar-today-keyboard-320.png`: 2 ngày liền nhau, today underline, selected rõ, text/chi tiết không tràn. Browser fixture clock không thay ngày cưới thật.
+- Kết luận F06 DONE calendar implementation/fixture acceptance. Không tuyên bố WCAG/Safari/Zalo/screen reader hoặc touch thật đã nghiệm thu; các giới hạn này thuộc F11/F12. Giữ mini-calendar legacy trong EventTools để không mở rộng refactor ngoài task; calendar tháng hiện là phần chính, ICS hiện có giữ gate server.
+- Không đổi DB/schema/backend/dependency, không seed/migrate/commit/push/deploy. Server QA PID 9580 dừng sau chạy; next-env.d.ts trả đúng hai import ban đầu. Bước tiếp F07 thu gọn RSVP và CTA mở trước focus, giữ idempotency/version/draft, không làm lại F06 DONE.
+
+### Checkpoint F07 — DONE — 2026-10-21 05:34 +07:00
+
+- Đọc Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22 và files/diff trước sửa. F06 source/log đúng DONE. Git hiện 18 file staged trước phiên (khác unstaged trong handoff cũ), bảo toàn index; phần phiên này ngoài index, không tự stage/unstage/commit.
+- GuestDisclosure thêm optional id, không đổi native semantics/mounting. RSVP bọc disclosure đóng mặc định, hint phản hồi hiện có/đóng/chưa trả lời, giữ form id, fields, submitting ref, version effect và retry/idempotency logic. CTA summary link gọi openResponse: mở đúng response-event rồi focus control đầu tiên (fallback summary nếu closed RSVP), instant scroll tôn trọng reduced motion, không chờ animation.
+- WishBook đã thu gọn F04, không làm lại; thêm synchronous submitting ref để chặn duplicate event trước React busy render. Không thêm backend idempotency cho wish hay tự duyệt; dữ liệu đang viết giữ khi lỗi, success vẫn nói rõ chờ chủ tiệc duyệt.
+- Thêm `frontend/src/features/invitation/open-response.ts`, `frontend/tests/response-disclosure.test.mjs` (3 tests). Sửa guest-disclosure.tsx, wish-book.tsx, invitation/[id]/page.tsx, invitation-review-qa.mjs; giữ F05/F06 staged và selector wish scope riêng `.wish-book .guest-disclosure` để không nhầm RSVP.
+- Browser final PASS: RSVP initial closed; Enter CTA mở trước focus select, Space đóng/reopen giữ draft; unrelated wish reload giữ RSVP draft; wish 503 giữ text, duplicate submit chỉ 1 request, retry thành công với pending copy; RSVP conflict/reload/save/double-submit và 503 retry cùng payload tái dùng Idempotency-Key. Hồi quy calendar/map offline/admin/lightbox/gates/contrast và mobile desktop vẫn PASS. Fixtures intercept API, không mutation DB thật.
+- FE 148/148, build/typecheck exit 0; logs `.qa-artifacts/features-f07-test.log`, `features-f07-build.log`, `features-f07-types.log`, `features-f07-browser-final.log`; report.json thêm rsvpDisclosure/responseFailures. Build trước bổ sung lỗi fixture cuối, production source không đổi sau build. node --check/diff --check pass. Không chạy backend vì không đổi API/schema.
+- Giới hạn: chưa device/AT/Safari/Zalo thật; không cam kết exactly-once wish qua retry sau network timeout (không có backend idempotency wish). Không kiểm server mutations lại trong phiên này, dùng bằng chứng F03 cho persistence/gate. Server QA local PID 25384 dừng cuối phiên; next-env.d.ts trả đúng import ban đầu. Không commit/push/deploy/seed/migrate.
+- Tiếp theo F08 approved feed cursor và moderation UI; API F03 đã có, thay nguồn feed giới hạn cũ thay vì tải song song hai nguồn, giữ server filtering.
+
 ## 15. Test Log
 
 | Task | Lệnh / thao tác thật | Kết quả | Giới hạn / lỗi |
@@ -653,6 +714,14 @@ Bước tiếp theo cụ thể:
 | F04 FE cuối | frontend `npm test`, `npm run typecheck` | PASS 135/135, TEST_EXIT=0, TYPECHECK_EXIT=0 | `.qa-artifacts/features-f04-test-final.log`, `features-f04-types-final.log` |
 | F04 build | frontend `npm run build` | BUILD_EXIT=0 | `.qa-artifacts/features-f04-build.log`; UI source dùng cho browser, sau build chỉ đổi test/audit harness |
 | F04 browser | `node scripts/invitation-review-qa.mjs` | BROWSER_EXIT=0, PASS | `.qa-artifacts/features-f04-browser.log`; report.json có disclosure keyboard/Tab/draft/reducedMotion; screenshots 320/768/1440, hồi quy nhiều theme/viewport + contrast |
+| F05 FE | frontend `npm test`, `npm run typecheck`, `npm run build` | PASS 140/140, TEST_EXIT/TYPECHECK_EXIT/BUILD_EXIT=0 | `.qa-artifacts/features-f05-test.log`, `features-f05-types.log`, `features-f05-build.log` |
+| F05 browser offline/admin | `node scripts/invitation-review-qa.mjs` | BROWSER_EXIT=0, PASS | `.qa-artifacts/features-f05-browser.log`; provider deliberately blocked, marker/src/consent/fallback/admin payload/conflict kiểm bằng fixture; không chứng minh tiles render |
+| F05 provider online | Chưa chạy | NOT VERIFIED | Còn kiểm OSM embed/marker thật; không dùng khung trắng offline để tuyên bố DONE |
+| F05 provider online final | `$env:MAP_QA_ONLINE='1'; node scripts/invitation-review-qa.mjs` | ONLINE_BROWSER_EXIT=0, PASS | `.qa-artifacts/features-f05-online-final.log`; mapOnline result marker/canvas true, 8 tile resources, attribution; screenshots desktop/mobile thực; thay thế NOT VERIFIED trên |
+| F05 resume FE | frontend `npm test`; `node --check scripts/invitation-review-qa.mjs`; `git diff --check` | 140/140 PASS, exit 0; syntax/whitespace pass | `.qa-artifacts/features-f05-online-test.log`; build/typecheck giữ bằng chứng phiên trước vì production source không đổi |
+| F06 FE | frontend `npm test`, `npm run typecheck`, `npm run build` | PASS 145/145, TEST_EXIT/TYPECHECK_EXIT/BUILD_EXIT=0 | `.qa-artifacts/features-f06-test.log`, `features-f06-types.log`, `features-f06-build.log` |
+| F06 browser | `node scripts/invitation-review-qa.mjs` | BROWSER_EXIT=0, PASS | `.qa-artifacts/features-f06-browser.log`; calendar/calendarPublic report + screenshots; keyboard activation/today/empty còn thiếu, không DONE |
+| F06 acceptance cuối | frontend npm test/build/typecheck; node invitation-review-qa + node --check | 145/145 PASS; TEST/BUILD/TYPECHECK/BROWSER_EXIT=0 | `.qa-artifacts/features-f06-acceptance-*.log`; calendarAcceptance: Enter/Space/Tab/day details/today/empty/multi-month PASS, target 36×48px ở 320; thay thế phần chưa kiểm ở dòng F06 browser cũ |
 
 ## 16. Blockers và điều cần xác nhận
 
@@ -665,15 +734,48 @@ Bước tiếp theo cụ thể:
 
 ## 17. Handoff — cập nhật trước khi dừng mỗi phiên
 
-- **Trạng thái:** F01–F04 DONE; checkpoint 2026-10-21 00:06 +07:00. V24/V25 chỉ kiểm trên PG17 disposable (đã dọn), không migrate stack wedding. UI mới: form wish thu gọn qua GuestDisclosure; map/feed/gift chưa nối UI.
+### Resume ưu tiên — F08 IN_PROGRESS — 2026-10-21 05:47 +07:00
+
+- Đã đọc Snapshot/Ledger/Decision/Test/Handoff và PLAN_TASK.md liên quan renderer/privacy. Đối chiếu F07 source/tests/log browser đúng DONE; giữ 18 file staged và toàn bộ changes ngoài index có trước. Không stage/unstage/commit.
+- Đã làm F08: thêm `frontend/src/features/invitation/wish-feed.tsx` dùng endpoint F03 public/guest. Key theo scope, bỏ response stale sau unmount, synchronous loading guard, dedupe ID, cursor encode, loading/empty/error/retry đúng request trước đó (kể cả refresh lỗi), refresh thay danh sách. Không unmount form khi tải feed, không tự đưa pending vào feed.
+- WishBook/ApprovedWishes và hai route chuyển sang feed riêng; GuestService bỏ trường wishes giới hạn cũ khỏi payload public/private theo DF11. Giữ constructor/legacy methods để không refactor API nội bộ ngoài phạm vi. Endpoint mine không đổi.
+- Admin thêm trang trước/sau, reset page khi đổi filter/search, total theo tập lọc. WishService queue thêm total và tie-break UUID cho timestamp trùng. Không đổi state dữ liệu cũ, không mutation DB thật.
+- Test thêm `frontend/tests/wish-feed.test.mjs` (3 source contracts), `backend/src/test/java/vn/wedding/invitation/wishes/WishQueueTest.java` (1 mock SQL binding/count/order). Cập nhật disclosure contract theo component feed mới, không bỏ assertion form nằm ngoài feed. Browser fixture thêm pagination/error/retry/dedupe/refresh. Public mock loại trừ /wishes để không trả wedding DTO nhầm cho feed.
+- **Đã kiểm tra:** FE `npm test` 151/151; build/typecheck exit 0; BE `mvn -B -o verify` 132 discovered, 131 pass + 1 opt-in skip, exit 0. Browser final `node scripts/invitation-review-qa.mjs` exit 0, report.wishFeed có pagination/retryRetainsItems/deduplicates/refreshResets=true; regression theme/mobile/desktop/calendar/RSVP PASS. Logs `.qa-artifacts/features-f08-test-final.log`, `features-f08-build-final.log`, `features-f08-types-final.log`, `features-f08-backend-final.log`, `features-f08-browser-final.log`.
+- Lần đầu FE fail contract cũ tìm wish-list trong WishBook, sửa assertion sang WishFeed; lần đầu browser timeout calendar public, sửa fixture chặn nhầm endpoint feed rồi chạy lại PASS. Không coi lần lỗi là PASS. Build thay next-env imports, đã trả về đúng imports dev ban đầu sau kiểm tra. QA server local đã dừng.
+- **Chưa xong F08:** ghim/bỏ ghim (schema/API/UI chưa có), browser admin pagination/moderation, full security/persistence pending→approve→visible→hide→invisible trên disposable PostgreSQL. Không đánh dấu DONE chỉ vì feed UI pass. Chưa chạy lại persistence script, không mở backend source vào DB wedding cũ.
+- **Bước tiếp:** đọc diff hiện tại; chốt pin như metadata độc lập và cách giữ stable cursor DF11 trước migration additive (không sửa V15/V24/V25). Thêm server authorization/concurrency/audit tests, QA admin pagination với fixture và acceptance moderation isolated. Kiểm tra lại API caller cũ dựa vào field wishes nếu có ngoài repo trước triển khai.
+- Stack Docker wedding vẫn nguyên ở 8088; không đọc .env, không query DB thật, không seed/migrate/publish/deploy, không sửa PLAN_TASK.md. F09–F13 vẫn TODO.
+
+### Test Log bổ sung F08
+
+| Kiểm tra | Kết quả | Giới hạn |
+|---|---|---|
+| FE test/build/typecheck final | 151/151; tất cả exit 0 | Source contracts không thay thế browser |
+| Backend verify final | 131 pass, 1 integration opt-in skip; exit 0 | Queue test mock; không chạy SQL trên DB |
+| Browser final | exit 0; wishFeed + regression PASS | Synthetic API fixture, không chứng minh moderation/persistence thật |
+| Schema/data/runtime | Không thay migration hoặc DB | Ghim và moderation acceptance còn IN_PROGRESS |
+
+### Resume ưu tiên — F07 2026-10-21 05:34 +07:00
+
+- F01–F07 DONE, không có IN_PROGRESS; F08–F13 TODO. Tiếp F08 feed cursor/admin pagination, không làm lại RSVP/calendar/map.
+- Git: 18 file staged từ trước phiên được giữ nguyên; changes F07 ngoài index gồm GuestDisclosure id, open-response.ts, RSVP page/wish-book, response-disclosure.test.mjs, QA script và plan. Không stage/unstage/commit.
+- FE 148/148, types/build exit 0, browser final exit 0: CTA open/focus, retain drafts, wish error/double submit/pending, RSVP retry same idempotency key + regression. Logs features-f07-*.log; không DB/backend mutation hoặc migrate/deploy.
+- Handoff F06 dưới đây là lịch sử; source/build local đã có RSVP thu gọn, chưa deploy 8088. Bắt đầu phiên sau đọc kế hoạch/status/diff rồi tiếp F08. Không chạy backend source mới trỏ DB cũ, không seed/migration mù quáng.
+
+- **Trạng thái:** F01–F06 DONE checkpoint 2026-10-21 00:52 +07:00. Calendar guest/public + keyboard/today/empty/multi-month fixture acceptance PASS. Không migrate stack wedding; giữ unstaged F05/F06.
 - **Task đã xác minh hoàn tất:** F01 bằng test/report/code; F02 quyết định UX/provider/schema/quyền DF08–DF12.
-- **Task đang làm:** không; điểm dừng an toàn sau F04. F05–F13 TODO, chỉ chọn một task triển khai chính.
-- **Task tiếp theo:** F05 map: nối EventForm/location API/Guest EventTools bằng tọa độ đã xác nhận, OSM embed consent + fallback. F07 sau đó tái dùng GuestDisclosure cho RSVP và mở trước focus CTA. F09/F10 vẫn TODO; không tự tạo gift dialog không dùng ở F04.
+- **Task đang làm:** không, điểm dừng an toàn sau F06. F07–F13 TODO.
+- **Task tiếp theo:** F07 thu gọn RSVP theo DF08, dùng GuestDisclosure giữ mounted draft, CTA mở trước focus; giữ idempotency/version và API gate. Wish form đã thu gọn ở F04, chỉ hoàn thiện tương tác/trạng thái cần thiết, không làm lại F06.
 - **File phiên này:** V24__event_map_coordinates.sql, EventLocationService/Controller.java, GuestService.java, AdminPermissions.java, EventLocationTest/HttpTest.java, AdminPermissionsTest.java, GiftPermissionFilterTest.java, shared/invitation-features.ts, shared/admin-types.ts và plan này. Giữ nguyên wish feed, test F01 và 12 file staged ban đầu. Không stage/commit.
 - **File thêm phiên gift:** `backend/src/main/java/vn/wedding/invitation/gifts/GiftService.java`, `GiftController.java`, `backend/src/main/resources/db/migration/V25__gift_settings_and_assets.sql`, `backend/src/test/java/vn/wedding/invitation/gifts/GiftServiceTest.java`, `GiftHttpTest.java`; sửa thêm shared/invitation-features.ts và plan này. Không stage/commit, không sửa PLAN_TASK.md.
 - **File thêm phiên persistence:** `backend/src/test/java/vn/wedding/invitation/FeaturePersistenceIntegrationTest.java`, `scripts/features-persistence-qa.ps1`; cập nhật plan này và hướng dẫn scripts. Không sửa production code/schema, không stage/commit, không sửa PLAN_TASK.md.
 - **Đã chạy/test:** integration PostgreSQL/HTTP/restart PASS exit 0 (`.qa-artifacts/features-f03-persistence-final.log`); backend verify exit 0 130 pass + 1 opt-in skip. FE 131/131 + typecheck/build exit 0 là bằng chứng phiên trước, không chạy lại phiên này. Browser/QR/device/perf/concurrency sâu vẫn NOT VERIFIED.
 - **Dữ liệu thật còn thiếu:** chưa kiểm tra DB/nội dung thật trong phiên; map coordinates/provider và QR cần chủ thiệp xác nhận, không yêu cầu gửi thông tin ngân hàng vào chat/log. Không giả định nội dung demo là thật.
 - **File phiên F04:** guest-disclosure.tsx mới, wish-book.tsx, design.css (append), tests/guest-disclosure.test.mjs mới, tests/contrast-audit.test.mjs, scripts/contrast-audit.mjs, scripts/invitation-review-qa.mjs (giữ staged changes cũ), plan này. FE 135/135 + typecheck/build, browser PASS; không chạy lại BE vì không đổi backend.
-- **Bước đầu phiên sau:** đọc hai plan → git status/diff cả cached/uncached → giữ index có trước → đối chiếu F04 DONE source/log → chọn F05. Không khởi động source mới trỏ DB wedding cũ; QA persistence dùng script DB riêng. Source/build local có wish disclosure nhưng không deploy 8088; API map/feed/gift vẫn chưa nối UI.
+- **File phiên F05:** thêm shared/venue-map.ts, features/invitation/venue-map.tsx, features/admin/event-location-form.tsx, tests/venue-map.test.mjs; sửa admin/events/page.tsx, invitation/[id]/page.tsx, event-tools.tsx, design.css append, sections-contract.test.mjs, invitation-review-qa.mjs và plan này. Giữ toàn bộ staged/unstaged có trước, không stage/commit.
+- **File phiên resume online:** chỉ scripts/invitation-review-qa.mjs, scripts/README.md và plan này; production files F05 giữ nguyên. Online browser PASS, npm test 140/140; ảnh map đại dương tại 0/0 là fixture không phải dữ liệu thật. Không stage/commit.
+- **File phiên F06:** mới shared/wedding-calendar.ts, features/invitation/wedding-month-calendar.tsx, tests/wedding-calendar.test.mjs; sửa invitation/[id]/page.tsx, w/[slug]/page.tsx, design.tsx/calendar slot, design.css append, tests/public-layout.test.mjs, invitation-review-qa.mjs và plan. Giữ diff F05 có trước, không stage/commit.
+- **File phiên F06 acceptance:** chỉ wedding-month-calendar.tsx, design.css append/narrow, invitation-review-qa.mjs và plan này; giữ diff còn lại. FE 145/145, types/build/browser PASS; target đo 36×48px không phải 44px rộng, screen reader/device thật chưa kiểm.
+- **Bước đầu phiên sau:** đọc hai plan → git status/diff cached/uncached → đối chiếu F06 DONE source/log → chọn F07. Không khởi động backend mới trỏ DB wedding cũ; source/build local chưa deploy 8088; feed/gift chưa nối UI, RSVP chưa thu gọn.
 - **Không được làm khi resume:** overwrite code người dùng, tự publish/deploy/migrate production, public dữ liệu riêng, duyệt hàng loạt lời chúc cũ, giả lập dữ liệu nhận tiền hoặc tự nhận đã quét/xác minh QR.

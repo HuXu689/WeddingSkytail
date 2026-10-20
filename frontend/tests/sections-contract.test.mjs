@@ -16,7 +16,8 @@ test('optional sections default private/disabled and cannot hide RSVP',()=>{
 });
 test('map is deferred and address is URL encoded, never proxying an arbitrary source',()=>{
  const source=read('../src/features/invitation/event-tools.tsx');
- assert.match(source,/expanded&&/);assert.match(source,/encodeURIComponent\(address\)/);
+ assert.match(source,/expanded&&/);assert.match(source,/<VenueMap/);
+ assert.match(read('../src/features/invitation/venue-map.tsx'),/encodeURIComponent\(address\)/);
  assert.doesNotMatch(source,/<iframe|fetch\(/);
 });
 test('intro decoration is opt-in, small, paused when hidden and reduced-motion aware',()=>{
