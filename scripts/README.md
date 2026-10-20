@@ -59,3 +59,15 @@ Lệnh dưới đây chỉ xóa lời mời có nhóm bắt đầu bằng `DEMO`
 ```
 
 Sau khi reset, chạy seed lại để tạo bộ demo mới.
+
+## Kiểm tra FE thiệp riêng, không dùng dữ liệu thật
+
+Chạy frontend bằng `npm run dev` trong thư mục frontend, sau đó từ thư mục gốc chạy:
+
+```powershell
+node scripts/invitation-review-qa.mjs
+```
+
+Script dùng Chrome headless và mô phỏng toàn bộ yêu cầu `/api/v1` ngay trong trình duyệt; không tạo hay sửa khách mời thật. Mặc định frontend ở `http://127.0.0.1:3000`; có thể đặt biến môi trường `INVITATION_QA_ORIGIN` và `CHROME_PATH` để đổi địa chỉ hoặc đường dẫn Chrome.
+
+Kiểm tra ba mẫu thiệp ở bảy chiều rộng, nội dung dài, form RSVP và xung đột phản hồi, PIN, popup album, bàn phím/focus và giảm chuyển động. Báo cáo JSON cùng ảnh chụp nằm trong `.qa-artifacts/invitation-review`. Đây là kiểm tra FE với dữ liệu mô phỏng, không thay thế kiểm thử API/backend hoặc Safari trên iPhone thật.

@@ -226,3 +226,38 @@ dialog.album-lightbox .lightbox-close{top:max(16px,env(safe-area-inset-top));rig
  .wedding-canvas button,.wedding-canvas a.button,.invitation-entry button,.album-lightbox button{transition:none}
  .wedding-canvas .album-main:hover img,.wedding-canvas .album-side:hover img{transform:none}
 }
+/* Guest layout: content must wrap, not merely disappear behind canvas overflow:hidden. */
+.theme-elegant .hero-split .cover-photo{width:100%;max-width:100%}
+.wedding-canvas .event-card{grid-template-columns:54px minmax(0,1fr)}
+.event-content,.rsvp-heading>div,.section-intro>*,.album-heading>*,.wish-book .row>*{min-width:0}
+.event-content,.rsvp-summary,.wish-book,.wedding-thanks{overflow-wrap:anywhere}
+.wedding-canvas .button,.invitation-entry button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.wedding-canvas input,.wedding-canvas select,.wedding-canvas textarea{font-size:16px}
+.rsvp-form[aria-busy="true"]{cursor:progress}
+.rsvp-form :disabled{cursor:wait}
+.rsvp-icon{flex-shrink:0}
+.rsvp-form{scroll-margin-block:24px}
+.rsvp-summary .row a{min-height:44px}
+.invitation-entry .invitation-envelope{max-width:100%}
+.invitation-entry .pin-form{width:100%;min-width:0}
+.invitation-entry .pin-form input{letter-spacing:clamp(2px,1vw,6px)}
+.wedding-cover:not(:has(.cover-photo)) .cover-content::before{display:none}
+.album-heading{flex-wrap:wrap;gap:12px}
+.album-heading>span{flex-shrink:0}
+@container (max-width:520px){
+ .wedding-canvas .event-card{grid-template-columns:minmax(0,1fr)}
+ .rsvp-form{padding:16px}
+ .content-section{padding:24px 0}
+ .wish-book{padding:20px 16px}
+ .wish-book .section-intro{display:block;padding-top:12px}
+ .wish-book .row>*{width:100%}
+}
+/* Keep modal close controls clear of the image, even on a short landscape screen. */
+dialog.album-lightbox{padding-top:max(72px,calc(env(safe-area-inset-top) + 60px));padding-bottom:max(24px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));grid-template-rows:minmax(0,1fr)}
+dialog.album-lightbox figure{max-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+dialog.album-lightbox img{display:block;min-height:0;max-height:calc(100dvh - 156px - env(safe-area-inset-top) - env(safe-area-inset-bottom));flex:0 1 auto}
+dialog.album-lightbox figcaption{flex-shrink:0;margin:0}
+@media(max-width:700px){
+ dialog.album-lightbox{grid-template-rows:minmax(0,1fr) 44px;row-gap:12px}
+ dialog.album-lightbox img{max-height:calc(100dvh - 212px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+}
