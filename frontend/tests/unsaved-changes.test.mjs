@@ -15,6 +15,6 @@ test('all draft editors share the guard and modified/new-tab clicks are preserve
   assert.doesNotMatch(editor,/addEventListener\('beforeunload'/);
  }
  assert.match(source,/event.ctrlKey\|\|event.metaKey\|\|event.shiftKey\|\|event.altKey/);
- assert.match(source,/anchor.download\|\|anchor.target==='_blank'/);
+ assert.match(source,/anchor.hasAttribute\('download'\)/);
  assert.match(source,/removeEventListener\('navigate',traverse\)/);
 });

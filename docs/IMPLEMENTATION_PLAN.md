@@ -474,9 +474,19 @@ S2 cũng **xác minh lại Đợt 1** bằng cách chạy thật (test / typeche
 - Harness thêm timeout30s mỗi CDP request và xử lý beforeunload dialog; lượt đầu bị treo do native unload và fixture cross-document, đã đóng riêng Chrome QA qua DevTools, sửa fixture sang Next internal navigation và chạy lại pass. Không đóng browser Owner.
 - Kết quả cuối: frontend **89/89**, typecheck/build exit0; backend **56/56**, BUILD SUCCESS; diff check sạch. Docker frontend build/QA recreate trong S12 pass; `s12-browser-resume.log` xác nhận browser regression pass (gồm Back cancel/accept, media retry/countdown, popup, modal, PIN/RSVP, presets/contrast). Không deploy stack Owner.
 
+### S13 — behavioral regression cho unsaved guard
+
+- Working tree đầu phiên sạch, HEAD thực tế `5927bce` (khác checkpoint S12); không stage/commit/reset hoặc sửa commit có sẵn.
+- Sửa download attribute rỗng (`download=""`) bằng hasAttribute; không hỏi xác nhận cho target khác `_self`, mailto/tel và protocol không phải HTTP(S). Kiểm tra Back/Forward cùng trang nay so cả origin để không bỏ sót destination khác origin nhưng cùng path/query.
+- Thêm 8 behavioral tests transpile và thực thi hook thật với TypeScript đã có sẵn; không thêm dependency. Bao phủ cancel/accept, download rỗng, modified/new-context clicks, fragment, query, protocol, already-canceled event, traversal origin/cancelability/type, beforeunload, cleanup và thiếu Navigation API. Harness EventTarget cô lập không mô phỏng DOM capture; capture/Next integration tiếp tục kiểm bằng Chrome QA.
+- Kiểm chứng frontend **97/97**, TypeScript và production build pass; Docker frontend rebuild và recreate **chỉ QA** pass; Chrome QA trên image mới pass (`s13-browser.log`). Không đổi backend/API/schema; không nâng DB Owner hoặc deploy production. Lỗi fixture EventTarget cleanup ở lượt test đầu đã sửa trong harness, không né assertion.
+- Task gia cố regression guard hoàn tất trong phạm vi đã kiểm; hỗ trợ chặn same-document Back trên browser thiếu Navigation API vẫn chưa được chứng nhận. Không đánh dấu toàn bộ EDITOR/backlog DONE.
+
 ## G. NEXT SESSION HANDOFF
 
-> **S12 mới nhất**: unsaved navigation guard + countdown independence; chưa tất cả task DONE. Giữ nguyên staged/unstaged hiện có, không stage/reset/commit/push.
+> **S13 mới nhất**: behavioral regression + sửa edge cases unsaved guard; chưa tất cả task DONE. HEAD đầu phiên `5927bce`, working tree đầu phiên sạch; không stage/reset/commit/push.
+
+- **S13 đọc trước:** `use-unsaved-changes.ts`, `unsaved-changes-behavior.test.mjs`, `unsaved-changes.test.mjs`. Frontend97/97, typecheck/build, Docker frontend/QA và Chrome regression pass. Log `s13-*`. Không backend/migration mới, không rerun backend tests trong S13 (S12 gần nhất56/56). Next steps vẫn nhóm editor1–13, token typography/spacing/radius, kiểm thiết bị thật; không lặp lại chỉ source-regex tests cho guard. Giới hạn browser thiếu Navigation API giữ nguyên và cần thiết bị/browser tương ứng để nghiệm thu.
 
 - **S12 tiếp nối sau ngắt phiên:** `use-unsaved-changes.ts` dùng chung ba editor, 2 contract tests mới; browser Chrome cancel/accept Back qua Next internal navigation và xác nhận nháp không persisted pass. Countdown chỉnh được khi media load lỗi. `scripts/browser-qa.mjs` timeout CDP + native beforeunload handling, fixture điều hướng nội bộ; kết quả cuối frontend89/89/typecheck/build, backend56/56, browser pass ở `s12-browser-resume.log`. Không schema/migration mới, QA V19, DB Owner giữ nguyên.
 - **File đọc đầu phiên sau:** tài liệu này → `use-unsaved-changes.ts`, ba editor và `scripts/browser-qa.mjs`. Back guard Chrome đã E2E; còn browser không Navigation API, dev StrictMode popup, nhóm1–13, spacing/font/radius token, ảnh thật/thiết bị thật và production. Không lặp lại đánh giá Back là chưa kiểm ở Chrome.
