@@ -188,6 +188,9 @@
 .reminder-sent { font-size:12px; font-weight:600; color:var(--compat-color-3f6b3a); background:var(--compat-paint-726762612838322c3130322c37362c2e313229); border-radius:999px; padding:5px 12px; white-space:nowrap; }
 .reminder-pending { font-size:12px; font-weight:600; color:var(--compat-color-8a6d2f); background:var(--compat-paint-72676261283138302c3135302c36302c2e313429); border-radius:999px; padding:5px 12px; white-space:nowrap; }
 .music-upload .upload-button { margin-top:12px; }
+.quick-actions { display:flex; flex-wrap:wrap; gap:12px; }
+.quick-actions .button { text-align:center; }
+@media(max-width:700px) { .quick-actions .button { width:100%; } }
 .music-list { display:grid; gap:12px; margin-top:16px; }
 .music-item { display:grid; gap:10px; padding:14px 16px; border:1px solid var(--compat-paint-7267626128302c302c302c2e303729); border-radius:14px; background:var(--compat-color-fbfaf7); }
 .music-item div { display:flex; flex-direction:column; gap:2px; }

@@ -1,6 +1,6 @@
 # Prompt tạo ảnh demo cho thiệp cưới
 
-Website nhận **JPEG hoặc PNG**, tối đa 10 MB/ảnh và 12.000 px mỗi chiều. Nên tạo 6–8 ảnh, tỉ lệ ảnh đa dạng để album tự động trông tự nhiên.
+Website nhận **JPEG hoặc PNG**, tối đa 100 MB/ảnh và 12.000 px mỗi chiều. Nên tạo 6–8 ảnh, tỉ lệ ảnh đa dạng để album tự động trông tự nhiên.
 
 ## 1. Ảnh bìa hero — 1 ảnh ngang
 

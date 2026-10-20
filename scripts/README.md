@@ -1,5 +1,28 @@
 # Dữ liệu demo
 
+## Giữ database phát triển gọn sau kiểm thử
+
+Các script trong `deploy/verify-*.ps1` và `deploy/smoke.ps1` tạo dữ liệu mới mỗi lần chạy.
+Nên chạy trên stack QA riêng (`deploy/compose.qa.yml`), không chạy trên database đang dùng thật.
+Sau khi kiểm thử trên stack local mặc định, xem trước dữ liệu sẽ dọn:
+
+```powershell
+.\scripts\cleanup-test-data.ps1
+```
+
+Áp dụng (tự động sao lưu toàn bộ PostgreSQL trước khi xóa):
+
+```powershell
+.\scripts\cleanup-test-data.ps1 -Apply
+```
+
+- Chỉ nhận diện các nhóm fixture: `Khách kiểm thử`, `Khách PIN`, `Khách nhắc`, `Smoke`, `Khách lời chúc`, `Khách vai trò`; không dùng các nhóm này cho khách thật.
+- Sự kiện được nhận diện theo cả mẫu tiêu đề và địa điểm của fixture; giữ lại nếu còn gán cho khách ngoài nhóm test.
+- Dọn các dữ liệu phụ thuộc (RSVP, lịch sử RSVP test, lượt mở, PIN, nhắc, lời chúc test); xóa snapshot xuất có chứa link của khách bị dọn.
+- Giữ nguyên bộ DEMO 6 lời mời / 2 sự kiện, khách ngoài nhóm test, thiết kế thiệp, media, tài khoản, phiên đăng nhập và nhật ký audit. Không truncate/reset database.
+- Backup riêng tư ở `.qa-artifacts/db-backups/*.dump` (đã được gitignore). Không chia sẻ hoặc commit backup. Khôi phục bằng `pg_restore` vào database riêng trước khi cân nhắc thay database hiện hành.
+- Chế độ mặc định chỉ xem trước và rollback; chạy lại sau khi dọn sẽ không xóa thêm dữ liệu ngoài phạm vi.
+
 ## Tạo dữ liệu mẫu
 
 Khởi động stack trước, sau đó chạy từ thư mục gốc repository:

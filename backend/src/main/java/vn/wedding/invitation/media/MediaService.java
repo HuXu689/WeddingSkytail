@@ -26,7 +26,7 @@ public class MediaService {
     @Transactional
     public UUID upload(MultipartFile upload) {
         ApiErrors.require(upload!=null && !upload.isEmpty(),"Vui lòng chọn một ảnh.");
-        ApiErrors.require(upload.getSize()<=10*1024*1024,"Ảnh không được lớn hơn 10 MB.");
+        ApiErrors.require(upload.getSize()<=100*1024*1024,"Ảnh không được lớn hơn 100 MB.");
         String name=Optional.ofNullable(upload.getOriginalFilename()).orElse("anh");
         ApiErrors.require(name.length()<=255,"Tên ảnh quá dài.");
         try(InputStream input=upload.getInputStream()) {
@@ -42,11 +42,11 @@ public class MediaService {
             return id;
         } catch(IOException e){throw new IllegalArgumentException("Không thể đọc hoặc lưu ảnh. Vui lòng thử lại.");}
     }
-    /** Audio upload for background music: no image decoding, magic bytes decide the type, 5 MB ceiling (P1). */
+    /** Audio upload for background music: no image decoding, magic bytes decide the type, 20 MB ceiling. */
     @Transactional
     public UUID uploadMusic(MultipartFile upload) {
         ApiErrors.require(upload!=null && !upload.isEmpty(),"Vui lòng chọn một tệp nhạc.");
-        ApiErrors.require(upload.getSize()<=5*1024*1024,"Tệp nhạc không được lớn hơn 5 MB.");
+        ApiErrors.require(upload.getSize()<=20*1024*1024,"Tệp nhạc không được lớn hơn 20 MB.");
         String name=Optional.ofNullable(upload.getOriginalFilename()).orElse("nhac");
         ApiErrors.require(name.length()<=255,"Tên tệp quá dài.");
         try(InputStream probe=upload.getInputStream()) {

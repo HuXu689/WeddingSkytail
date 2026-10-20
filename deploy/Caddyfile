@@ -1,6 +1,6 @@
 {$SITE_ADDRESS: :80} {
     request_body {
-        max_size 10MB
+        max_size 110100480
     }
     header {
         Referrer-Policy no-referrer
