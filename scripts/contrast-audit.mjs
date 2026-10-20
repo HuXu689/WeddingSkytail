@@ -67,7 +67,7 @@ export function inspectContrast(root=document){
  for(const element of root.querySelectorAll('h1,h2,h3,p,span,a,button,label,cite,time,strong,small,summary,dt,dd,li')){
   if(!Array.from(element.childNodes).some(node=>node.nodeType===3&&node.textContent.trim()))continue;
   const style=getComputedStyle(element),rect=element.getBoundingClientRect();
-  if(rect.width===0||rect.height===0||style.visibility==='hidden'||element.closest('[aria-hidden="true"]'))continue;
+  if(rect.width===0||rect.height===0||style.visibility==='hidden'||!element.checkVisibility()||element.closest('[aria-hidden="true"]'))continue;
   const text=element.textContent.trim().slice(0,100),foreground=parseColor(style.color);
   if(!foreground||foreground[3]<1){skipped.push(text);continue;}
   // WCAG 1.4.3 miễn trừ thành phần UI không hoạt động: nút disabled mờ đi là chủ ý, không phải lỗi contrast.

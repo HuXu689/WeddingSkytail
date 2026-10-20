@@ -97,5 +97,5 @@ public class WishService {
     }
     /** Only approved wishes are ever shown to a guest or on the public invitation. */
     public List<Map<String,Object>> approved(UUID invitationId) { return db.queryForList("SELECT display_name,message,created_at FROM wishes WHERE invitation_id=? AND state='APPROVED' ORDER BY created_at DESC LIMIT 20",invitationId); }
-    public List<Map<String,Object>> approvedPublic() { return db.queryForList("SELECT display_name,message,created_at FROM wishes WHERE state='APPROVED' ORDER BY created_at DESC LIMIT 30"); }
+    public List<Map<String,Object>> approvedPublic() { return db.queryForList("SELECT display_name,message,created_at FROM wishes WHERE state='APPROVED' AND event_id IS NULL ORDER BY created_at DESC,id DESC LIMIT 30"); }
 }

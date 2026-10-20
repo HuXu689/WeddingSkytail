@@ -110,6 +110,31 @@ fixture.wedding.sections=sectionsLong;
   }
  }
  assert.equal(await evaluate(`document.querySelector('.rsvp-summary strong').textContent`),'Đã phản hồi 0/1 buổi tiệc');
+ // F04: use actual keyboard input against the native disclosure, not scripted click toggling.
+ const disclosureKey=async(key,code,value)=>{await command('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:value,...(key==='Enter'?{text:'\r',unmodifiedText:'\r'}:key===' '?{text:' ',unmodifiedText:' '}:{})});await command('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:value});};
+ assert.equal(await evaluate(`document.querySelector('.guest-disclosure').open`),false);
+ assert.equal(await evaluate(`document.querySelector('.wish-form textarea').checkVisibility()`),false);
+ assert.ok(await evaluate(`document.querySelector('.wish-list').getBoundingClientRect().height>0`));
+ for(const width of [320,768,1440]){
+  await metrics(width);await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);
+  await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.guest-disclosure').open`);
+  assert.equal(await evaluate(`document.activeElement.matches('.guest-disclosure>summary')`),true);
+  await disclosureKey('Tab','Tab',9);
+  assert.equal(await evaluate(`document.activeElement.matches('.wish-form input')`),true);
+  await evaluate(`document.querySelector('.wish-form textarea').focus();document.querySelector('.wish-form textarea').select();true`);await command('Input.insertText',{text:'Bản nháp giữ nguyên'});
+  await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);await disclosureKey(' ','Space',32);await until(`!document.querySelector('.guest-disclosure').open`);
+  await disclosureKey('Tab','Tab',9);assert.equal(await evaluate(`document.activeElement.closest('.guest-disclosure-body')!==null`),false);
+  await evaluate(`document.querySelector('.guest-disclosure>summary').focus();true`);await disclosureKey('Enter','Enter',13);await until(`document.querySelector('.guest-disclosure').open`);
+  assert.equal(await evaluate(`document.querySelector('.wish-form textarea').value`),'Bản nháp giữ nguyên');
+  assert.equal(await evaluate('document.documentElement.scrollWidth'),width);
+  await evaluate(`document.querySelector('.guest-disclosure').scrollIntoView({block:'center'});true`);await screenshot(`disclosure-${width}`);
+  await evaluate(`document.querySelector('.guest-disclosure').open=false;true`);
+ }
+ await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('.guest-disclosure-mark')).transitionDuration`),'0s');
+ report.push({disclosure:{widths:[320,768,1440],enter:true,space:true,tabOrder:true,retainedDraft:true,reducedMotion:true}});
+ await command('Emulation.setEmulatedMedia',{features:[]});
+ await evaluate(`document.querySelector('.guest-disclosure').open=true;true`);
  // A draft survives an unrelated data refresh from the wish book.
  await evaluate(`document.querySelector('.rsvp-form textarea').focus();true`);
  await command('Input.insertText',{text:'Bản nháp đang viết'});
@@ -207,6 +232,38 @@ fixture.wedding.sections=sectionsLong;
  assert.equal(sectionReport.timelineTentative,1,'Nhãn “Dự kiến” phải hiện cho mốc chưa chốt');
  assert.deepEqual(sectionReport.palette,['Trắng ngà|#FFFDF9','Đỏ trầm|#823B42'],'Tên màu phải đi kèm mã màu');
  assert.equal(sectionReport.swatches,2);assert.ok(sectionReport.avoid);
+ // TYPO-002: tái hiện tên/lời dẫn nhiều dấu với dữ liệu NFD, không dùng dữ liệu khách thật.
+ const vietnameseScript=await command('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{
+  const intro=window.fixture.wedding.sections.find(s=>s.kind==='INTRO');
+  intro.body='Giữa hàng triệu người trên thế gian, thật may mắn vì chúng mình đã tìm thấy nhau'.normalize('NFD');
+  intro.payload.people[0].name='Trần Thanh Bình'.normalize('NFD');
+  const family=window.fixture.wedding.sections.find(s=>s.kind==='FAMILY');
+  family.body='Nơi khởi nguồn của yêu thương, tổ ấm nhỏ'.normalize('NFD');
+  family.payload.groups[0].members[0].name='Ông Trần Quốc Tuấn'.normalize('NFD');
+  return true;
+ })()`});
+ await command('Page.navigate',{url:`${origin}/invitation/vietnamese-typography`});await until(`document.querySelector('.intro-person-name')?.textContent==='Trần Thanh Bình'`);
+ await command('DOM.enable');await command('CSS.enable');
+ const {root:fontRoot}=await command('DOM.getDocument');
+ const vietnameseFonts=[];
+ for(const selector of ['.intro-person-name','.intro-lead','.family-member-name','.family-lead']){
+  const {nodeId}=await command('DOM.querySelector',{nodeId:fontRoot.nodeId,selector});
+  const {fonts}=await command('CSS.getPlatformFontsForNode',{nodeId});
+  assert.ok(fonts.length,`${selector}: cần có font thực tế`);
+  if(process.platform==='win32')assert.deepEqual(fonts.map(font=>font.familyName),['Times New Roman'],`${selector}: toàn bộ chữ Việt phải dùng cùng font, không ghép dấu từ font khác`);
+  assert.ok(fonts.every(font=>!font.familyName.includes('Georgia')),`${selector}: không dùng Georgia thiếu glyph Việt`);
+  const content=await evaluate(`document.querySelector(${JSON.stringify(selector)}).textContent`);
+  assert.equal(content,content.normalize('NFC'),`${selector}: dữ liệu phải được NFC trước render`);
+  vietnameseFonts.push({selector,fonts});
+ }
+ report.push({vietnameseFonts});
+ await command('Emulation.setDeviceMetricsOverride',{width:1440,height:1200,deviceScaleFactor:1,mobile:false});
+ await evaluate(`document.querySelector('.content-intro').scrollIntoView();true`);await wait(200);await screenshot('vietnamese-desktop');
+ await metrics(390,844);await wait(200);await screenshot('vietnamese-mobile');
+ assert.equal(await evaluate('document.documentElement.scrollWidth'),390,'Nội dung tiếng Việt không tràn ngang');
+ // Khôi phục fixture ngắn cho các assertion/contrast hiện có.
+ await command('Page.removeScriptToEvaluateOnNewDocument',{identifier:vietnameseScript.identifier});
+ await command('Page.navigate',{url:`${origin}/invitation/desktop-layout`});await until(`document.querySelector('.rsvp-form')`);
  // Mốc/mục riêng vẫn hiển thị cho khách hợp lệ: quyền do máy chủ quyết định, client không tự ẩn.
  assert.equal(await evaluate(`document.body.textContent.includes('Lễ gia tiên')`),true);
  // T20: đối chứng cho bộ đo pixel — nếu bộ giải mã hoặc phép chọn "nền xấu nhất" sai thì dừng ngay,

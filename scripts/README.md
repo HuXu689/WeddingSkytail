@@ -22,6 +22,23 @@ Tự phát có âm thanh khi chưa tương tác không thể được website b�
 trình duyệt. Cần nghiệm thu thêm Safari iOS và trình duyệt trong Zalo trên thiết bị
 thật. Test headless xác nhận giải mã/thời gian phát, không xác nhận loa vật lý.
 
+## QA persistence các tính năng thiệp (F03)
+
+Từ repository root, chạy `./scripts/features-persistence-qa.ps1` bằng PowerShell.
+Cần Docker đang chạy, image `postgres:17-alpine` đã cached và Maven dependencies đã có
+(script dùng `mvn -B -o`, không tự tải/cài dependency).
+
+- Tạo container PostgreSQL mới với tên/cổng random chỉ trên `127.0.0.1`, database tmpfs;
+  không đọc `.env`, không mount volume, không dùng stack `wedding` hoặc `wedding-qa` cũ.
+- Dùng dữ liệu fixture tổng hợp: upgrade V23→V25, map constraints/trigger, gift PNG bytea,
+  draft/published/revision, HTTP OWNER/EDITOR/guest/CSRF/PIN/access gate, feed scope và restart.
+  Không có QR/tài khoản nhận tiền thật; đây không phải kiểm nghiệm quét QR hay browser UI.
+- Script `finally` stop đúng container random của lần gọi (`--rm`), xóa database tạm đó;
+  không chạy cleanup/seed/migration trên database đang dùng.
+- `FeaturePersistenceIntegrationTest` mặc định skip trong `mvn verify`; script bật riêng bằng
+  `FEATURE_QA_DATABASE`. Không tự đặt biến này trỏ database có dữ liệu; test từ chối public schema
+  không trống. Một scenario integration có nhiều assertion, không đồng nghĩa toàn product đã nghiệm thu.
+
 ## Giữ database phát triển gọn sau kiểm thử
 
 Các script trong `deploy/verify-*.ps1` và `deploy/smoke.ps1` tạo dữ liệu mới mỗi lần chạy.

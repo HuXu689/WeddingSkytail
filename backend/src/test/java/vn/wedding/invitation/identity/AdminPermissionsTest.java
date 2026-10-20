@@ -39,4 +39,11 @@ class AdminPermissionsTest {
         assertFalse(AdminPermissions.known("guest"));
         assertFalse(AdminPermissions.known(null));
     }
+    @Test void giftConfigurationAndAssetsAreOwnerOnly(){
+        for(String path:new String[]{"/api/v1/admin/gifts","/api/v1/admin/gifts/draft","/api/v1/admin/gifts/publish","/api/v1/admin/gifts/assets/fixture"}){
+            assertTrue(AdminPermissions.allows("OWNER",path));
+            assertFalse(AdminPermissions.allows("EDITOR",path));
+            assertFalse(AdminPermissions.allows(null,path));
+        }
+    }
 }

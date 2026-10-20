@@ -16,7 +16,7 @@ public final class AdminPermissions {
     private static final List<String> EDITOR_DENIED=List.of(
         "/api/v1/admin/users","/api/v1/admin/audit","/api/v1/admin/access-policy","/api/v1/admin/imports/commit",
         "/api/v1/admin/exports","/api/v1/admin/reports/","/api/v1/admin/wedding/publish","/api/v1/admin/wedding/unpublish",
-        "/api/v1/admin/wedding/tracking","/api/v1/admin/invitations/bulk-policy");
+        "/api/v1/admin/wedding/tracking","/api/v1/admin/invitations/bulk-policy","/api/v1/admin/gifts");
     /** Per-target security actions: an editor must not mint, reveal or kill credentials. */
     private static final List<String> EDITOR_DENIED_PATTERNS=List.of(
         "/api/v1/admin/invitations/[^/]+/pin(/.*)?",

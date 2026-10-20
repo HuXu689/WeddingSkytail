@@ -43,7 +43,7 @@ test('ART-001: token art direction khai báo một lần và trỏ về token ch
   }
   assert.match(canvas, /--inv-serif:var\(--font-serif/);
   assert.match(canvas, /--inv-sans:var\(--font-body/);
-  assert.match(globals, /--font-serif:Georgia,'Times New Roman',serif/);
+  assert.match(globals, /--font-serif:'Times New Roman',Times,serif/);
   assert.match(globals, /--font-body:Arial,'Segoe UI',sans-serif/);
 });
 
@@ -86,6 +86,12 @@ test('TYPO-001: serif cho tên và tiêu đề, sans cho nội dung và form', (
 
 test('TYPO-001: không dùng font viết tay cho đoạn văn hay ngày giờ', () => {
   assert.doesNotMatch(css, /cursive|Brush Script|Dancing Script|Great Vibes/i);
+});
+
+test('TYPO-002: serif ưu tiên bộ glyph tiếng Việt, không fallback Georgia từng dấu', () => {
+  assert.match(globals,/--font-serif:'Times New Roman',Times,serif/);
+  assert.match(css,/--inv-serif:var\(--font-serif,'Times New Roman',Times,serif\)/);
+  assert.match(css,/\.content-section\{letter-spacing:normal;font-kerning:normal\}/);
 });
 
 test('TYPO-001: câu tiếng Việt không bị letter-spacing làm tách dấu', () => {

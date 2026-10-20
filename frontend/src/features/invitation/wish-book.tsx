@@ -2,6 +2,7 @@
 import {useState} from 'react';
 import {api,ApiError} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
+import {GuestDisclosure} from './guest-disclosure';
 export interface Wish {id?:string;display_name:string;message:string;state?:string;created_at:string}
 /** T24: guests write wishes, the owner approves them, and only approved ones are shown to everyone. */
 export function WishBook({id,approved,reload}:{id:string;approved:Wish[];reload:()=>Promise<void>}){
@@ -15,6 +16,7 @@ export function WishBook({id,approved,reload}:{id:string;approved:Wish[];reload:
  }
  return <section className="wish-book reveal">
   <div className="section-intro"><p className="eyebrow">Sổ lời chúc</p><h2>Gửi lời chúc tới hai bạn</h2></div>
+  <GuestDisclosure title="Viết lời chúc" hint="Một lời nhắn gửi tới hai bạn. Chỉ hiển thị sau khi được duyệt.">
   <form className="wish-form" onSubmit={submit}>
    <label>Tên hiển thị (không bắt buộc)<input value={name} onChange={event=>setName(event.target.value)} maxLength={200} placeholder="Để trống sẽ dùng tên trên thiệp"/></label>
    <label>Lời chúc<textarea value={message} onChange={event=>setMessage(event.target.value)} rows={4} maxLength={600} required placeholder="Ví dụ: Chúc hai bạn trăm năm hạnh phúc!"/></label>
@@ -24,6 +26,7 @@ export function WishBook({id,approved,reload}:{id:string;approved:Wish[];reload:
   </form>
   {mineError&&<p className="error" role="alert">{mineError}</p>}
   {mine&&<div className="wish-mine"><h3>Lời chúc bạn đã gửi</h3>{mine.length===0?<p className="field-hint">Bạn chưa gửi lời chúc nào.</p>:<ul>{mine.map((item,index)=><li key={item.id??index}><span className={`wish-state ${item.state==='APPROVED'?'approved':item.state==='REJECTED'?'rejected':'pending'}`}>{item.state==='APPROVED'?'Đã duyệt':item.state==='REJECTED'?'Không hiển thị':'Đang chờ duyệt'}</span><p>{text(item.message)}</p></li>)}</ul>}</div>}
+  </GuestDisclosure>
   <div className="wish-list">{approved.length===0?<p className="field-hint">Chưa có lời chúc nào được duyệt. Bạn có thể là người đầu tiên.</p>:approved.slice(0,visible).map((wish,index)=><blockquote className="wish-item" key={`${wish.display_name}-${index}`}><p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}</cite></blockquote>)}</div>
   {visible<approved.length&&<button type="button" className="secondary" onClick={()=>setVisible(count=>count+6)}>Xem thêm lời chúc ({approved.length-visible})</button>}
  </section>;

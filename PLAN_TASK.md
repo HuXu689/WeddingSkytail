@@ -65,6 +65,8 @@ Website không chỉ đẹp ở ảnh chụp màn hình: nội dung sửa đư�
 
 ## 2. Project Snapshot — AI điền sau khảo sát
 
+> Bảng dưới là baseline T01, không phải trạng thái source mới nhất. Resume 2026-10-20 (phiên 10): HEAD `6111dc0`, working tree sạch trước kiểm tra; FE 127/127, BE 72/72, typecheck/build và hai browser QA trên bản build hiện tại đều PASS. T01–T20 đều DONE, không có IN_PROGRESS/TODO. Xem bằng chứng và chênh lệch runtime ở nhật ký phiên 10.
+
 | Hạng mục | Kết quả xác minh |
 |---|---|
 | Framework / runtime / package manager | FE: Next.js 16.4.2 App Router + React 19.3.1 + TS ~5.9.3, CSS thuần, npm (`frontend/package.json`). BE: Spring Boot 4.1.1, Java 21, JdbcTemplate + Flyway, spring-session-jdbc (`backend/pom.xml`). PostgreSQL 17 qua Docker Compose (`deploy/compose.yml`). |
@@ -256,11 +258,11 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 | Dữ liệu | Công khai | Khách có quyền | Editor có quyền | Hiện trạng (đã xác minh) |
 |---|---|---|---|---|
 | Giới thiệu đã xuất bản | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền | Đúng: SQL lọc PUBLISHED+enabled+PUBLIC (`SectionService.list`) |
-| Gia đình đã cho phép công khai | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền | Đúng ở mức section; chưa có cấu trúc nhóm/thành viên |
+| Gia đình đã cho phép công khai | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền | Có `payload.groups[].members[]` (T06), editor và renderer đã được browser QA xác minh lại phiên 10 |
 | Địa chỉ/liên hệ gia đình không công khai | Không | Chỉ nếu được cấp riêng | Theo quyền | Chưa có trường địa chỉ gia đình; không thêm nếu không cần |
 | Nghi lễ riêng | Không | Chỉ nghi lễ được mời | Theo quyền | Đúng: sự kiện lọc qua `assignments` + `AccessGate`; section CEREMONY theo audience |
 | Mốc lịch trình riêng | Không | Chỉ mốc được cấp | Theo quyền | **Đã có (T08)**: mỗi mốc có `audience`; `SectionService.list` lọc mốc PRIVATE, bỏ `starts_at` cũ và bỏ cả mục nếu không còn mốc công khai — kiểm chứng bằng API thật |
-| Dress code công khai | Có nếu bật | Có nếu bật | Theo quyền | Đúng ở mức section; chưa có palette nhiều màu |
+| Dress code công khai | Có nếu bật | Có nếu bật | Theo quyền | Có `payload.palette[]` gồm tên + mã màu (T09), browser QA xác minh lại phiên 10 |
 | Tên khách/lời nhắn cá nhân | Không | Chỉ lời mời tương ứng | Theo quyền | Đúng: `GuestService.view` qua grant + open + PIN |
 | Danh sách khách/token/ghi chú quản trị | Không | Không | Chỉ quyền cần thiết | Đúng: admin filter + OWNER/EDITOR |
 
@@ -400,6 +402,8 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 | T18 | Hàng TIMELINE cũ chỉ có `starts_at` phải lưu được (không bắt đặt tên mốc) | T08, T15 | DONE (2026-10-20, phiên 7) — `defaultPayload` không còn sinh mốc rỗng; mốc gốc chỉ hiển thị, bị bỏ khỏi payload khi lưu nên `starts_at` giữ nguyên; `npm test` 125/125; `mvn -B verify` 71/71; browser QA PASS (`legacyMilestone.required=false`, `savedLegacyTimeline.timelineLength=0`, `legacyTimelineRendered=true`) |
 | T19 | Bỏ ngày giờ cũ (`starts_at`) của mục TIMELINE khi đã có mốc chi tiết | T18 | DONE (2026-10-20, phiên 8) — nút chỉ bật khi có mốc có tên; lưu `startsAt=null` và giữ mốc; `npm test` 126/126; `mvn -B verify` 72/72; browser QA PASS (`legacyClear.disabled=true` → `legacyClearReady.disabled=false` → `legacyCleared.rows=1` → `legacyClearedSaved={startsAt:null,titles:['Mốc mới']}`) |
 | T20 | Contrast bằng pixel thật cho nền ảnh/alpha (đóng giới hạn T11) | T11, T14 | DONE (2026-10-20, phiên 9) — 41 mẫu computed-style + 57 mẫu pixel (trước: 52 bỏ qua), skipped 1 (nút disabled, miễn trừ WCAG 1.4.3), worst 4.78, 0 fail; cover không ảnh 71+65 mẫu, 0 fail; sửa `.countdown-note` và scrim hero; đối chứng PNG 1:1 và 4.54:1; `npm test` 127/127 |
+| T21 | Sửa dấu tiếng Việt lệch do font fallback theo ảnh người dùng | T05, T06, T11 | DONE (2026-10-20) — token serif + fallback dùng Times New Roman; test NFC/NFD; browser xác minh font thực tế và ảnh desktop/mobile; FE 129/129, typecheck/build, invitation/editor QA PASS |
+| T22 | Sửa luồng xóa nhạc `/admin/media` | T21, luồng media hiện có | DONE (2026-10-20) — hướng dẫn tệp đang dùng, lỗi trong modal, đóng modal sau DELETE dù reload lỗi; FE 130/130, BE 74/74, typecheck/build và media/editor browser QA PASS; không xóa dữ liệu thật |
 
 ### T01 — Khảo sát và baseline
 
@@ -768,6 +772,40 @@ Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn:
 - Log bằng chứng: `s14-sections-e2e.log` trong repo (đã gitignore theo `*.log`).
 - Lưu ý khi viết script tương tự: dùng `Invoke-RestMethod -InFile` với UTF-8 không BOM cho phần thân JSON (gửi mảng byte kèm charset từng trả 400), và không round-trip JSON qua `psql to_char` khi cần khôi phục dữ liệu.
 
+### Kiểm chứng resume — phiên 10 (2026-10-20)
+
+- Đọc toàn bộ PLAN, đối chiếu git status/diff (kể cả staged), HEAD, source contrast và QA script. Ledger không có IN_PROGRESS/TODO; không làm lại DONE hoặc tự chọn tính năng tùy chọn.
+- Handoff phiên 9 ghi T20 chưa commit là sai: `git --no-pager show --stat --oneline HEAD` xác nhận cả 8 file đã nằm trong `6111dc0`. Working tree ban đầu sạch. Chỉ sửa PLAN; hoàn nguyên thay đổi đường dẫn trong `next-env.d.ts` do build tự sinh.
+- FE: `npm test` 127/127 PASS; `npm run typecheck` và `npm run build` exit 0. BE: `mvn -B verify` 72/72, BUILD SUCCESS (warning JDK/Mockito, không lỗi). `node --check` ba script contrast/invitation exit 0.
+- Runtime 8088 không khớp build hiện tại: hai browser QA chạy với origin `http://localhost:8088` đều FAIL — `.countdown-note` còn `rgb(123,131,122)`, contrast 3.88 < 4.5; editor thiếu cảnh báo mục bật nhưng rỗng. Source hiện dùng `--compat-color-596354` và có cảnh báo. Chưa xác định image/commit runtime; không sửa source để chữa runtime cũ, không rebuild/deploy Docker.
+- Đối chứng: chạy riêng `next start -p 3000` từ build vừa tạo; invitation QA và editor QA đều PASS (exit 0). Report invitation: có ảnh 41 computed + 57 pixel, worst 4.78, failures []; không ảnh 71 computed + 65 pixel, failures []. Editor giữ đủ assertions T16–T19. Artifacts trong `.qa-artifacts/invitation-review` và `.qa-artifacts/editor-review`. Browser dùng mock API, không ghi backend thật; dừng tiến trình Next riêng sau kiểm tra.
+- `node scripts/public-payload-qa.mjs` trên 8088 PASS: 5 mục, 0 mục không phải PUBLIC. Chỉ chứng minh response hiện tại, không chứng minh runtime có T15–T20 hay toàn bộ ma trận quyền.
+- Không đọc lại DB; thông tin DB trong Handoff cũ chỉ là bằng chứng lịch sử. Nội dung thật, ảnh thật, Safari iOS/Zalo và in vật lý vẫn chưa xác minh. Sửa mô tả cũ trong visibility matrix về nhóm gia đình/palette.
+- Bước tiếp theo: chờ nội dung thật hoặc yêu cầu hướng mở rộng cụ thể. Đồng bộ runtime 8088 cần task riêng khi được yêu cầu, không tự deploy.
+
+### T21 — Sửa chữ tiếng Việt lệch dấu (2026-10-20)
+
+- Trạng thái: **DONE**. Yêu cầu mới của người dùng, không làm lại thiết kế các task đã xong; giữ thay đổi PLAN có sẵn của phiên 10.
+- Các vị trí lỗi trong ảnh là serif (tên người, lời dẫn INTRO/FAMILY, tên thành viên); renderer đã có NFC. Font Georgia đứng đầu stack có thể thiếu glyph Việt trên Windows, tạo fallback không đồng bộ. Đổi token `--font-serif` sang `'Times New Roman',Times,serif`, đồng bộ mọi fallback `--inv-serif`, và thay Georgia hardcode ở lời dẫn trang chào bằng token. Không thêm dependency/font tải ngoài, không đổi nội dung hay dữ liệu.
+- `.content-section` khai báo letter-spacing/kerning normal; nhãn uppercase nhỏ giữ thiết kế cũ. Không sửa dấu bằng cách xóa ký tự hoặc tìm-thay nội dung người dùng.
+- File sửa: `frontend/src/app/globals.css`, `frontend/src/features/invitation/design.css`, `frontend/tests/{invitation-art-direction,text-vietnamese}.test.mjs`, `scripts/invitation-review-qa.mjs`, PLAN.
+- Kiểm tra: FE `npm test` **129/129**, typecheck/build exit 0; invitation QA + editor QA trên build hiện tại tại localhost:3000 **PASS exit 0**. QA CDP kiểm tra tên/lời dẫn 4 selector chỉ dùng Times New Roman trên Windows, NFC đúng cả khi đầu vào NFD; không overflow ở 390px; ma trận 3 theme/viewport và contrast vẫn PASS (worst 4.78, 0 fail).
+- Đã đọc ảnh `vietnamese-desktop.png`: dấu trong tên Trần, Quốc Tuấn và lời dẫn không bị tách như ảnh lỗi. Có thêm `vietnamese-mobile.png` trong `.qa-artifacts/invitation-review`; fixture giả, không phải thông tin cưới thật.
+- Lỗi kiểm tra đã xử lý: assertion cũ khóa Georgia được cập nhật; origin 8088 vẫn là runtime cũ nên QA cuối dùng origin 3000 rõ ràng; server QA chạy trong cùng lệnh và dừng bằng finally để tránh tiến trình bị terminal đóng trước khi kiểm tra. Không rebuild/deploy Docker.
+- Giới hạn: xác minh Chrome Windows, chưa có thiết bị Safari iOS/Zalo để kiểm tra. Backend không đổi, không chạy migration/ghi DB. `next-env.d.ts` do build tự sinh được hoàn nguyên.
+- Tiếp theo: nếu trang đang mở là runtime 8088 cũ, cần đồng bộ frontend bằng quy trình riêng khi được yêu cầu; hard refresh không tự cập nhật image cũ. Không commit/push/deploy trong task này.
+
+### T22 — Luồng xóa nhạc `/admin/media` (2026-10-20)
+
+- Trạng thái **DONE**. Bảo toàn các thay đổi T21 và PLAN có sẵn trước task.
+- Nguyên nhân xác minh từ code: `MediaService.remove` trả 422 nếu `music_id`/`draft_music_id` còn trỏ tới tệp; frontend vẫn cho bấm xóa. API lỗi được ghi ở Feedback đầu trang nhưng modal `showModal()` vẫn mở, che thông báo. Không có bằng chứng server xóa thất bại đối với tệp không tham chiếu; không tự nới rule bảo vệ hoặc gỡ nhạc đã phát hành.
+- Tách `MusicLibrary` khỏi page một dòng dài: disable xóa tệp đang dùng và hiện hướng dẫn riêng cho nháp/phát hành, link `/admin/wedding`. Tệp không dùng vẫn xóa sau xác nhận; lỗi server hiển thị `role=alert` ngay trong modal, retry được. Đóng modal ngay sau DELETE thành công dù reload danh sách sau đó lỗi, tránh gửi DELETE lần hai cho tệp đã mất. `Confirm` nhận error tùy chọn, các nơi dùng khác giữ nguyên hành vi.
+- File sửa/tạo: `frontend/src/app/admin/media/page.tsx`, `frontend/src/features/admin/{music-library,ui}.tsx`, `frontend/tests/media-delete.test.mjs`, `backend/src/test/java/vn/wedding/invitation/MediaDeletionTest.java`, `scripts/media-review-qa.mjs`, PLAN. Backend production source/schema không đổi.
+- Kiểm tra: FE `npm test` **130/130**, typecheck/build PASS; BE `mvn -B verify` **74/74 BUILD SUCCESS**. Test backend dùng mock JdbcTemplate + `@TempDir`: xóa audio không dùng xóa record/file, tệp đang dùng trả 422 và giữ file. Chưa phải integration DB thật.
+- Browser trên build hiện tại localhost:3000: `node scripts/media-review-qa.mjs` **PASS** — 3 fixture (không dùng/nháp/live), hướng dẫn + disabled đúng, cancel không request, 422 hiện trong modal, retry xóa thành công và refresh danh sách, reload 503 sau DELETE vẫn đóng modal; 0 exception. `node scripts/editor-review-qa.mjs` PASS. Tất cả request được mock, không đăng nhập hay xóa file thật; report và screenshot `.qa-artifacts/media-review`. Server kiểm tra riêng đã dừng.
+- `next-env.d.ts` tự sinh do build được hoàn nguyên. Không commit/push/deploy/ghi dữ liệu production. Runtime 8088 cũ chưa đồng bộ; muốn thấy bản sửa cần cập nhật runtime qua task được yêu cầu riêng.
+- Hướng dẫn sử dụng: tệp có `draft_music` cần chọn Không dùng nhạc nền/tệp khác rồi lưu; tệp còn `published_music` cần xem kỹ toàn bộ thay đổi nháp trước khi tự phát hành. AI không tự phát hành để mở khóa xóa.
+
 ## 12. Decision Log
 
 | ID | Quyết định | Cơ sở / giới hạn | Task liên quan |
@@ -796,6 +834,29 @@ Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn:
 - Chỉ hỏi thêm nếu có quyết định về quyền, lưu dữ liệu hoặc thay đổi phá vỡ tương thích mà dự án chưa có cơ sở.
 
 ## 14. Handoff — bắt buộc cập nhật trước khi dừng phiên
+
+### Cập nhật mới nhất — T22
+
+- **DONE:** sửa UX/lỗi bị che khi xóa nhạc ở media; FE 130/130, BE 74/74, typecheck/build và media/editor browser QA PASS. Chưa kiểm tra xóa trên dữ liệu thật; không deploy.
+- Tệp đang dùng vẫn được server bảo vệ. Người dùng cần bỏ chọn trong nháp; nếu còn ở bản phát hành thì phải kiểm tra và tự phát hành thay đổi trước khi xóa. Không tự xóa liên kết trên thiệp công khai.
+- Không có task đang dở. Thay đổi các phiên trước được giữ nguyên; xem nhật ký T22 và lưu ý runtime 8088 bên dưới.
+
+### Cập nhật mới nhất — T21
+
+- **DONE:** sửa font tiếng Việt lệch dấu theo ảnh; FE 129/129, typecheck/build và cả hai browser QA PASS trên build hiện tại. Xem nhật ký T21 và ảnh `vietnamese-desktop/mobile.png` trong artifacts.
+- **Đang dở:** không. Không đổi nội dung/DB, không commit/push/deploy. Các thay đổi PLAN phiên 10 được giữ lại.
+- **Lưu ý runtime:** bản ở 8088 chưa được đồng bộ; sửa hiện nằm trong source/build local, không tuyên bố trang đang chạy đã cập nhật. Nội dung thật và kiểm tra thiết bị thật vẫn cần người dùng.
+
+### Cập nhật resume phiên 10 — ưu tiên hơn ghi chú lịch sử bên dưới
+
+- **Đã xong:** tái kiểm chứng source hiện tại và bằng chứng T20, sửa sai lệch tài liệu; T01–T20 giữ DONE. Kiểm tra chi tiết ở nhật ký phiên 10.
+- **Đang dở:** không có. Không có TODO trong ledger để tự triển khai tiếp.
+- **Blocker nghiệm thu nội dung:** cần nội dung cưới thật do người dùng cung cấp; không tự thay placeholder bằng dữ liệu giả. DB chưa được kiểm tra lại trong phiên này.
+- **Sai lệch vận hành:** frontend tại 8088 không khớp source/build hiện tại (hai browser QA FAIL); cùng QA trên build hiện tại tại 3000 đều PASS. Không deploy/rebuild stack để đồng bộ vì người dùng không yêu cầu.
+- **Git:** T20 đã commit trong `6111dc0` trước phiên này; dòng “chưa commit” bên dưới là lịch sử đã lỗi thời. Phiên 10 chỉ sửa PLAN, không commit/push/deploy, không ghi DB.
+- **Tiếp theo:** nhập nội dung thật rồi kiểm tra hiển thị; hoặc người dùng chọn task mở rộng/đồng bộ runtime. Không tự commit theo chỉ dẫn cũ bên dưới.
+
+### Handoff phiên 9 (lịch sử, đọc cùng các đính chính phiên 10)
 
 - **Trạng thái hiện tại:** T01–T20 đã DONE. Code 5 phần (T03–T10) ở `e42341e` và đợt QA/contrast (T14–T19) ở `91eb35c` đều do **người dùng commit** — AI không commit. Thay đổi của phiên 9 (chưa commit, working tree): `scripts/contrast-pixels.mjs` (mới), `scripts/contrast-audit.mjs`, `scripts/invitation-review-qa.mjs`, `frontend/tests/contrast-audit.test.mjs`, `frontend/src/features/invitation/design.css`, `scripts/README.md`, `README-IMPLEMENTATION.md`, `PLAN_TASK.md`.
 - **Task gần nhất đã xác minh hoàn tất:** T20 — `node scripts/invitation-review-qa.mjs` PASS (exit 0): cover có ảnh `measured 41 + pixelSamples 57`, `skipped 1` (nút disabled), `worst 4.78`, `failures []`; cover không ảnh `contrastNoPhoto {measured 71, pixelSamples 65, failures []}`; đối chứng PNG 2×1 (worst 1:1) và `#767676` (4.54:1) chạy trong script; `npm test` 127/127, typecheck + build pass.

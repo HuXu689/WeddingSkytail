@@ -4,8 +4,17 @@ import {inspectContrast} from '../../scripts/contrast-audit.mjs';
 function fixture({color='rgb(0, 0, 0)',background='rgb(255, 255, 255)',image='none',opacity='1',size='16px',weight='400',disabled=false}={}){
  const style={color,backgroundColor:background,backgroundImage:image,opacity,fontSize:size,fontWeight:weight,visibility:'visible'};
  const element={childNodes:[{nodeType:3,textContent:'Nội dung'}],textContent:'Nội dung',tagName:'P',parentElement:null,getBoundingClientRect:()=>({left:0,top:0,right:100,bottom:20,width:100,height:20}),closest:selector=>disabled&&selector.includes(':disabled')?element:null,classList:{contains:()=>false}};
- return {root:{querySelectorAll:()=>[element]},style};
+ element.checkVisibility=()=>true;
+ return {root:{querySelectorAll:()=>[element]},style,element};
 }
+test('contrast audit excludes unpainted closed-disclosure descendants even with layout rects',()=>{
+ const previous=globalThis.getComputedStyle;
+ try{
+  const f=fixture();f.element.checkVisibility=()=>false;globalThis.getComputedStyle=()=>f.style;
+  const result=inspectContrast(f.root);
+  assert.equal(result.samples.length,0);assert.equal(result.pending.length,0);assert.equal(result.failures.length,0);
+ }finally{globalThis.getComputedStyle=previous;}
+});
 /** `textBox`/`effectiveOpacity` chỉ chạy trong browser; test tĩnh stub phần DOM tối thiểu cần dùng. */
 function stubDom(){
  const range={selectNodeContents(){},getClientRects:()=>[{left:0,top:0,right:80,bottom:16,width:80,height:16}]};

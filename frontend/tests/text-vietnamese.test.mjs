@@ -26,6 +26,13 @@ test('nfc không đổi chữ hoa/thường hay nội dung khác', () => {
   assert.equal(nfc('Nguyễn Huệ, Quận 1'), 'Nguyễn Huệ, Quận 1');
 });
 
+test('tên và lời dẫn với đầy đủ dấu Việt vẫn nguyên vẹn từ dữ liệu NFD', () => {
+  for(const value of ['Trần Thanh Bình','Ông Trần Quốc Tuấn','Bà Lê Thị Hồng','Giữa hàng triệu người trên thế gian, thật may mắn vì chúng mình đã tìm thấy nhau','Nơi khởi nguồn của yêu thương, tổ ấm nhỏ']){
+    assert.equal(oneLine(value.normalize('NFD')),value);
+    assert.equal(text(value.normalize('NFD')),value);
+  }
+});
+
 test('text đổi literal \\r\\n, \\r, \\n và CRLF thật thành một xuống dòng', () => {
   assert.equal(text('Dòng một\\nDòng hai'), 'Dòng một\nDòng hai');
   assert.equal(text('Dòng một\\r\\nDòng hai'), 'Dòng một\nDòng hai');
