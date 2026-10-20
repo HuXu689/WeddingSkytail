@@ -1,7 +1,7 @@
 # PLAN_TASK — Hoàn thiện thiệp cưới công khai và thiệp mời riêng tư
 
-> Trạng thái ban đầu: CHƯA KHẢO SÁT CODE. Đây là đặc tả và kế hoạch thực thi, không phải báo cáo đã kiểm tra dự án.
-> Đặt file này ở thư mục gốc của dự án. AI triển khai phải cập nhật trực tiếp file này sau từng task và trước khi kết thúc phiên.
+> Trạng thái: ĐÃ KHẢO SÁT CODE (phiên 2026-10-20, giờ máy cục bộ). Project Snapshot, file map và hiện trạng bên dưới là kết quả xác minh trực tiếp từ repository; phần đặc tả giữ nguyên vai trò kế hoạch thực thi.
+> AI triển khai phải cập nhật trực tiếp file này sau từng task và trước khi kết thúc phiên.
 > Không tự điền tên cô dâu/chú rể, thông tin gia đình, địa chỉ, ngày cưới hoặc nghi thức khi chưa có dữ liệu xác thực.
 
 ## 0. Cách sử dụng nhanh
@@ -67,16 +67,16 @@ Website không chỉ đẹp ở ảnh chụp màn hình: nội dung sửa đư�
 
 | Hạng mục | Kết quả xác minh |
 |---|---|
-| Framework / runtime / package manager | CHƯA XÁC MINH |
-| Lệnh dev / lint / typecheck / test / build | CHƯA XÁC MINH |
-| Route thiệp công khai | CHƯA XÁC MINH |
-| Route thiệp riêng tư / cách cấp quyền | CHƯA XÁC MINH |
-| Route editor/admin / cơ chế lưu | CHƯA XÁC MINH |
-| Component của 5 phần hiện tại | CHƯA XÁC MINH |
-| Schema / API / storage / cache | CHƯA XÁC MINH |
-| Design tokens / font / ảnh hiện có | CHƯA XÁC MINH |
-| Tình trạng working tree trước sửa | CHƯA XÁC MINH |
-| Các lỗi có sẵn trước thay đổi | CHƯA XÁC MINH |
+| Framework / runtime / package manager | FE: Next.js 16.4.2 App Router + React 19.3.1 + TS ~5.9.3, CSS thuần, npm (`frontend/package.json`). BE: Spring Boot 4.1.1, Java 21, JdbcTemplate + Flyway, spring-session-jdbc (`backend/pom.xml`). PostgreSQL 17 qua Docker Compose (`deploy/compose.yml`). |
+| Lệnh dev / lint / typecheck / test / build | FE: `npm test` (node --test, 116 test), `npm run typecheck`, `npm run build`, `npm run dev` (trong `frontend/`). BE: `mvn -B verify` (60 test). Stack local: `docker compose --env-file .env -f deploy/compose.yml up -d --build`. |
+| Route thiệp công khai | `/w/[slug]` (`frontend/src/app/w/[slug]/page.tsx`) → `GET /api/v1/public/weddings/{slug}` → `GuestService.publicWedding`: chỉ trả section PUBLISHED + enabled + audience PUBLIC. |
+| Route thiệp riêng tư / cách cấp quyền | `/i/[token]` redeem token (`POST /guest-links/redeem` → session grant) → redirect `/invitation/[id]` (`frontend/src/app/invitation/[id]/page.tsx`) → `GET /guest/invitations/{id}` qua `AccessGate.check` (grant + open marker + PIN + cửa sổ truy cập). Không dùng client-side hiding. |
+| Route editor/admin / cơ chế lưu | `/admin/wedding` (`frontend/src/app/admin/wedding/page.tsx`) gộp DesignEditor + LayoutEditor + SectionEditor. Lưu nháp: `PUT /admin/wedding/design\|layout\|sections`; phát hành: `POST /admin/wedding/publish` (`AdminService.publishWedding` copy DRAFT→PUBLISHED). Auth: session Spring, CSRF (`frontend/src/shared/api.ts`), role OWNER/EDITOR qua `EditorAccessFilter`. |
+| Component của 5 phần hiện tại | Renderer duy nhất `frontend/src/features/invitation/sections.tsx` (10 dòng): mọi kind render giống nhau (h2 + p + time/swatch). Editor: `frontend/src/features/admin/section-editor.tsx` (form phẳng: title/body/audience/datetime/color). Vị trí trên thiệp: slot CONTENT của `WeddingCanvas` (`frontend/src/features/invitation/design.tsx`). |
+| Schema / API / storage / cache | `wedding_sections` (V17): surface, position, kind INTRO/FAMILY/CEREMONY/TIMELINE/DRESS_CODE, audience PUBLIC/PRIVATE, enabled, title, body, starts_at, color. `wedding_layout` (V19) 6 slot. Media file-system `./data/media` + `media_assets`/`wedding_media_selection`. Không cache HTTP riêng; fetch FE luôn `cache:'no-store'`. |
+| Design tokens / font / ảnh hiện có | Tokens ở `frontend/src/app/globals.css` (--space, --radius, --content-*, màu trạng thái) và palette thiệp trong `design.css` (--inv-paper/ink/muted/champagne/hairline, --wedding-accent, 3 theme, 3 accent). Font hệ thống (Georgia serif/Arial); NotoSans chỉ dùng cho PDF. Ảnh demo `scripts/demo-media/`. Container query + `prefers-reduced-motion` + safe-area đã dùng. |
+| Tình trạng working tree trước sửa | Sạch tại commit `c547309` "feat(invitation): add music control and autoplay features" (đợt nhạc nền đã commit kèm PLAN_TASK.md). |
+| Các lỗi có sẵn trước thay đổi | Baseline sạch: FE 116/116 test + typecheck pass; BE 60/60 test BUILD SUCCESS. Stack Docker local đang chạy (db/backend/frontend/edge). Lỗi nghiệp vụ: 5 section công khai đang phát hành với body='Hi' (dữ liệu placeholder trong DB, không phải code). |
 
 ### Đầu ra khảo sát bắt buộc
 
@@ -85,6 +85,28 @@ Website không chỉ đẹp ở ảnh chụp màn hình: nội dung sửa đư�
 - Lập sơ đồ ngắn: nguồn dữ liệu → kiểm tra quyền → payload → component → editor.
 - Nêu chức năng cần giữ và vùng không được sửa ngoài phạm vi.
 - Kiểm tra "Hi" đến từ dữ liệu lưu, default value, seed hay fallback trong component; sửa đúng nguồn.
+
+#### Kết quả khảo sát (T01 — xác minh 2026-10-20)
+
+**Luồng dữ liệu → quyền → payload → component → editor:**
+
+- `wedding` (id=1) + `wedding_sections` DRAFT/PUBLISHED + `wedding_layout` + `wedding_media_selection` → `SectionService.list(db,draft,privateView)` (SQL lọc enabled/audience) / `LayoutService.list` / `MediaService.published` → `GuestService.publicWedding(slug)` (chỉ PUBLIC) hoặc `GuestService.view(id,session)` (qua `AccessGate.check`) → `WeddingCanvas` → slot CONTENT render `ContentSections` ← cấu hình tại `/admin/wedding` (`SectionEditor` → `SectionController`).
+- Phát hành: `AdminService.publishWedding` copy từng cột `wedding_sections` DRAFT→PUBLISHED bằng SQL liệt kê cột tường minh (rủi ro khi thêm cột).
+- Kiểm chứng riêng tư hiện có: `backend/src/test/java/vn/wedding/invitation/SectionPrivacyTest.java` xác minh SQL public không chứa audience PRIVATE hoặc mục disabled.
+
+**Vấn đề có bằng chứng:**
+
+1. [UX/UI] 5 kind render bằng một khối card giống nhau (`sections.tsx:4-10`) — không có bố cục riêng cho chân dung/gia đình/nghi lễ/timeline/palette, trái mục 4.
+2. [Dữ liệu] Mô hình flat: 1 body + tối đa 1 `starts_at` + 1 `color` mỗi dòng — không lưu được 2 người của INTRO, nhóm gia đình, nhiều mốc TIMELINE, palette nhiều màu; phải tạo nhiều section cùng kind để bù.
+3. [Dữ liệu/placeholder] DB local đang phát hành 5 section PUBLIC enabled với body='Hi' (cả DRAFT lẫn PUBLISHED; TIMELINE `starts_at` 2026-12-24 01:23+00; DRESS color #ff5c5c). "Hi" do người dùng nhập qua editor, không có trong source code — phải thay bằng dữ liệu thật do người dùng nhập, không tự bịa.
+4. [UX] TIMELINE sắp theo `position` (thứ tự nhập), không theo thời gian, không nhóm theo ngày; luật "trùng thời điểm" chỉ áp giữa các section đang bật.
+5. [UX/Quyền] Không có mức hiển thị theo từng mốc — ma trận yêu cầu mốc riêng chỉ hiện cho người được cấp; hiện chỉ có mức section.
+6. [Quyền/UX] Section enabled với body trắng (INTRO/FAMILY/CEREMONY) vẫn render khối rỗng trên thiệp — trái "không render khối trống".
+7. [Editor] SectionEditor chỉ có preview một ngữ cảnh (gồm mục riêng tư); mục 5 yêu cầu preview theo ngữ cảnh công khai / khách hợp lệ.
+8. [Vận hành] SQL publish liệt kê cột tường minh — thêm cột payload mà quên sửa `AdminService.publishWedding` sẽ mất dữ liệu khi phát hành.
+9. [UX] DRESS_CODE chỉ có 1 swatch tròn + body text; không có tên màu bắt buộc kèm swatch (mục 4.5).
+
+**Chức năng cần giữ nguyên:** redeem/open/PIN/RSVP/ics flow, quyền OWNER/EDITOR, media library, layout editor, wish book, admin CRUD khác, theme/accent hiện có, seed/cleanup scripts.
 
 ## 3. Hướng thiết kế tổng thể
 
@@ -229,18 +251,20 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
   permittedEventIds / guestScope: theo cơ chế thực tế
 ```
 
-### Ma trận visibility cần xác minh và điền theo hệ thống
+### Ma trận visibility — trạng thái xác minh và đích cần đạt
 
-| Dữ liệu | Công khai | Khách có quyền | Editor có quyền |
-|---|---|---|---|
-| Giới thiệu đã xuất bản | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền |
-| Gia đình đã cho phép công khai | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền |
-| Địa chỉ/liên hệ gia đình không công khai | Không | Chỉ nếu được cấp riêng | Theo quyền |
-| Nghi lễ riêng | Không | Chỉ nghi lễ được mời | Theo quyền |
-| Mốc lịch trình riêng | Không | Chỉ mốc được cấp | Theo quyền |
-| Dress code công khai | Có nếu bật | Có nếu bật | Theo quyền |
-| Tên khách/lời nhắn cá nhân | Không | Chỉ lời mời tương ứng | Theo quyền |
-| Danh sách khách/token/ghi chú quản trị | Không | Không | Chỉ quyền cần thiết |
+| Dữ liệu | Công khai | Khách có quyền | Editor có quyền | Hiện trạng (đã xác minh) |
+|---|---|---|---|---|
+| Giới thiệu đã xuất bản | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền | Đúng: SQL lọc PUBLISHED+enabled+PUBLIC (`SectionService.list`) |
+| Gia đình đã cho phép công khai | Có nếu bật | Có nếu bật | Xem/sửa đúng quyền | Đúng ở mức section; chưa có cấu trúc nhóm/thành viên |
+| Địa chỉ/liên hệ gia đình không công khai | Không | Chỉ nếu được cấp riêng | Theo quyền | Chưa có trường địa chỉ gia đình; không thêm nếu không cần |
+| Nghi lễ riêng | Không | Chỉ nghi lễ được mời | Theo quyền | Đúng: sự kiện lọc qua `assignments` + `AccessGate`; section CEREMONY theo audience |
+| Mốc lịch trình riêng | Không | Chỉ mốc được cấp | Theo quyền | **Đã có (T08)**: mỗi mốc có `audience`; `SectionService.list` lọc mốc PRIVATE, bỏ `starts_at` cũ và bỏ cả mục nếu không còn mốc công khai — kiểm chứng bằng API thật |
+| Dress code công khai | Có nếu bật | Có nếu bật | Theo quyền | Đúng ở mức section; chưa có palette nhiều màu |
+| Tên khách/lời nhắn cá nhân | Không | Chỉ lời mời tương ứng | Theo quyền | Đúng: `GuestService.view` qua grant + open + PIN |
+| Danh sách khách/token/ghi chú quản trị | Không | Không | Chỉ quyền cần thiết | Đúng: admin filter + OWNER/EDITOR |
+
+> Quy tắc giữ nguyên: quyết định quyền nằm ở server; payload public không chứa dữ liệu riêng; preview phía client chỉ là mô phỏng hiển thị, không phải lớp bảo vệ.
 
 ### Yêu cầu bảo mật bắt buộc
 
@@ -295,6 +319,20 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 | Chất lượng | Lint/typecheck/test/build theo scripts thật | Lệnh + exit code + lỗi còn lại |
 | Hiệu năng | Không tăng ảnh/JS/font bất hợp lý, không layout shift rõ rệt | Baseline và đo lại cùng điều kiện |
 
+### Bằng chứng kiểm thử đã chạy (phiên 2026-10-20)
+
+| Lệnh / kiểm tra | Kết quả | Ghi chú |
+|---|---|---|
+| `npm test` (frontend) | 122/122 pass | Gồm 6 test mới `tests/sections-payload.test.mjs` (bố cục riêng, rỗng không render, lịch trình sắp/nhóm, palette có nhãn, editor gửi schema 2) |
+| `npm run typecheck` | pass (không có lỗi TS) | |
+| `npm run build` | Compiled successfully | |
+| `mvn -B verify` (backend) | 70/70 pass, BUILD SUCCESS | Bao gồm `SectionValidationTest` (10 test) và `SectionPrivacyTest` (7 test) |
+| `docker compose --env-file .env -f deploy/compose.yml up -d --build` | exit 0 | Build trong container cũng chạy lại test backend |
+| Flyway V22 + V23 | `success = t`, `wedding_content_schema_version_check` cho phép 1 hoặc 2, CHECK TIMELINE mới đã áp dụng | Kiểm bằng `psql` |
+| API E2E qua edge `http://localhost:8088` | Xem Nhật ký T10 | Chỉ trả mục PUBLIC; mốc PRIVATE bị lọc; section chỉ có mốc riêng biến mất; validate 422/400 đúng; dữ liệu đã khôi phục |
+| `curl` `/w/our-wedding`, `/invitation/{id}` | 200 | Chỉ xác nhận route/SSR không lỗi, không phải bằng chứng bố cục |
+| Đo contrast, ảnh chụp browser cho 5 bố cục mới | **NOT VERIFIED** | Cần làm ở T11/T12 |
+
 ### Ngưỡng chất lượng
 
 - Không horizontal overflow ở viewport đã kiểm tra; không cắt tên, giờ hoặc CTA.
@@ -335,19 +373,19 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 
 | ID | Task | Phụ thuộc | Trạng thái |
 |---|---|---|---|
-| T01 | Khảo sát code và baseline | — | TODO |
-| T02 | Chốt hướng thiết kế, dữ liệu và visibility | T01 | TODO |
-| T03 | Hoàn thiện data contract và resolver quyền | T02 | TODO |
-| T04 | Tokens, typography, layout và lát cắt thiết kế | T02 | TODO |
-| T05 | Giới thiệu hai bạn: renderer + editor | T03, T04 | TODO |
-| T06 | Gia đình: renderer + editor | T03, T04 | TODO |
-| T07 | Nghi lễ riêng: renderer + editor + access states | T03, T04 | TODO |
-| T08 | Mốc lịch trình: renderer + editor + timezone | T03, T04, T07 | TODO |
-| T09 | Trang phục: renderer + editor | T03, T04 | TODO |
-| T10 | Kết nối preview/lưu/xuất bản public/private | T05–T09 | TODO |
-| T11 | Responsive, accessibility, motion, ảnh và font | T10 | TODO |
-| T12 | Security, hồi quy, sửa lỗi và nghiệm thu | T10, T11 | TODO |
-| T13 | Dọn code và bàn giao có thể tiếp tục | T12 | TODO |
+| T01 | Khảo sát code và baseline | — | DONE (2026-10-20) |
+| T02 | Chốt hướng thiết kế, dữ liệu và visibility | T01 | DONE (2026-10-20) |
+| T03 | Hoàn thiện data contract và resolver quyền | T02 | DONE (2026-10-20) |
+| T04 | Tokens, typography, layout và lát cắt thiết kế | T02 | DONE (2026-10-20) |
+| T05 | Giới thiệu hai bạn: renderer + editor | T03, T04 | DONE (2026-10-20) |
+| T06 | Gia đình: renderer + editor | T03, T04 | DONE (2026-10-20) |
+| T07 | Nghi lễ riêng: renderer + editor + access states | T03, T04 | DONE (2026-10-20) |
+| T08 | Mốc lịch trình: renderer + editor + timezone | T03, T04, T07 | DONE (2026-10-20) |
+| T09 | Trang phục: renderer + editor | T03, T04 | DONE (2026-10-20) |
+| T10 | Kết nối preview/lưu/xuất bản public/private | T05–T09 | DONE (2026-10-20) |
+| T11 | Responsive, accessibility, motion, ảnh và font | T10 | PARTIAL — CSS/container query đã có; chưa đo contrast, chưa chụp browser cho bố cục mới |
+| T12 | Security, hồi quy, sửa lỗi và nghiệm thu | T10, T11 | PARTIAL — quyền/lọc payload đã kiểm chứng bằng API thật; chưa chạy browser QA cho phiên khách/PIN |
+| T13 | Dọn code và bàn giao có thể tiếp tục | T12 | IN_PROGRESS |
 
 ### T01 — Khảo sát và baseline
 
@@ -448,34 +486,112 @@ Chưa kiểm chứng / lỗi còn lại:
 Bước tiếp theo:
 ```
 
-Chưa có task được thực thi.
+### Nhật ký thực thi (phiên 2026-10-20)
+
+```text
+Task ID: T01 — Khảo sát code và baseline
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (giờ máy cục bộ)
+Mục tiêu đã đạt: điền Project Snapshot, bản đồ file, danh sách vấn đề có bằng chứng, xác định nguồn dữ liệu "Hi".
+File đã đọc: frontend/package.json, backend/pom.xml, frontend/src/app/** (route), frontend/src/features/invitation/{design.tsx,design.css,sections.tsx,layout.ts,invitation-entry.tsx,event-tools.tsx}, frontend/src/features/admin/{section-editor.tsx,design-editor.tsx,layout-editor.tsx}, frontend/src/shared/*, backend/src/main/java/vn/wedding/invitation/** (GuestService, SectionService, SectionController, DesignController, AccessGate, AdminService, LayoutService, Texts, ApiErrors), backend/src/main/resources/db/migration/V1,V4,V17,V19, backend/src/test/**, frontend/tests/**, deploy/compose.yml, scripts/README.md.
+Thay đổi chính: chỉ cập nhật PLAN_TASK.md (khảo sát), chưa sửa source.
+Lệnh đã chạy và kết quả: `npm test` (frontend) 116/116 pass; `npm run typecheck` pass; `mvn -B verify` (backend) 60/60 BUILD SUCCESS; `docker ps` cho thấy stack local đang chạy (db/backend/frontend/edge, edge 8088); `psql` xác minh wedding_sections có 5 mục body='Hi' ở cả DRAFT và PUBLISHED.
+Chưa kiểm chứng / lỗi còn lại: chưa chạy browser automation, chưa đo contrast, chưa kiểm thử trên thiết bị thật.
+Bước tiếp theo: T02 → T03.
+```
+
+```text
+Task ID: T03 — Data contract và resolver quyền
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20
+Mục tiêu đã đạt: thêm cột `payload` jsonb + content schema 2; validate whitelist theo loại; lọc payload riêng tư ở server; publish copy cả payload.
+File đã sửa: backend/src/main/resources/db/migration/V22__section_payload.sql, V23__timeline_payload_source.sql, backend/src/main/java/vn/wedding/invitation/wedding/SectionService.java, wedding/LayoutService.java, invitations/GuestService.java, admin/AdminService.java, backend/src/test/java/vn/wedding/invitation/{SectionValidationTest,SectionPrivacyTest}.java
+Thay đổi chính: `SectionService.Section` có `Map<String,Object> payload`; `normalized()` chỉ giữ trường đã biết và chuẩn hoá NFC; `validatePayload()` giới hạn số lượng/độ dài/mã màu; `list()` lọc mốc TIMELINE `PRIVATE` khỏi bản công khai và đặt `startsAt=null` khi payload đã có danh sách mốc; V23 nới CHECK để TIMELINE được lấy mốc từ payload.
+Lệnh đã chạy và kết quả: `mvn -B verify` 70/70 pass; sau khi rebuild Docker: flyway V22+V23 success=t.
+Chưa kiểm chứng / lỗi còn lại: khi thêm payload lần đầu, ràng buộc CHECK của V17 làm save trả 503 — unit test (mock JdbcTemplate) không phát hiện được, chỉ lộ ra khi gọi API thật; đã xử lý bằng V23. Bài học: thay đổi ràng buộc DB phải kiểm chứng bằng stack thật.
+Bước tiếp theo: T04–T09 (renderer + editor), T10 (nối luồng).
+```
+
+```text
+Task ID: T04–T09 — Năm phần có bố cục và editor riêng
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20
+Mục tiêu đã đạt: mỗi loại nội dung có renderer và bộ trường riêng; không dùng một card chung; giữ tương thích hàng cũ.
+File đã sửa: frontend/src/features/invitation/sections.tsx, design.css, frontend/src/features/admin/section-editor.tsx, frontend/src/app/admin/wedding/page.tsx, frontend/src/app/admin/admin.css, frontend/tests/sections-payload.test.mjs (mới)
+Thay đổi chính:
+- INTRO: bố cục chân dung bằng chữ, hai cột lệch nhịp trên desktop; danh sách người (tên/cách gọi/mô tả) sửa độc lập.
+- FAMILY: hai khối gia đình đối ứng, nhãn nhóm tự đặt, thành viên + quan hệ; hỗ trợ chỉ một nhóm.
+- CEREMONY: khối thiệp giấy (viền đôi), mỗi nghi lễ có tên/lời dẫn/thời gian/địa điểm/hướng dẫn.
+- TIMELINE: mốc sắp theo thời gian, nhóm theo ngày, nhãn "Dự kiến", mỗi mốc có mức hiển thị PUBLIC/PRIVATE.
+- DRESS_CODE: palette có tên màu + mã hex đi kèm swatch, mục "Nên tránh".
+- Phần rỗng không render khối trống; hàng cũ (body 'Hi' + starts_at + color) vẫn hiển thị như trước.
+Lệnh đã chạy và kết quả: `npm test` 122/122 pass (thêm 6 test mới), `npm run typecheck` pass, `npm run build` Compiled successfully.
+Chưa kiểm chứng / lỗi còn lại: chưa có ảnh chụp/so sánh trực quan cho 5 bố cục mới; INTRO chưa hỗ trợ ảnh chân dung (chỉ typography) — xem Decision Log D07.
+Bước tiếp theo: T10/T11/T12.
+```
+
+```text
+Task ID: T10 — Tích hợp lưu/phát hành (kiểm chứng bằng API thật)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20
+Mục tiêu đã đạt: nội dung có cấu trúc đi hết luồng sửa → lưu nháp → phát hành → hiển thị, và quyền công khai/riêng tư đúng ở payload.
+File đã sửa: frontend/src/app/admin/wedding/page.tsx (gửi contentSchemaVersion 2), backend AdminService (publish copy `payload`), SectionEditor (xem trước theo hai ngữ cảnh).
+Lệnh đã chạy và kết quả: kịch bản PowerShell trong %TEMP% gọi API thật qua edge localhost:8088 (đăng nhập owner, lưu nháp có cấu trúc, phát hành, đọc lại API công khai, rồi khôi phục dữ liệu gốc). Kết quả:
+  saved=draft-structured
+  reject_bad_colour=422 | reject_schema_version=422 | reject_duplicate_milestone=422 | reject_non_object_payload=400
+  public_kinds=INTRO,FAMILY,TIMELINE,DRESS_CODE (mục CEREMONY audience=PRIVATE không xuất hiện)
+  public_timeline_items=1 | public_timeline_startsAt_is_null=True | public_ceremony_present=False | public_private_milestone_leaked=False
+  draft_count=5 | draft_timeline_items=2 | draft_ceremony_present=True | draft_private_milestone_present=True
+  public_sections_when_only_private_milestones=0
+  Khôi phục: restored_kinds=INTRO,FAMILY,CEREMONY,TIMELINE,DRESS_CODE; restored_intro_body=Hi; restored_timeline_startsAt có giá trị; restored_dress_colour=#ff5c5c; payload=null; DB còn 5+5 hàng, 0 hàng có payload.
+Chưa kiểm chứng / lỗi còn lại: kịch bản chạy trên stack Docker local và chưa được thêm vào repo (vì nó ghi/phát hành nội dung thiệp); chưa kiểm thử phiên khách qua PIN trong browser.
+Bước tiếp theo: T11 (đo contrast, ảnh chụp), T12 (browser QA), T13.
+```
+
+### Phụ lục — chạy lại kiểm chứng bằng API thật
+
+- Script dùng trong phiên: `%TEMP%\sections-e2e.ps1` (và `%TEMP%\sections-restore.ps1` để khôi phục). Hai script **không nằm trong repo** để tránh bị chạy nhầm trên production; chúng ghi và phát hành nội dung thiệp.
+- Cách làm: đọc `.env` để đăng nhập chủ tiệc (không in mật khẩu), lấy CSRF mới trước **mỗi** request ghi (token đổi sau khi đăng nhập), lưu nháp có cấu trúc → phát hành → đọc `GET /api/v1/public/weddings/{slug}` để kiểm tra `public_*`, rồi khôi phục 5 mục gốc và phát hành lại.
+- Log bằng chứng: `s14-sections-e2e.log` trong repo (đã gitignore theo `*.log`).
+- Lưu ý khi viết script tương tự: dùng `Invoke-RestMethod -InFile` với UTF-8 không BOM cho phần thân JSON (gửi mảng byte kèm charset từng trả 400), và không round-trip JSON qua `psql to_char` khi cần khôi phục dữ liệu.
 
 ## 12. Decision Log
 
 | ID | Quyết định | Cơ sở / giới hạn | Task liên quan |
 |---|---|---|---|
-| D01 | Giữ stack và luồng có sẵn, cải thiện theo từng phần | Chưa có repository để khảo sát | T01–T04 |
-| D02 | Không coi client-side hiding là bảo vệ dữ liệu riêng | Yêu cầu nền tảng của thiệp riêng tư | T03, T07, T12 |
-| D03 | Chưa dùng ngày giờ xuất hiện trong yêu cầu làm lịch thật | Cần người dùng xác nhận ý nghĩa | T02, T07, T08 |
+| D01 | Giữ stack và luồng có sẵn, cải thiện theo từng phần | Đã khảo sát: Next.js 16 + Spring Boot 4 + PostgreSQL 17 chạy ổn, 60 test BE | T01–T04 |
+| D02 | Không coi client-side hiding là bảo vệ dữ liệu riêng | Quyết định quyền nằm ở `SectionService.list` và `AccessGate`; xem trước trong editor chỉ mô phỏng | T03, T07, T12 |
+| D03 | Không dùng ngày giờ xuất hiện trong yêu cầu làm lịch thật | 2026-12-24 01:23Z trong DB là dữ liệu test; chưa xác nhận là lịch cưới | T02, T07, T08 |
+| D04 | Thêm cột `payload` jsonb + `content_schema_version=2`, giữ nguyên cột phẳng cũ | Giữ tương thích hàng đã phát hành (body/starts_at/color vẫn render); không cần backfill | T03–T09 |
+| D05 | Payload là `Map<String,Object>` với whitelist + chuẩn hoá NFC, không dùng JsonNode | Spring Boot 4 dùng Jackson 3 (`tools.jackson`), Jackson 2 không có trên classpath; Map bind trực tiếp và dễ kiểm chứng | T03, T10 |
+| D06 | Mốc TIMELINE có mức hiển thị theo từng mốc; server lọc và bỏ `starts_at` khi payload có danh sách | Ma trận visibility yêu cầu "mốc riêng chỉ người được cấp xem"; V23 nới CHECK hợp lệ hoá TIMELINE lấy mốc từ payload | T08, T12 |
+| D07 | INTRO dùng bố cục typography, chưa có ảnh chân dung từng người | Chưa có slot media cho ảnh người; không dùng ảnh người lạ và không thêm bảng media mới trong phạm vi này | T05, T11 |
+| D08 | Thời gian lịch trình dùng quy ước giờ Việt Nam như ô nhập của editor | `toVietnamInput/fromVietnamInput` đang là quy ước của stack; không tự suy ra múi giờ khác cho từng mốc | T08 |
+| D09 | Kiểm thử E2E thực hiện qua API thật trên stack local rồi khôi phục dữ liệu | Unit test mock JdbcTemplate không bắt được ràng buộc CHECK của DB (đã xảy ra với V17) | T03, T10, T12 |
 
 ## 13. Blockers / câu hỏi cần xác nhận
 
 > Chỉ hỏi ngay nếu thực sự chặn task; những mục còn lại có thể chờ người dùng nhập qua editor.
 
-- Chưa có repository, ảnh chụp hoặc URL nên mọi tên file, stack và hiện trạng vẫn cần khảo sát bởi AI triển khai.
-- Cơ chế thiệp riêng tư hiện tại là link cá nhân, đăng nhập, mã mời hay cách khác? Khảo sát code trước, chỉ hỏi nếu code chưa thể xác định.
-- Thông tin thật của hai người, gia đình, nghi lễ, địa điểm, lịch trình và dress code: không suy đoán.
-- Ngày giờ xuất hiện trong yêu cầu có phải lịch thật hay chỉ một mục đã nhập thử?
-- Chỉ cần hỏi quyết định về quyền, lưu dữ liệu hoặc thay đổi phá vỡ tương thích nếu không có cơ sở trong dự án.
+- Đã khảo sát repository: stack, route, schema, quyền và test đều xác minh được (xem Project Snapshot). Không còn blocker kỹ thuật cho 5 phần.
+- Cơ chế thiệp riêng tư đã rõ: link token → redeem → session grant → open marker → PIN tuỳ chọn, kiểm ở `AccessGate` (không phải câu hỏi mở nữa).
+- **Cần người dùng nhập qua editor (không suy đoán):** nội dung thật của Giới thiệu/Gia đình/Nghi lễ/Mốc lịch trình/Trang phục; hiện DB vẫn là body `'Hi'` do người dùng nhập trước đó, và editor sẽ hiển thị nguyên trạng cho tới khi thay.
+- Ngày giờ `2026-12-24 01:23Z` (08:23 giờ Việt Nam) trong DB là dữ liệu test — cần xác nhận nếu muốn dùng làm lịch thật (D03).
+- **Quyết định cần xác nhận nếu muốn làm tiếp (không chặn phần đã xong):** có cần ảnh chân dung cho từng người ở phần Giới thiệu (cần thêm slot media + bảng lưu ảnh) hay giữ bố cục typography như hiện tại (D07)?
+- Chỉ hỏi thêm nếu có quyết định về quyền, lưu dữ liệu hoặc thay đổi phá vỡ tương thích mà dự án chưa có cơ sở.
 
 ## 14. Handoff — bắt buộc cập nhật trước khi dừng phiên
 
-- **Trạng thái hiện tại:** chỉ mới tạo kế hoạch; chưa khảo sát hoặc sửa source code.
-- **Task gần nhất đã xác minh hoàn tất:** chưa có.
-- **Task đang làm:** chưa có.
-- **Task tiếp theo:** T01 — khảo sát repository và ghi baseline.
-- **File đã thay đổi:** PLAN_TASK.md (kế hoạch).
-- **Lệnh kiểm tra đã chạy cho website:** chưa chạy; chưa có repository website trong ngữ cảnh.
-- **Blocker:** AI coding cần được mở trong repository website để tiếp tục.
-- **Việc cần làm ngay ở phiên tiếp theo:** đọc file này → git status/diff → xác định stack/routes/schema/scripts → điền Project Snapshot → thực hiện T01.
-- **Điều tuyệt đối không làm khi resume:** đoán đã test, tự công bố giờ cưới, xóa code người dùng, dùng dữ liệu riêng trong public payload, tự deploy hoặc migrate production.
+- **Trạng thái hiện tại:** đã khảo sát và triển khai xong 5 phần nội dung (T03–T10) với kiểm chứng bằng unit test và API thật; dữ liệu thiệp trong DB local đã được khôi phục về đúng trạng thái trước kiểm thử.
+- **Task gần nhất đã xác minh hoàn tất:** T10 — lưu nháp có cấu trúc → phát hành → API công khai chỉ trả mục PUBLIC và mốc PUBLIC (bằng chứng ở mục Nhật ký thực thi).
+- **Task đang làm:** T13 — dọn dẹp, cập nhật tài liệu và bàn giao.
+- **Task tiếp theo:** T11 (đo contrast + ảnh chụp bố cục mới trên mobile/desktop), T12 (browser QA cho phiên khách/PIN, hồi quy admin), T13 còn lại (đọc lại diff, dọn log tạm).
+- **File đã thay đổi (đã có trong working tree, chưa commit):**
+  - Backend: `db/migration/V22__section_payload.sql`, `db/migration/V23__timeline_payload_source.sql`, `wedding/SectionService.java`, `wedding/LayoutService.java`, `invitations/GuestService.java`, `admin/AdminService.java`, `test/.../SectionValidationTest.java`, `test/.../SectionPrivacyTest.java`.
+  - Frontend: `features/invitation/sections.tsx`, `features/invitation/design.css`, `features/admin/section-editor.tsx`, `app/admin/wedding/page.tsx`, `app/admin/admin.css`, `tests/sections-payload.test.mjs`.
+  - Kế hoạch: `PLAN_TASK.md`.
+- **Lệnh kiểm tra đã chạy cho website:** `npm test` 122/122 pass; `npm run typecheck` pass; `npm run build` pass; `mvn -B verify` 70/70 BUILD SUCCESS; `docker compose --env-file .env -f deploy/compose.yml up -d --build` (backend+frontend) pass; flyway V22/V23 `success=t`; `curl` trang công khai/thiệp trả 200; kịch bản API E2E (đăng nhập owner → lưu → phát hành → đọc → khôi phục) đã chạy, kết quả ở Nhật ký.
+- **Việc cần người dùng nhập (không được tự bịa):** nội dung thật cho 5 phần (hiện vẫn là body `'Hi'` do người dùng nhập trước đó); tên hai người/gia đình/nghi lễ/địa điểm/lịch thật; màu trang phục thật. Editor đã sẵn sàng để nhập và xem trước theo ngữ cảnh.
+- **Giới hạn còn lại (minh bạch):** chưa đo contrast cho palette/nhãn mới; chưa có ảnh chụp browser cho 5 bố cục mới; chưa mở rộng `scripts/invitation-review-qa.mjs` với payload mẫu; INTRO chưa có ảnh chân dung (D07); `wedding.content_schema_version` đang là 2 sau các lần lưu có payload (giá trị này chỉ là dấu khả năng, không ảnh hưởng hiển thị).
+- **Việc cần làm ngay ở phiên tiếp theo:** chạy `npm test`/`mvn -B verify` để xác nhận baseline; chụp ảnh 5 phần ở mobile/desktop và đo contrast; chạy browser QA cho phiên khách; xem lại `git diff` trước khi commit (không tự commit nếu chưa được yêu cầu).
+- **Điều tuyệt đối không làm khi resume:** đoán đã test, tự công bố giờ cưới, xóa code người dùng, dùng dữ liệu riêng trong public payload, tự deploy hoặc migrate production, hoặc ghi nội dung giả như thông tin thật.

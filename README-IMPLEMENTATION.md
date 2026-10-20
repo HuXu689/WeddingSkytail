@@ -1,5 +1,16 @@
 # Wedding website — bản lõi 0.1.0
 
+## Cập nhật đợt 7 — nội dung 5 phần tùy chọn có cấu trúc (T03–T10)
+
+- Migration `V22__section_payload.sql`: `wedding_sections` thêm cột `payload` jsonb và `wedding.content_schema_version` cho phép giá trị 1 hoặc 2. Migration `V23__timeline_payload_source.sql` thay CHECK cũ (`TIMELINE` bắt buộc `starts_at`) bằng điều kiện linh hoạt hơn: `starts_at` **hoặc** `payload.timeline`. Cột phẳng cũ vẫn là đường tương thích cho hàng đã phát hành nên không cần backfill.
+- `SectionService` nhận `payload` dạng `Map<String,Object>` (Spring Boot 4 dùng Jackson 3 `tools.jackson`; Jackson 2 không có trên classpath): `validatePayload()` whitelist từng loại, giới hạn số lượng/độ dài, buộc mã màu `#RRGGBB`; `normalized()` chỉ ghi trường đã biết và chuẩn hoá NFC; `list()` lọc mốc TIMELINE `audience=PRIVATE`, bỏ `starts_at` khi payload đã có danh sách mốc và bỏ hẳn mục nếu không còn mốc công khai — tức quyền được quyết định ở server, không phải bằng CSS hay ẩn phía client.
+- `AdminService.publishWedding` copy thêm cột `payload` khi phát hành (SQL liệt kê cột tường minh nên đây là điểm dễ quên).
+- Giao diện thiệp: mỗi loại có bố cục riêng trong `frontend/src/features/invitation/sections.tsx` + `design.css` — INTRO (chân dung bằng chữ, hai cột lệch nhịp), FAMILY (hai khối đối ứng), CEREMONY (thiệp giấy viền đôi), TIMELINE (sắp theo thời gian, nhóm theo ngày, nhãn “Dự kiến”), DRESS_CODE (palette có tên màu + swatch). Phần rỗng không render khối trống; hàng cũ (body `'Hi'`, `starts_at`, `color`) vẫn hiển thị như trước.
+- Trình chỉnh sửa `/admin/wedding`: mỗi loại có bộ trường riêng (người/nhóm gia đình/nghi lễ/mốc/palette), kiểm tra gần trường, và **xem trước theo hai ngữ cảnh** (“lời mời riêng” và “thiệp chung”), kèm ghi chú rằng máy chủ mới là nơi quyết định quyền thật. Editor gửi `contentSchemaVersion: 2`.
+- Kiểm thử: backend `mvn -B verify` **70/70** (thêm `SectionValidationTest` 10 ca, `SectionPrivacyTest` 7 ca, gồm lọc mốc riêng và whitelist payload); frontend `npm test` **122/122** (thêm `tests/sections-payload.test.mjs`), `npm run typecheck` và `npm run build` pass.
+- Kiểm chứng trên stack thật (Docker local, edge `http://localhost:8088`): lưu nháp có cấu trúc → phát hành → API công khai chỉ trả mục PUBLIC và mốc PUBLIC (`public_private_milestone_leaked=False`), mục `CEREMONY` audience PRIVATE không xuất hiện, section chỉ có mốc riêng biến mất hoàn toàn, payload sai bị chặn 422/400; sau kiểm thử dữ liệu 5 phần đã được **khôi phục nguyên trạng** (body `'Hi'`, `starts_at`, màu `#ff5c5c`, `payload=null`).
+- **Chưa làm:** đo contrast và ảnh chụp browser cho 5 bố cục mới; browser QA cho phiên khách/PIN; phần Giới thiệu hiện dùng typography, chưa có ảnh chân dung từng người. Nội dung thật của 5 phần vẫn cần người dùng nhập qua editor — trang không tự bịa thông tin.
+
 ## Cập nhật đợt 6 — vai trò trợ lý nội dung (T25)
 
 - Migration `V16__editor_role.sql`: `admin_users` bỏ ràng buộc một dòng (`id` chuyển sang identity, giữ nguyên chủ tiệc hiện có), thêm `role` (OWNER/EDITOR), `display_name`, `created_by`; `audit` thêm `actor` để ghi **ai** đã thực hiện.

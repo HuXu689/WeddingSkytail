@@ -306,3 +306,72 @@ dialog.album-lightbox figcaption{flex-shrink:0;margin:0}
  dialog.album-lightbox{grid-template-rows:minmax(0,1fr) 44px;row-gap:12px}
  dialog.album-lightbox img{max-height:calc(100dvh - 212px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 }
+/* T05–T09: mỗi phần có bố cục riêng nhưng dùng chung token của thiệp (không dùng card giống nhau). */
+.invitation-section-heading{display:flex;align-items:baseline;gap:12px;margin:0 0 18px}
+.invitation-section-heading h2{margin:0}
+.invitation-section-mark{font-family:var(--inv-serif);color:var(--wedding-accent);font-size:17px;line-height:1}
+.content-intro,.content-family{max-width:920px}
+.content-ceremony,.content-dress-code{max-width:800px}
+.content-timeline{max-width:820px}
+.content-intro .intro-lead,.content-family .family-lead{font-family:var(--inv-serif);font-size:clamp(18px,2.1cqw,23px);line-height:1.62;max-width:62ch;margin:0 0 8px}
+
+/* Giới thiệu hai bạn: chân dung bằng chữ, cột thứ hai lệch nhẹ tạo nhịp. */
+.intro-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,4cqw,56px);margin-top:clamp(20px,3cqw,36px)}
+.intro-people.count-1{grid-template-columns:minmax(0,1fr);max-width:420px}
+.intro-person{border-top:1px solid var(--inv-hairline);padding-top:16px;min-width:0}
+.intro-people.count-2 .intro-person:nth-child(2){margin-top:clamp(12px,3cqw,44px)}
+.intro-person-name{font-family:var(--inv-serif);font-size:clamp(25px,3.1cqw,36px);font-weight:400;line-height:1.2;margin:0;overflow-wrap:anywhere}
+.intro-person-role{font-family:var(--inv-sans);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--wedding-accent);margin:8px 0 0}
+.intro-person-note{font-family:var(--inv-sans);font-size:16px;line-height:1.8;white-space:pre-line;margin:10px 0 0}
+
+/* Gia đình: hai khối đối ứng trên nền giấy nhạt, tách bằng đường mảnh. */
+.family-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,3cqw,32px);margin-top:clamp(18px,3cqw,28px)}
+.family-groups.count-1{grid-template-columns:minmax(0,1fr);max-width:460px}
+.family-group{background:var(--inv-paper-deep);border:1px solid var(--inv-hairline);border-radius:3px;padding:clamp(18px,2.4cqw,26px);min-width:0}
+.family-group-label{margin:0;font-family:var(--inv-sans);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--wedding-accent)}
+.family-members{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+.family-members li{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0}
+/* Nghi lễ: thiệp giấy nổi nhẹ, viền đôi mảnh; không thành cảnh báo hệ thống. */
+.ceremony-note,.dress-guidance,.timeline-note{font-family:var(--inv-sans);font-size:16px;line-height:1.8;white-space:pre-line;margin:0 0 18px}
+.ceremony-list{display:grid;gap:14px}
+.ceremony-card{position:relative;background:linear-gradient(180deg,var(--inv-paper),var(--inv-paper-deep));border:1px solid var(--inv-champagne-soft);padding:clamp(20px,2.6cqw,30px);box-shadow:0 14px 34px var(--compat-color-25332910)}
+.ceremony-card::before{content:'';position:absolute;inset:6px;border:1px solid var(--inv-hairline);pointer-events:none}
+.ceremony-card h3{font-family:var(--inv-serif);font-size:clamp(21px,2.4cqw,26px);font-weight:400;margin:0 0 8px;overflow-wrap:anywhere}
+.ceremony-lead{font-family:var(--inv-sans);font-size:16px;line-height:1.8;white-space:pre-line;margin:0}
+.ceremony-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 20px;margin:18px 0 0}
+.ceremony-meta dt{font-family:var(--inv-sans);font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--inv-muted)}
+.ceremony-meta dd{margin:3px 0 0;font-family:var(--inv-sans);font-size:16px;line-height:1.6;overflow-wrap:anywhere}
+.ceremony-directions{margin:14px 0 0;font-family:var(--inv-sans);font-size:15px;line-height:1.75;color:var(--inv-muted);white-space:pre-line}
+
+/* Lịch trình: nhóm theo ngày; giờ ở cột riêng trên desktop, xếp trên cùng khi hẹp. */
+.timeline-day{margin:0 0 10px;font-family:var(--inv-sans);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--wedding-accent)}
+.timeline-group+.timeline-group{margin-top:26px;padding-top:18px;border-top:1px solid var(--inv-hairline)}
+.timeline-list{list-style:none;margin:0;padding:0}
+.timeline-item{position:relative;display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;padding:12px 0 12px 20px}
+.timeline-item::before{content:'';position:absolute;left:0;top:20px;bottom:-8px;width:1px;background:var(--inv-hairline)}
+.timeline-item::after{content:'';position:absolute;left:-3px;top:19px;width:7px;height:7px;border-radius:50%;background:var(--wedding-accent)}
+.timeline-item:last-child::before{bottom:auto;height:14px}
+.timeline-time time{font-family:var(--inv-sans);font-size:16px;font-weight:600;color:var(--wedding-accent);font-variant-numeric:tabular-nums}
+.timeline-content h3{margin:0 0 4px;font-family:var(--inv-serif);font-size:20px;font-weight:400;line-height:1.35;overflow-wrap:anywhere}
+.timeline-content p{margin:0 0 4px;font-family:var(--inv-sans);font-size:15px;line-height:1.75;white-space:pre-line}
+.timeline-venue{color:var(--inv-muted)}
+.timeline-tentative{margin-left:10px;padding:2px 8px;border:1px solid var(--inv-champagne-soft);border-radius:999px;font-family:var(--inv-sans);font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--inv-muted);vertical-align:middle;white-space:nowrap}
+/* Trang phục: palette có tên màu; swatch luôn đi kèm nhãn chữ. */
+.dress-palette{list-style:none;display:flex;flex-wrap:wrap;gap:clamp(12px,2.4cqw,26px);margin:0;padding:0}
+.dress-palette li{display:grid;justify-items:center;gap:6px;width:92px;text-align:center}
+.dress-color-name{font-family:var(--inv-sans);font-size:13px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.dress-color-hex{font-family:var(--inv-sans);font-size:11px;letter-spacing:.6px;color:var(--inv-muted)}
+.dress-legacy{margin:0}
+.dress-avoid{margin:22px 0 0;padding-top:14px;border-top:1px solid var(--inv-hairline);font-family:var(--inv-sans);font-size:15px;line-height:1.75;color:var(--inv-muted);white-space:pre-line}
+.dress-avoid strong{color:var(--inv-ink);margin-right:6px}
+
+@container (max-width:600px){
+ .intro-people,.family-groups{grid-template-columns:minmax(0,1fr)}
+ .intro-people.count-2 .intro-person:nth-child(2){margin-top:0}
+ .timeline-item{grid-template-columns:minmax(0,1fr);gap:4px}
+ .timeline-time time{font-size:15px}
+ .content-intro,.content-family,.content-ceremony,.content-dress-code,.content-timeline{max-width:none}
+}
+.timeline-legacy-time{display:block;font-family:var(--inv-sans);font-size:16px;font-weight:600;color:var(--wedding-accent);margin:0 0 10px}
+.family-member-name{font-family:var(--inv-serif);font-size:19px;line-height:1.35;overflow-wrap:anywhere}
+.family-member-note{color:var(--inv-muted);font-size:13px}

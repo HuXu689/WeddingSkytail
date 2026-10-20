@@ -15,7 +15,7 @@ public class LayoutService {
     public record Input(List<Item> layout,int templateVersion,int contentSchemaVersion,long expectedVersion) {}
     private static final Set<String> SECTIONS=Set.of("MUSIC","COUNTDOWN","STORY","CONTENT","ALBUM","THANKS");
     public static void validate(Input input){
-        ApiErrors.require(input!=null&&input.templateVersion()==1&&input.contentSchemaVersion()==1,"Phiên bản cấu hình không được hỗ trợ.");
+        ApiErrors.require(input!=null&&input.templateVersion()==1&&(input.contentSchemaVersion()==1||input.contentSchemaVersion()==2),"Phiên bản cấu hình không được hỗ trợ.");
         ApiErrors.require(input.layout()!=null&&input.layout().size()==SECTIONS.size(),"Cấu hình phải có đủ sáu phần tùy chọn.");
         var seen=new HashSet<String>();
         for(var item:input.layout())ApiErrors.require(item!=null&&SECTIONS.contains(Objects.toString(item.section(),""))&&seen.add(item.section()),"Phần nội dung lạ hoặc trùng; không được thay đổi thông tin buổi tiệc/RSVP.");
