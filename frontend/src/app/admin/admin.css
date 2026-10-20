@@ -92,6 +92,17 @@
 .section-payload-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end;margin-block:8px}
 .section-payload-row label{margin:0}
 .section-payload-row button{align-self:end}
+.section-empty-warning{display:flex;gap:8px;align-items:flex-start;margin:6px 0 10px;padding:10px 12px;border:1px solid var(--status-warning-border);border-left-width:4px;border-radius:var(--radius-sm);background:var(--status-warning-bg);color:var(--status-warning-fg)}
+.section-empty-warning span{font-weight:700}
+/* Mốc lịch trình "gốc" của hàng cũ (chỉ có starts_at): hiển thị để không mất dấu, nhưng không bắt buộc đặt tên. */
+.section-legacy-note{border:1px dashed var(--line);border-radius:var(--radius-sm);padding:8px 10px;background:var(--bg-subtle);color:var(--text-secondary)}
+.section-legacy-actions{align-items:center;gap:12px;margin:0 0 10px}
+.section-legacy-actions .field-hint{margin:0}
+/* Xem trước ngữ cảnh "link không hợp lệ": khách không nhận nội dung nào, nên editor chỉ hiện câu chữ
+   dùng chung với trang thiệp thật (features/invitation/access-copy.ts) và nói rõ đây không phải lớp bảo vệ. */
+.preview-denied{display:grid;gap:8px;margin:12px 0;padding:14px 16px;border:1px solid var(--status-error-border);border-left-width:4px;border-radius:var(--radius-sm);background:var(--status-error-bg);color:var(--status-error-fg)}
+.preview-denied p{margin:0}
+.preview-denied .field-hint{color:var(--status-error-fg)}
 @media(max-width:700px){.section-payload-row{grid-template-columns:minmax(0,1fr)}}
 .section-editor input[type="color"]{max-width:80px;min-height:44px}
 .preview-window{max-width:1280px;padding:0}

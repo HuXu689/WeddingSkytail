@@ -90,6 +90,26 @@ Chạy frontend bằng `npm run dev` trong thư mục frontend, sau đó từ th
 node scripts/invitation-review-qa.mjs
 ```
 
-Script dùng Chrome headless và mô phỏng toàn bộ yêu cầu `/api/v1` ngay trong trình duyệt; không tạo hay sửa khách mời thật. Mặc định frontend ở `http://127.0.0.1:3000`; có thể đặt biến môi trường `INVITATION_QA_ORIGIN` và `CHROME_PATH` để đổi địa chỉ hoặc đường dẫn Chrome.
+Script dùng Chrome headless và mô phỏng toàn bộ yêu cầu `/api/v1` ngay trong trình duyệt; không tạo hay sửa khách mời thật. Mặc định frontend ở `http://localhost:3000` (Next.js 16 dev chặn origin `127.0.0.1`); có thể đặt biến môi trường `INVITATION_QA_ORIGIN` và `CHROME_PATH` để đổi địa chỉ hoặc đường dẫn Chrome.
 
 Kiểm tra ba mẫu thiệp ở bảy chiều rộng, nội dung dài, form RSVP và xung đột phản hồi, PIN, popup album, bàn phím/focus và giảm chuyển động. Báo cáo JSON cùng ảnh chụp nằm trong `.qa-artifacts/invitation-review`. Đây là kiểm tra FE với dữ liệu mô phỏng, không thay thế kiểm thử API/backend hoặc Safari trên iPhone thật.
+
+Script cũng dựng đủ **5 phần nội dung tùy chọn** (INTRO/FAMILY/CEREMONY/TIMELINE/DRESS_CODE) trong fixture và kiểm tra: thứ tự hiển thị, số người/nhóm/nghi lễ, mốc lịch trình sắp theo thời gian + nhóm theo ngày + nhãn “Dự kiến”, tên màu đi kèm mã hex, khối “Nên tránh”, cùng việc mốc/mục riêng vẫn hiển thị cho khách đã mở thiệp (quyền do máy chủ quyết định). Script cũng nhúng `scripts/contrast-audit.mjs` để **đo contrast trong browser** và fail nếu có mẫu dưới ngưỡng, rồi lưu `sections-desktop.png` / `sections-mobile.png`. Audit xử lý được **nền gradient**: với `linear/radial/conic-gradient` có stop đặc, mẫu được đo theo stop cho contrast **xấu nhất** (bảo thủ); nền ảnh hoặc có alpha vẫn bị bỏ qua và ghi vào `skipped`. Lần chạy gần nhất: 41 mẫu đo (8 mẫu trên nền gradient), 52 bỏ qua, thấp nhất 4.78, 0 fail.
+
+## Kiểm tra payload công khai (chỉ đọc)
+
+```powershell
+node scripts/public-payload-qa.mjs
+```
+
+Đọc `GET /api/v1/public/weddings/{slug}` và fail (exit 1) nếu payload công khai chứa mục `audience=PRIVATE`, mục đang tắt, mốc TIMELINE `PRIVATE`, `startsAt` không null khi payload đã có danh sách mốc, hoặc khoá chỉ dành cho lời mời riêng (`displayName`, `salutation`, `events`, `invitationId`, …). **Không đăng nhập, không ghi dữ liệu** — chỉ cần stack đang chạy. Đổi đích bằng `PUBLIC_QA_ORIGIN` (mặc định `http://localhost:8088`) và `PUBLIC_QA_SLUG` (mặc định `our-wedding`).
+
+Bộ kiểm tra này đã được thử bằng server giả cố tình rò dữ liệu riêng: script bắt đủ các vấn đề và thoát khác 0.
+
+## Kiểm tra trình chỉnh sửa thiệp (mock API)
+
+```powershell
+node scripts/editor-review-qa.mjs
+```
+
+Chrome headless mở `/admin/wedding` và mô phỏng **toàn bộ** `/api/v1/admin/*` ngay trong trang: không đăng nhập backend thật, không ghi dữ liệu, không dùng nội dung khách thật. Script kiểm tra: nạp đủ 5 loại nội dung cùng bộ trường riêng; cảnh báo “mục đang bật nhưng chưa có nội dung” hiện đúng và mất khi nhập nội dung (và **không báo nhầm** hàng cũ chỉ có `startsAt`); nút ↑/↓ đổi thứ tự người/nhóm làm đổi cả thứ tự trường lẫn payload gửi lên; nút ở biên bị vô hiệu hoá; xem trước đủ **ba ngữ cảnh** — “lời mời riêng” có mốc `PRIVATE`, “thiệp chung” ẩn mốc `PRIVATE`, “link sai/đã thu hồi/hết hạn” render **0 phần** và dùng chung câu chữ với trang thiệp (kèm đối chứng 7 phần ở ngữ cảnh hợp lệ); **hàng TIMELINE cũ lưu được khi chưa đặt tên mốc** (mốc gốc có ghi chú, không `required`, không nút xóa; payload lưu có `timeline: []`, giữ `startsAt`, và thiệp vẫn render `.timeline-legacy-time`); **bỏ được “ngày giờ cũ”** khi đã có mốc chi tiết (nút tắt khi chưa có mốc, lưu `startsAt: null`, giữ mốc chi tiết); editor gửi `contentSchemaVersion: 2`. Báo cáo và ảnh chụp nằm trong `.qa-artifacts/editor-review`. Mặc định `http://localhost:3000`; đổi bằng `EDITOR_QA_ORIGIN` và `CHROME_PATH`.

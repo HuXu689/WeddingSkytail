@@ -331,7 +331,13 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 | Flyway V22 + V23 | `success = t`, `wedding_content_schema_version_check` cho phép 1 hoặc 2, CHECK TIMELINE mới đã áp dụng | Kiểm bằng `psql` |
 | API E2E qua edge `http://localhost:8088` | Xem Nhật ký T10 | Chỉ trả mục PUBLIC; mốc PRIVATE bị lọc; section chỉ có mốc riêng biến mất; validate 422/400 đúng; dữ liệu đã khôi phục |
 | `curl` `/w/our-wedding`, `/invitation/{id}` | 200 | Chỉ xác nhận route/SSR không lỗi, không phải bằng chứng bố cục |
-| Đo contrast, ảnh chụp browser cho 5 bố cục mới | **NOT VERIFIED** | Cần làm ở T11/T12 |
+| Đo contrast, ảnh chụp browser cho 5 bố cục mới | **PASS** (phiên 2) | `node scripts/invitation-review-qa.mjs`: 33 mẫu đo, thấp nhất **4.78** (ngưỡng 4.5), 0 fail; ảnh `sections-desktop.png`, `sections-mobile.png` |
+| Contrast trên nền gradient (thẻ nghi lễ) | **PASS** (phiên 3, T14) | 41 mẫu đo (từ 33), **8 mẫu trên nền gradient**, 52 bỏ qua (ảnh/alpha — không kết luận), thấp nhất **4.78**, 0 fail |
+| Browser QA editor (`node scripts/editor-review-qa.mjs`) | **PASS** (phiên 5, T16) | 7 khối; cảnh báo rỗng hiện/mất đúng, không báo nhầm hàng cũ `startsAt`; đổi thứ tự đổi cả UI và payload lưu; xem trước "thiệp chung" ẩn mốc PRIVATE; gửi `contentSchemaVersion=2`; ảnh trong `.qa-artifacts/editor-review` |
+| Xem trước đủ 3 ngữ cảnh (`guest`/`public`/`invalid`) | **PASS** (phiên 6, T17) | `report.json`: `previewContextOptions=[guest,public,invalid]`; ngữ cảnh lời mời riêng render 7 `.content-section` (đối chứng), ngữ cảnh link sai render **0** và hiện khối `preview-denied` dùng chung câu chữ với trang thiệp |
+| Hàng TIMELINE cũ (chỉ `starts_at`) lưu được mà không phải đặt tên mốc | **PASS** (phiên 7, T18) | `report.json`: `legacyMilestone={note:true,required:false,deleteButtons:0}`; `savedLegacyTimeline={timelineLength:0,startsAt:'2027-12-21T04:00:00Z'}`; `legacyTimelineRendered=true`; không có `.error` sau khi lưu |
+| Bỏ ngày giờ cũ của mục TIMELINE | **PASS** (phiên 8, T19) | `report.json`: `legacyClear={disabled:true}` khi chưa có mốc; thêm mốc → `legacyClearReady={disabled:false,rows:2}`; bấm bỏ → `legacyCleared={rows:1,hasButton:false,legacyNote:false}`; payload lưu `{startsAt:null,titles:['Mốc mới']}` |
+| QA browser 5 phần (thứ tự, lịch trình, palette) | **PASS** (phiên 2) | `report.json`: order INTRO→FAMILY→CEREMONY→TIMELINE→DRESS_CODE; timeline `2027-12-20T01:23Z` trước `09:00Z`; 1 nhãn “Dự kiến”; palette `Trắng ngà\|#FFFDF9`, `Đỏ trầm\|#823B42`; không tràn ngang ở 390px |
 
 ### Ngưỡng chất lượng
 
@@ -383,9 +389,15 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 | T08 | Mốc lịch trình: renderer + editor + timezone | T03, T04, T07 | DONE (2026-10-20) |
 | T09 | Trang phục: renderer + editor | T03, T04 | DONE (2026-10-20) |
 | T10 | Kết nối preview/lưu/xuất bản public/private | T05–T09 | DONE (2026-10-20) |
-| T11 | Responsive, accessibility, motion, ảnh và font | T10 | PARTIAL — CSS/container query đã có; chưa đo contrast, chưa chụp browser cho bố cục mới |
-| T12 | Security, hồi quy, sửa lỗi và nghiệm thu | T10, T11 | PARTIAL — quyền/lọc payload đã kiểm chứng bằng API thật; chưa chạy browser QA cho phiên khách/PIN |
-| T13 | Dọn code và bàn giao có thể tiếp tục | T12 | IN_PROGRESS |
+| T11 | Responsive, accessibility, motion, ảnh và font | T10 | DONE (2026-10-20, phiên 2) — browser QA 33 case có đủ 5 phần; contrast 33 mẫu, thấp nhất 4.78, 0 fail; không tràn ngang 320–1920; ảnh chụp trong `.qa-artifacts/invitation-review` |
+| T12 | Security, hồi quy, sửa lỗi và nghiệm thu | T10, T11 | DONE (2026-10-20, phiên 2) — ma trận test + API payload + browser QA (sealed/PIN + 5 phần); rà diff 16 file đúng phạm vi, không secret/PII/debug log. Giới hạn còn lại ghi ở Handoff |
+| T13 | Dọn code và bàn giao có thể tiếp tục | T12 | DONE (2026-10-20, phiên 2) — README, PLAN và Handoff cập nhật; log tạm dọn |
+| T14 | Contrast audit cho nền gradient (đóng giới hạn T11) | T11 | DONE (2026-10-20, phiên 3) — measured 41 (từ 33), gradientSamples 8, skipped 52 (từ 54), worst 4.78, 0 fail; mặc định origin của QA đổi sang `localhost` vì Next 16 chặn `127.0.0.1` |
+| T15 | Editor: sắp xếp người/nhóm và cảnh báo mục bật nhưng rỗng | T05, T06 | DONE (2026-10-20, phiên 4) — nút ↑/↓ cho người/nhóm/thành viên (có `aria-label`); cảnh báo khi mục bật nhưng rỗng, không báo nhầm hàng cũ có `startsAt`/`color`; `npm test` 123/123, typecheck + build pass |
+| T16 | Browser QA cho editor (mock `/api/v1/admin/*`) | T15 | DONE (2026-10-20, phiên 5) — PASS: 7 khối, cảnh báo rỗng hiện/mất đúng, không báo nhầm hàng cũ `startsAt`, đổi thứ tự đổi cả UI + payload lưu, xem trước ẩn mốc PRIVATE, `contentSchemaVersion=2`; 3 ảnh chụp |
+| T17 | Xem trước ngữ cảnh thứ ba: link sai/đã thu hồi/hết hạn | T15, T16 | DONE (2026-10-20, phiên 6) — đủ 3 ngữ cảnh theo mục 5; ngữ cảnh link sai không render phần nào, dùng chung câu chữ với trang thiệp (`access-copy.ts`); `npm test` 124/124; browser QA PASS kèm đối chứng 7 phần ở ngữ cảnh hợp lệ |
+| T18 | Hàng TIMELINE cũ chỉ có `starts_at` phải lưu được (không bắt đặt tên mốc) | T08, T15 | DONE (2026-10-20, phiên 7) — `defaultPayload` không còn sinh mốc rỗng; mốc gốc chỉ hiển thị, bị bỏ khỏi payload khi lưu nên `starts_at` giữ nguyên; `npm test` 125/125; `mvn -B verify` 71/71; browser QA PASS (`legacyMilestone.required=false`, `savedLegacyTimeline.timelineLength=0`, `legacyTimelineRendered=true`) |
+| T19 | Bỏ ngày giờ cũ (`starts_at`) của mục TIMELINE khi đã có mốc chi tiết | T18 | DONE (2026-10-20, phiên 8) — nút chỉ bật khi có mốc có tên; lưu `startsAt=null` và giữ mốc; `npm test` 126/126; `mvn -B verify` 72/72; browser QA PASS (`legacyClear.disabled=true` → `legacyClearReady.disabled=false` → `legacyCleared.rows=1` → `legacyClearedSaved={startsAt:null,titles:['Mốc mới']}`) |
 
 ### T01 — Khảo sát và baseline
 
@@ -471,6 +483,47 @@ AccessContext — tạo từ dữ liệu đã được server xác minh
 - Điền Handoff cuối; báo cáo việc đã làm, chưa làm và cách chạy tiếp.
 - **Done khi:** phiên mới có thể hiểu trạng thái chỉ từ file này và repository.
 
+### T14 — Contrast audit cho nền gradient/ảnh
+
+- Mở rộng `scripts/contrast-audit.mjs`: khi lớp nền gần nhất là `linear/radial/conic-gradient` với các stop **đặc**, đo theo **stop xấu nhất** (bảo thủ) thay vì bỏ qua; chỉ bỏ qua khi có `url(...)` (ảnh), stop có alpha, hoặc hàm không nhận dạng.
+- Thêm `className` và cờ `gradient` vào mẫu để assertion nhắm đúng phần tử (thẻ nghi lễ dùng nền gradient giấy).
+- Cập nhật `scripts/invitation-review-qa.mjs`: bắt buộc có mẫu đo từ nền gradient và vẫn 0 mẫu fail; ghi số mẫu/skip/worst vào `report.json`.
+- **Done khi:** QA PASS với số mẫu đo tăng so với baseline 33 (skip giảm so với 54), có ít nhất một mẫu từ `.ceremony-card`, 0 fail; nếu phát hiện cặp màu không đạt thì sửa CSS và ghi lại.
+
+### T15 — Editor: sắp xếp trong phần và cảnh báo mục rỗng
+
+- Thêm nút ↑/↓ (có `aria-label`) để đổi thứ tự **người trong INTRO**, **nhóm trong FAMILY** và **thành viên trong một nhóm** — renderer giữ nguyên thứ tự mảng nên đây chính là thứ tự hiển thị (INTRO: người đầu tiên đứng trước; FAMILY: nhóm đầu tiên ở cột trái).
+- Thêm cảnh báo **không chặn lưu** khi mục đang bật nhưng không có nội dung hiển thị, phản chiếu đúng quy tắc rỗng của renderer, kể cả fallback của hàng cũ (`startsAt` cho TIMELINE, `color` cho DRESS_CODE) để không báo nhầm.
+- Test tĩnh theo quy ước hiện có (`frontend/tests/*.test.mjs`) + `npm run typecheck` + `npm run build`.
+- **Done khi:** có nút sắp xếp ở cả 3 cấp, cảnh báo đúng điều kiện và không báo nhầm cho hàng cũ, test + typecheck + build pass.
+
+### T16 — Browser QA cho editor
+
+- Thêm `scripts/editor-review-qa.mjs`: Chrome headless + CDP, mô phỏng toàn bộ `/api/v1/admin/*` **trong trang** (không đăng nhập backend thật, không ghi dữ liệu) rồi điều khiển `/admin/wedding`.
+- Kiểm tra: nạp cấu hình + bộ trường riêng của 5 loại; **cảnh báo mục bật nhưng rỗng** xuất hiện và mất đi khi nhập nội dung; **không báo nhầm** cho hàng cũ chỉ có `startsAt`; **đổi thứ tự** người/nhóm thật sự đổi thứ tự trường và thứ tự trong payload gửi lên; nút ở biên bị `disabled`; xem trước theo ngữ cảnh ẩn mốc `PRIVATE` ở thiệp chung; `contentSchemaVersion` gửi là 2.
+- **Done khi:** script PASS (exit 0) với các khẳng định trên, có ảnh chụp trong `.qa-artifacts/editor-review`, không có exception trong browser.
+
+### T17 — Xem trước ngữ cảnh link không hợp lệ
+
+- Mục 5 yêu cầu preview tối thiểu **3 ngữ cảnh**; T16 mới có 2 (`guest`/`public`). Thêm ngữ cảnh thứ ba: link sai/đã thu hồi/phiên hết hạn.
+- Một nguồn câu chữ duy nhất: rút thông báo "Thiệp hiện không khả dụng…" từ `invitation-entry.tsx` sang `features/invitation/access-copy.ts` để trang thiệp thật và phần xem trước không lệch nhau (không sao chép chuỗi).
+- Ngữ cảnh link sai trả về **danh sách phần rỗng** và hiện khối giải thích: khách không thấy phần nào, kể cả mục công khai; ghi rõ đây chỉ là mô phỏng câu chữ, không phải lớp bảo vệ.
+- **Done khi:** xem trước có đủ 3 lựa chọn; ngữ cảnh link sai render 0 phần nội dung và hiện đúng câu chữ dùng chung; có test tĩnh và browser QA (kèm đối chứng để phép đếm 0 không rỗng nghĩa).
+
+### T18 — Hàng TIMELINE cũ phải lưu được
+
+- Lỗi phát hiện khi đọc code + đối chiếu DB local: hàng TIMELINE cũ chỉ có `starts_at` bị editor nâng cấp thành mốc `{at, title:''}`; `firstProblem()` chặn lưu và server cũng từ chối mốc thiếu tên → **không lưu được bất kỳ thay đổi nào** trên trang.
+- `defaultPayload('TIMELINE')` không sinh mốc rỗng; mốc gốc chỉ để hiển thị (`timelineForEditor`), bị loại khỏi payload khi lưu (`forSave`) nên `starts_at` giữ nguyên và renderer dùng lại nhánh legacy.
+- Kiểm tra gần trường bỏ qua mốc gốc nhưng vẫn bắt mốc người dùng thêm; điều kiện "cần ít nhất một mốc" khớp server (không phụ thuộc `enabled`).
+- **Done khi:** lưu được khi chưa đặt tên mốc cũ, `starts_at` không đổi, thiệp vẫn hiển thị ngày giờ cũ, và có test backend + test tĩnh + browser QA chứng minh.
+
+### T19 — Bỏ "ngày giờ cũ" của mục TIMELINE
+
+- T18 giữ `starts_at` cũ để không mất dữ liệu nhưng chưa có cách bỏ; ngày test vẫn nằm trong DB và vẫn được trả cho lời mời riêng.
+- Chỉ bật nút khi đã có **mốc chi tiết có tên**: server luôn cần ít nhất một nguồn mốc (`firstMilestone`), nên không phải nới lỏng validation và không thể lưu mục lịch trình rỗng nghĩa.
+- Bấm nút → `startsAt=null` + bỏ mốc gốc khỏi payload; mốc chi tiết giữ nguyên; CHECK V23 vẫn thoả vì `payload->'timeline'` còn.
+- **Done khi:** nút tắt khi chưa có mốc và bật khi có; lưu được với `startsAt=null`; payload chỉ còn mốc chi tiết; có test tĩnh, test backend và browser QA.
+
 ## 11. Nhật ký task — thêm một mục sau mỗi task
 
 ```text
@@ -548,6 +601,139 @@ Chưa kiểm chứng / lỗi còn lại: kịch bản chạy trên stack Docker 
 Bước tiếp theo: T11 (đo contrast, ảnh chụp), T12 (browser QA), T13.
 ```
 
+```text
+Task ID: T11 + T12 — Polish và QA có kiểm chứng (phiên 2)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 2)
+Mục tiêu đã đạt: mở rộng QA browser để thực sự chạy 5 phần mới (trước đây fixture thiếu `sections`), đo contrast trong browser thật, kiểm tra tràn ngang, rà diff.
+File đã sửa: scripts/invitation-review-qa.mjs (thêm fixture `sectionsLong`/`sectionsShort`, khối assertion 5 phần, nhúng `inspectContrast` từ scripts/contrast-audit.mjs, ảnh chụp `sections-desktop/mobile`), scripts/public-payload-qa.mjs (mới, chỉ đọc), PLAN_TASK.md, README-IMPLEMENTATION.md, scripts/README.md.
+Thay đổi chính:
+- Fixture thiệp khách giờ có đủ 5 loại: INTRO 2 người (kèm 1 chuỗi không khoảng trắng dài để thử ngắt dòng), FAMILY 2 nhóm/5 thành viên ở bộ dài và 2 nhóm/3 thành viên ở bộ ngắn, CEREMONY audience PRIVATE (2 nghi lễ), TIMELINE 3 mốc spanning 2 ngày có 1 mốc PRIVATE + tentative, DRESS_CODE palette 3 màu + avoid.
+- Assertion mới: thứ tự 5 phần, tiêu đề, số người/nhóm/nghi lễ, nhãn `Thời gian/Địa điểm/Địa chỉ`, thứ tự mốc theo thời gian, nhãn “Dự kiến”, tên màu đi kèm mã hex, swatch, khối “Nên tránh”, và việc mốc/mục riêng vẫn hiển thị cho khách hợp lệ (quyền do máy chủ quyết định).
+- Nhúng `inspectContrast` vào trang và bắt buộc ≥10 mẫu đo với 0 mẫu fail.
+Lệnh đã chạy và kết quả:
+- `node scripts/invitation-review-qa.mjs` → PASS (exit 0). Đo contrast: measured=33, skipped=54, worst=4.78, failures=[] (ngưỡng 4.5). Sections: order đủ 5, introRoles=[Cô dâu, Chú rể], familyGroups=2/familyMembers=3, ceremonyCards=1, ceremonyMetaLabels=[Thời gian, Địa điểm, Địa chỉ], timelineTimes=[2027-12-20T01:23:00Z, 2027-12-20T09:00:00Z] (đã sắp), timelineDays=["Thứ Hai, 20 tháng 12"], timelineTentative=1, palette=[Trắng ngà|#FFFDF9, Đỏ trầm|#823B42], swatches=2, avoid=true.
+- 21 case theme×viewport (320–1440) với nội dung dài: không tràn ngang, không clip; 6 case short-copy 320–1920 + zoom 125–200% vẫn pass; ảnh chụp `sections-desktop.png` (80 KB) và `sections-mobile.png` (37 KB).
+- `npm test` (frontend) 122/122 pass; `mvn -B verify` 70/70 BUILD SUCCESS (chạy lại phiên này).
+- Rà diff: changeset `e42341e` gồm đúng 16 file trong phạm vi (backend sections/migrations/2 test, frontend sections/design.css/editor/2 test, 2 tài liệu); không có `.env`, secret, PII, dependency mới, hay log debug (chỉ script QA có console.log chủ ý).
+- Thêm `scripts/public-payload-qa.mjs` (chỉ đọc, không đăng nhập/không ghi): kiểm tra payload `/api/v1/public/weddings/{slug}` không chứa mục `PRIVATE`/disabled, không có mốc TIMELINE `PRIVATE`, `startsAt` phải null khi payload có danh sách mốc, và không có khoá chỉ dành cho lời mời riêng. Kết quả: PASS trên stack local (`5 mục, 0 mục không phải PUBLIC`, exit 0); slug sai → FAIL HTTP 403, exit 1; **positive control** với server giả cố tình rò dữ liệu → bắt đủ 5 vấn đề, exit 1 (chứng minh bộ kiểm tra không rỗng).
+Chưa kiểm chứng / lỗi còn lại: audit contrast là mẫu (54 phần tử bị bỏ qua vì nền gradient/alpha, ví dụ thẻ nghi lễ); chưa thử Safari iOS/Zalo trên thiết bị thật; chưa in thử PDF/QR; INTRO chưa có ảnh chân dung.
+Bước tiếp theo: T13.
+```
+
+```text
+Task ID: T13 — Bàn giao (phiên 2)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 2)
+Mục tiêu đã đạt: tài liệu và Handoff phản ánh đúng trạng thái sau khi QA; log tạm dọn.
+File đã sửa: PLAN_TASK.md, README-IMPLEMENTATION.md (mục “Cập nhật đợt 7” bổ sung bằng chứng QA + giới hạn), scripts/invitation-review-qa.mjs.
+Thay đổi chính: Task Ledger T11/T12/T13 → DONE kèm giới hạn; bảng bằng chứng §8 cập nhật; Handoff viết lại.
+Lệnh đã chạy và kết quả: `node --check scripts/invitation-review-qa.mjs` OK; dừng dev server (port 3000 không còn listener); xoá log tạm `fe-dev-s14.log`, `fe-dev-s14.err.log`; giữ `s14-invitation-qa.log` và `s14-sections-e2e.log` làm bằng chứng (đã gitignore theo `*.log`).
+Chưa kiểm chứng / lỗi còn lại: như mục T11/T12 ở trên.
+Bước tiếp theo: đợi người dùng nhập nội dung thật và quyết định về ảnh chân dung INTRO; phiên sau có thể mở rộng contrast audit sang các phần tử có nền gradient.
+```
+
+```text
+Task ID: T14 — Contrast audit cho nền gradient (phiên 3)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 3)
+Mục tiêu đã đạt: đo được contrast cho chữ nằm trên nền gradient (thẻ nghi lễ) thay vì bỏ qua, giữ nguyên nguyên tắc "không kết luận khi không đo được".
+File đã sửa: scripts/contrast-audit.mjs, scripts/invitation-review-qa.mjs, PLAN_TASK.md, README-IMPLEMENTATION.md, scripts/README.md.
+Thay đổi chính:
+- contrast-audit.mjs: tách helper `parseColor`/`luminance`/`contrast`; thêm `gradientStops()` đọc các stop ĐẶC của `linear/radial/conic-gradient`; chọn stop cho contrast XẤU NHẤT (`worstStop`) thay vì trung bình; chỉ bỏ qua khi có `url(...)`, stop có alpha, hoặc hàm màu lạ. Mẫu có thêm `className` và cờ `gradient`; bổ sung `dt/dd/li` vào danh sách phần tử đo.
+- invitation-review-qa.mjs: nhúng source bằng cách bỏ toàn bộ tiền tố `export ` (trước đây chỉ thay lần đầu, sẽ vỡ nếu file có nhiều export); bắt buộc có mẫu gradient và mẫu thuộc class `ceremony`; ghi `gradientSamples` vào `report.json`.
+- Mặc định origin đổi từ `http://127.0.0.1:3000` sang `http://localhost:3000`: Next.js 16 dev chặn origin `127.0.0.1` (allowedDevOrigins) khiến trang không hydrate và QA timeout ngay bước điều hướng đầu.
+Lệnh đã chạy và kết quả:
+- `node scripts/invitation-review-qa.mjs` → PASS (exit 0) với mặc định mới: contrast `{measured:41, skipped:52, gradientSamples:8, worst:4.78, failures:[]}` (trước T14: measured 33, skipped 54). Chữ trên thẻ nghi lễ (nền gradient giấy) nay được đo và đạt ngưỡng.
+- `node --check` cả hai script OK; `npm test` 122/122; `mvn -B verify` 70/70 (chạy lại đầu phiên).
+Chưa kiểm chứng / lỗi còn lại: 52 phần tử vẫn bỏ qua vì nền là ảnh hoặc có alpha (hero có ảnh, lightbox, lớp phủ) — cố ý không kết luận; chưa kiểm thử thiết bị thật.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: ảnh chân dung INTRO (D07), hoặc lấy mẫu pixel thật cho nền ảnh (ngoài phạm vi hiện tại).
+```
+
+```text
+Task ID: T15 — Editor: sắp xếp trong phần và cảnh báo mục rỗng (phiên 4)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 4)
+Mục tiêu đã đạt: bổ sung hai khoảng trống thật của editor phát hiện khi đọc code — (1) không thể đổi thứ tự người/nhóm dù renderer hiển thị đúng theo thứ tự mảng, (2) mục đang bật nhưng rỗng biến mất khỏi thiệp mà không có cảnh báo.
+File đã sửa: frontend/src/features/admin/section-editor.tsx, frontend/src/app/admin/admin.css, frontend/tests/sections-payload.test.mjs, PLAN_TASK.md, README-IMPLEMENTATION.md.
+Thay đổi chính:
+- `moveItem<T>()` (helper thuần, không đột biến state) + nút ↑/↓ có `aria-label` ở ba cấp: người trong INTRO, nhóm trong FAMILY, thành viên trong một nhóm; nút ở biên bị `disabled`; tất cả `type="button"` nên không submit form và nằm trong `<fieldset disabled={busy}>`.
+- `hasVisibleContent()` phản chiếu **đúng** quy tắc rỗng của renderer `sections.tsx`, kể cả fallback hàng cũ (`startsAt` cho TIMELINE, `color` cho DRESS_CODE) nên không báo nhầm; cảnh báo chỉ hiện khi `row.enabled && !hasVisibleContent(row)`, không chặn lưu (người dùng vẫn có thể lưu nháp dở).
+- CSS `.section-empty-warning` dùng token trạng thái có sẵn (`--status-warning-*`), không hardcode màu.
+- Test tĩnh mới trong `tests/sections-payload.test.mjs` kiểm tra helper, aria-label ba cấp, điều kiện cảnh báo, hai fallback hàng cũ và sự tồn tại của CSS.
+Lệnh đã chạy và kết quả: `npm test` **123/123** (từ 122, +1 test T15); `npm run typecheck` không lỗi TS; `npm run build` Compiled successfully; `npm test` + `mvn -B verify` (70/70) xác nhận ở đầu phiên.
+Chưa kiểm chứng / lỗi còn lại: chưa click-through editor trong browser (QA hiện chỉ phủ trang thiệp khách; editor cần phiên admin — ngoài phạm vi phiên này); cảnh báo là gợi ý, không thay đổi validation server.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: browser QA cho editor (mock `/api/v1/admin/*`), hoặc ảnh chân dung INTRO (D07).
+```
+
+```text
+Task ID: T16 — Browser QA cho editor (phiên 5)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 5)
+Mục tiêu đã đạt: đóng khoảng trống "T15 chỉ được xác minh bằng test tĩnh" — điều khiển thật `/admin/wedding` trong Chrome headless với toàn bộ `/api/v1/admin/*` được mô phỏng trong trang (không đăng nhập backend, không ghi dữ liệu).
+File đã sửa: scripts/editor-review-qa.mjs (mới), scripts/README.md, PLAN_TASK.md, README-IMPLEMENTATION.md.
+Thay đổi chính:
+- Fixture 7 mục: đủ 5 loại + 1 mục bật nhưng rỗng + 1 hàng TIMELINE cũ chỉ có `startsAt` (payload null).
+- Mock trong trang: `/csrf`, `/auth/me`, `/admin/media`, `/admin/wedding`, `/admin/wedding/layout`, GET+PUT `/admin/wedding/sections`; PUT được ghi vào `window.__saved` rồi trả lại danh sách đã lưu để form sạch dirty.
+- Khẳng định: nạp đủ 7 khối và đúng bộ trường từng loại; cảnh báo mục rỗng hiện đúng và mất khi nhập nội dung; hàng cũ có `startsAt` KHÔNG bị cảnh báo; đổi thứ tự người/nhóm đổi cả thứ tự trường lẫn payload lưu; nút ở biên bị `disabled`; xem trước "thiệp chung" ẩn mốc PRIVATE còn "lời mời riêng" thì hiện; gửi `contentSchemaVersion=2`.
+Lệnh đã chạy và kết quả: `node scripts/editor-review-qa.mjs` → **PASS (exit 0)**. `report.json`: structure `{blocks:7, people:2, groups:2, ceremonyItems:1, timelineRows:2, paletteColors:1}`; peopleBounds `{up:true, down:true}`; guestPreviewHasPrivate `true`; publicPreviewHasPrivate `false`; savedMeta `{templateVersion:1, contentSchemaVersion:2, sections:7}`; savedOrder `{people:[Người B, Người A], groups:[Nhóm Hai, Nhóm Một]}`. 3 ảnh: `editor-loaded.png`, `editor-after-reorder.png`, `editor-preview-public.png`.
+Lỗi gặp và đã sửa trong quá trình làm: (1) heading khối hiển thị **loại** nên không định vị được theo tiêu đề → chuyển sang định vị theo chỉ số; (2) selector `aria-label^="Đưa người 2"` khớp nhầm nút "lên" → dùng nhãn đầy đủ; (3) thiếu mock `/admin/wedding/layout` làm LayoutEditor nhận object thay vì mảng.
+Chưa kiểm chứng / lỗi còn lại: QA dùng fixture, không phải backend thật; chỉ kiểm tra nút ↑/↓ (không có kéo-thả); chưa phủ các trang admin khác.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: ảnh chân dung INTRO (D07), hoặc mở rộng QA cho trang admin khác.
+```
+
+```text
+Task ID: T17 — Xem trước ngữ cảnh link không hợp lệ (phiên 6)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 6)
+Mục tiêu đã đạt: đủ 3 ngữ cảnh xem trước theo mục 5; ngữ cảnh link sai/đã thu hồi/hết hạn không render phần nội dung nào và dùng đúng câu chữ của trang thiệp thật.
+File đã sửa: frontend/src/features/invitation/access-copy.ts (mới), frontend/src/features/invitation/invitation-entry.tsx, frontend/src/features/admin/section-editor.tsx, frontend/src/app/admin/admin.css, frontend/tests/sections-payload.test.mjs, scripts/editor-review-qa.mjs, scripts/README.md, PLAN_TASK.md, README-IMPLEMENTATION.md.
+Thay đổi chính:
+- `access-copy.ts` xuất `INVITATION_UNAVAILABLE` — một nguồn câu chữ duy nhất; `invitation-entry.tsx` import lại thay vì giữ chuỗi riêng (hành vi không đổi).
+- `section-editor.tsx`: `PreviewContext='guest'|'public'|'invalid'`; ngữ cảnh `invalid` trả `[]` cho `previewSections` và hiện khối `.preview-denied` (`role="note"`) giải thích khách không thấy phần nào, kèm câu chữ dùng chung và ghi chú "không phải lớp bảo vệ".
+- `admin.css`: `.preview-denied` dùng token `--status-error-*` + `--radius-sm`, không hardcode màu.
+- Test tĩnh mới (T17) + browser QA: 3 lựa chọn ngữ cảnh; link sai render 0 `.content-section`; **đối chứng** ngữ cảnh lời mời riêng render 7 phần để phép đếm 0 không rỗng nghĩa.
+Lệnh đã chạy và kết quả: `npm test` **124/124** (từ 123, +1 test T17); `npm run typecheck` exit 0; `npm run build` exit 0; `node scripts/editor-review-qa.mjs` → **PASS (exit 0)** với `report.json`: `previewContextOptions:[guest,public,invalid]`, `guestPreviewSections:7`, `invalidPreview:{panel:true,sections:0,sharesEntryCopy:true}`; ảnh mới `editor-preview-invalid.png`; `node scripts/invitation-review-qa.mjs` → PASS (exit 0) sau khi đổi import của `invitation-entry.tsx`; `node scripts/public-payload-qa.mjs` → PASS (exit 0).
+Chưa kiểm chứng / lỗi còn lại: đây là mô phỏng câu chữ, không phải kiểm thử quyền thật (quyền vẫn do `AccessGate`/`SectionService` quyết định và đã có bằng chứng riêng); ngữ cảnh "khách hợp lệ" vẫn là chung, chưa chọn được từng khách cụ thể trong editor.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: chọn khách cụ thể cho preview (cần API danh sách khách + projection theo khách), ảnh chân dung INTRO (D07), hoặc mở rộng QA cho trang admin khác.
+```
+
+```text
+Task ID: T18 — Hàng TIMELINE cũ không còn chặn lưu (phiên 7)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 7)
+Mục tiêu đã đạt: sửa lỗi hồi quy khiến mọi thay đổi trong `/admin/wedding` không lưu được nếu DB còn hàng TIMELINE cũ (chỉ có `starts_at`, `payload = NULL`) — đúng trạng thái 5 mục đang có trong DB local.
+Nguyên nhân (xác minh bằng code + DB): `defaultPayload('TIMELINE')` sinh mốc `{at: startsAt, title:''}` trong bộ nhớ; `firstProblem()` bắt "mỗi mốc cần ngày giờ và tên" nên chặn **mọi** lần lưu; nếu bỏ qua client thì `SectionService.validatePayload` cũng từ chối (`requiredText(title)`), tức không thể lưu bằng đường nào. T16 trước đó lách bằng cách gõ tên mốc trong fixture.
+File đã sửa: frontend/src/features/admin/section-editor.tsx, frontend/src/app/admin/admin.css, frontend/tests/sections-payload.test.mjs, backend/src/test/java/vn/wedding/invitation/SectionValidationTest.java, scripts/editor-review-qa.mjs, scripts/README.md, PLAN_TASK.md, README-IMPLEMENTATION.md.
+Thay đổi chính:
+- `defaultPayload('TIMELINE')` trả `{timeline:[]}`; thêm `isLegacyMilestone()` + `timelineForEditor()` + `forSave()`.
+- `upgrade()` vẫn hiện **một mốc gốc** (ngày giờ lấy từ `starts_at`) để người dùng thấy dữ liệu cũ, kể cả sau khi payload đã là `{timeline:[]}` (reload vẫn thấy).
+- `forSave()` bỏ mốc gốc chưa đặt tên khỏi payload trước khi gửi: server nhận `timeline: []` + `starts_at` cũ → hợp lệ với `validatePayload`/`firstMilestone` và CHECK của V23; renderer rơi về nhánh legacy nên ngày giờ vẫn hiển thị.
+- `firstProblem()` bỏ qua mốc gốc nhưng vẫn bắt mốc do người dùng thêm; điều kiện "cần ít nhất một mốc" bỏ `enabled` để **khớp server** (server luôn yêu cầu nguồn mốc), tránh lỗi 422 khó hiểu khi thêm mục TIMELINE để trống.
+- `add('TIMELINE')` tạo sẵn một mốc trống để người dùng thấy ngay ô cần nhập; mốc gốc không có nút xóa (xóa cũng không bỏ được `starts_at`, sẽ là nút vô nghĩa) và có ghi chú giải thích.
+- CSS `.section-legacy-note` dùng token sẵn có (`--line`, `--bg-subtle`, `--text-secondary`).
+Lệnh đã chạy và kết quả: `npm test` **125/125** (từ 124, +1 test T18); `npm run typecheck` exit 0; `npm run build` exit 0; `mvn -B verify` **71/71 BUILD SUCCESS** (từ 70, +1 test `legacyTimelineWithStartsAtIsSavableWithoutNamedMilestone`, trong đó có ca chứng minh payload cũ `title:''` bị server từ chối); `node scripts/editor-review-qa.mjs` → **PASS (exit 0)**, `report.json`: `legacyMilestone={note:true,required:false,deleteButtons:0}`, `savedLegacyTimeline={timelineLength:0,startsAt:'2027-12-21T04:00:00Z'}`, `legacyTimelineRendered=true`, không có `.error`; các khẳng định T16/T17 vẫn giữ (`previewContextOptions`, `guestPreviewSections=7`, `invalidPreview.sections=0`).
+Chưa kiểm chứng / lỗi còn lại: chưa bấm lưu trên backend thật với DB local (QA dùng mock PUT); `starts_at` vẫn không có UI sửa/xóa (giới hạn có từ trước, không thuộc phạm vi T18) nên muốn bỏ hẳn ngày cũ phải thay bằng mốc chi tiết; chưa kiểm thử thiết bị thật.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: chọn khách cụ thể cho preview, ảnh chân dung INTRO (D07), hoặc thêm UI sửa/xóa ngày giờ cũ của mục TIMELINE.
+```
+
+```text
+Task ID: T19 — Bỏ "ngày giờ cũ" của mục TIMELINE (phiên 8)
+Trạng thái: DONE
+Cập nhật lúc: 2026-10-20 (phiên 8)
+Mục tiêu đã đạt: đóng giới hạn còn lại của T18 — người dùng bỏ được `starts_at` cũ (ví dụ ngày test 2026-12-24) mà không phải tạo mốc giả, và không nới lỏng validation của server.
+File đã sửa: frontend/src/features/admin/section-editor.tsx, frontend/src/app/admin/admin.css, frontend/tests/sections-payload.test.mjs, backend/src/test/java/vn/wedding/invitation/SectionValidationTest.java, scripts/editor-review-qa.mjs, scripts/README.md, PLAN_TASK.md, README-IMPLEMENTATION.md.
+Thay đổi chính:
+- `FieldProps` có thêm `updateRow` (startsAt nằm ngoài payload); `KindFields` nhận `updateRow={update}` từ `SectionEditor`.
+- `TimelineFields` hiện nút "Bỏ ngày giờ cũ" khi mục còn `startsAt`, **chỉ bật khi có ít nhất một mốc có ngày giờ và tên**; kèm giải thích vì sao đang tắt.
+- Bấm nút → `updateRow(index,{startsAt:null})` + loại mốc gốc khỏi payload; các mốc chi tiết giữ nguyên. Server vẫn nhận vì `firstMilestone` lấy từ `payload.timeline` và CHECK V23 chỉ cần một trong hai nguồn.
+- CSS `.section-legacy-actions` cho hàng nút + ghi chú, dùng token sẵn có.
+Lệnh đã chạy và kết quả: `npm test` **126/126** (từ 125, +1 test T19); `npm run typecheck` exit 0; `npm run build` exit 0; `mvn -B verify` **72/72 BUILD SUCCESS** (từ 71, +1 test `timelineWithMilestonesOnlyIsSavable`); `node scripts/editor-review-qa.mjs` → **PASS (exit 0)**: `legacyClear={disabled:true}` (chưa có mốc) → thêm mốc chi tiết `legacyClearReady={disabled:false,rows:2}` → bấm bỏ `legacyCleared={rows:1,hasButton:false,legacyNote:false}` → lưu `legacyClearedSaved={startsAt:null,titles:['Mốc mới']}`, không có `.error`; các khẳng định T16–T18 vẫn giữ.
+Lỗi gặp và đã sửa trong quá trình làm: assertion đầu tiên chọn nhầm mục TIMELINE khác cũng có `startsAt=null` (block 3 của fixture) nên đọc 2 mốc; đã định vị theo tiêu đề hàng cũ. Đây là lỗi của test, không phải của sản phẩm — đã ghi lại để tránh lặp.
+Chưa kiểm chứng / lỗi còn lại: chưa bấm trên backend thật với DB local (QA dùng mock PUT); chưa kiểm thử thiết bị thật; các giới hạn cũ (preview theo từng khách, ảnh chân dung INTRO, Safari/Zalo, in PDF/QR) vẫn nguyên.
+Bước tiếp theo: chờ nội dung thật của người dùng; tuỳ chọn: chọn khách cụ thể cho preview, ảnh chân dung INTRO (D07), hoặc mở rộng QA cho trang admin khác.
+```
+
 ### Phụ lục — chạy lại kiểm chứng bằng API thật
 
 - Script dùng trong phiên: `%TEMP%\sections-e2e.ps1` (và `%TEMP%\sections-restore.ps1` để khôi phục). Hai script **không nằm trong repo** để tránh bị chạy nhầm trên production; chúng ghi và phát hành nội dung thiệp.
@@ -568,6 +754,7 @@ Bước tiếp theo: T11 (đo contrast, ảnh chụp), T12 (browser QA), T13.
 | D07 | INTRO dùng bố cục typography, chưa có ảnh chân dung từng người | Chưa có slot media cho ảnh người; không dùng ảnh người lạ và không thêm bảng media mới trong phạm vi này | T05, T11 |
 | D08 | Thời gian lịch trình dùng quy ước giờ Việt Nam như ô nhập của editor | `toVietnamInput/fromVietnamInput` đang là quy ước của stack; không tự suy ra múi giờ khác cho từng mốc | T08 |
 | D09 | Kiểm thử E2E thực hiện qua API thật trên stack local rồi khôi phục dữ liệu | Unit test mock JdbcTemplate không bắt được ràng buộc CHECK của DB (đã xảy ra với V17) | T03, T10, T12 |
+| D10 | Hàng TIMELINE cũ chỉ có `starts_at` **không** được sinh thành mốc payload; editor hiện "mốc gốc" chỉ-đọc và bỏ nó khỏi payload khi lưu | Server bắt mỗi mốc phải có tên (`validatePayload`) nên mốc rỗng làm hỏng **mọi** lần lưu; `starts_at` vẫn là nguồn hiển thị (renderer fallback) nên không mất ngày giờ, và V23 vẫn thoả vì còn `starts_at` | T18 |
 
 ## 13. Blockers / câu hỏi cần xác nhận
 
@@ -582,16 +769,15 @@ Bước tiếp theo: T11 (đo contrast, ảnh chụp), T12 (browser QA), T13.
 
 ## 14. Handoff — bắt buộc cập nhật trước khi dừng phiên
 
-- **Trạng thái hiện tại:** đã khảo sát và triển khai xong 5 phần nội dung (T03–T10) với kiểm chứng bằng unit test và API thật; dữ liệu thiệp trong DB local đã được khôi phục về đúng trạng thái trước kiểm thử.
-- **Task gần nhất đã xác minh hoàn tất:** T10 — lưu nháp có cấu trúc → phát hành → API công khai chỉ trả mục PUBLIC và mốc PUBLIC (bằng chứng ở mục Nhật ký thực thi).
-- **Task đang làm:** T13 — dọn dẹp, cập nhật tài liệu và bàn giao.
-- **Task tiếp theo:** T11 (đo contrast + ảnh chụp bố cục mới trên mobile/desktop), T12 (browser QA cho phiên khách/PIN, hồi quy admin), T13 còn lại (đọc lại diff, dọn log tạm).
-- **File đã thay đổi (đã có trong working tree, chưa commit):**
-  - Backend: `db/migration/V22__section_payload.sql`, `db/migration/V23__timeline_payload_source.sql`, `wedding/SectionService.java`, `wedding/LayoutService.java`, `invitations/GuestService.java`, `admin/AdminService.java`, `test/.../SectionValidationTest.java`, `test/.../SectionPrivacyTest.java`.
-  - Frontend: `features/invitation/sections.tsx`, `features/invitation/design.css`, `features/admin/section-editor.tsx`, `app/admin/wedding/page.tsx`, `app/admin/admin.css`, `tests/sections-payload.test.mjs`.
-  - Kế hoạch: `PLAN_TASK.md`.
-- **Lệnh kiểm tra đã chạy cho website:** `npm test` 122/122 pass; `npm run typecheck` pass; `npm run build` pass; `mvn -B verify` 70/70 BUILD SUCCESS; `docker compose --env-file .env -f deploy/compose.yml up -d --build` (backend+frontend) pass; flyway V22/V23 `success=t`; `curl` trang công khai/thiệp trả 200; kịch bản API E2E (đăng nhập owner → lưu → phát hành → đọc → khôi phục) đã chạy, kết quả ở Nhật ký.
-- **Việc cần người dùng nhập (không được tự bịa):** nội dung thật cho 5 phần (hiện vẫn là body `'Hi'` do người dùng nhập trước đó); tên hai người/gia đình/nghi lễ/địa điểm/lịch thật; màu trang phục thật. Editor đã sẵn sàng để nhập và xem trước theo ngữ cảnh.
-- **Giới hạn còn lại (minh bạch):** chưa đo contrast cho palette/nhãn mới; chưa có ảnh chụp browser cho 5 bố cục mới; chưa mở rộng `scripts/invitation-review-qa.mjs` với payload mẫu; INTRO chưa có ảnh chân dung (D07); `wedding.content_schema_version` đang là 2 sau các lần lưu có payload (giá trị này chỉ là dấu khả năng, không ảnh hưởng hiển thị).
-- **Việc cần làm ngay ở phiên tiếp theo:** chạy `npm test`/`mvn -B verify` để xác nhận baseline; chụp ảnh 5 phần ở mobile/desktop và đo contrast; chạy browser QA cho phiên khách; xem lại `git diff` trước khi commit (không tự commit nếu chưa được yêu cầu).
+- **Trạng thái hiện tại:** T01–T19 đã DONE. Code 5 phần (T03–T10) đã được **người dùng commit** ở `e42341e` (16 file) — AI không commit. Chưa commit (staging/working tree): `scripts/contrast-audit.mjs`, `scripts/invitation-review-qa.mjs`, `scripts/public-payload-qa.mjs` (mới), `scripts/editor-review-qa.mjs` (mới), `frontend/src/features/invitation/access-copy.ts` (mới), `frontend/src/features/invitation/invitation-entry.tsx`, `frontend/src/features/admin/section-editor.tsx`, `frontend/src/app/admin/admin.css`, `frontend/tests/sections-payload.test.mjs`, `backend/src/test/java/vn/wedding/invitation/SectionValidationTest.java`, `PLAN_TASK.md`, `README-IMPLEMENTATION.md`, `scripts/README.md`.
+- **Task gần nhất đã xác minh hoàn tất:** T19 — `node scripts/editor-review-qa.mjs` PASS (exit 0): nút “Bỏ ngày giờ cũ” tắt khi chưa có mốc, bật khi đã có mốc chi tiết; bấm bỏ thì mốc gốc biến mất và payload lưu `{startsAt:null,titles:['Mốc mới']}`; `mvn -B verify` 72/72 gồm `timelineWithMilestonesOnlyIsSavable`.
+- **Task đang làm:** không — dừng an toàn sau T19.
+- **Task tiếp theo (không chặn):** (a) người dùng nhập nội dung thật cho 5 phần; (b) tuỳ chọn: chọn một khách cụ thể cho preview (cần API danh sách khách + projection theo khách); (c) tuỳ chọn ảnh chân dung INTRO (D07); (d) thử Safari iOS/Zalo trên thiết bị thật và in thử PDF/QR; (e) tuỳ chọn: mở rộng browser QA cho các trang admin khác và lấy mẫu pixel thật cho nền ảnh (52 phần tử đang bỏ qua).
+- **File đã thay đổi trong phiên 2–8 (chưa commit):** `scripts/contrast-audit.mjs`, `scripts/invitation-review-qa.mjs`, `scripts/public-payload-qa.mjs` (mới), `scripts/editor-review-qa.mjs` (mới), `frontend/src/features/invitation/access-copy.ts` (mới), `frontend/src/features/invitation/invitation-entry.tsx`, `frontend/src/features/admin/section-editor.tsx`, `frontend/src/app/admin/admin.css`, `frontend/tests/sections-payload.test.mjs`, `backend/src/test/java/vn/wedding/invitation/SectionValidationTest.java`, `PLAN_TASK.md`, `README-IMPLEMENTATION.md`, `scripts/README.md`.
+- **Đã commit bởi người dùng (không phải AI):** `e42341e` — 16 file: 2 migration (V22, V23), `SectionService`, `LayoutService`, `GuestService`, `AdminService`, 2 test backend, `sections.tsx`, `design.css`, `section-editor.tsx`, `admin.css`, trang admin wedding, `tests/sections-payload.test.mjs`, PLAN, README.
+- **Lệnh kiểm tra đã chạy:** `npm test` **126/126**; `npm run typecheck` exit 0; `npm run build` exit 0; `mvn -B verify` **72/72** BUILD SUCCESS; `node scripts/invitation-review-qa.mjs` PASS (33 case; contrast `{measured:41, skipped:52, gradientSamples:8, worst:4.78, failures:[]}`); `node scripts/editor-review-qa.mjs` **PASS** (7 khối; 3 ngữ cảnh xem trước; `legacyMilestone={note:true,required:false,deleteButtons:0}`; `savedLegacyTimeline={timelineLength:0,startsAt:'2027-12-21T04:00:00Z'}`; `legacyClear={disabled:true}` → `legacyClearReady={disabled:false,rows:2}` → `legacyCleared={rows:1,hasButton:false,legacyNote:false}` → `legacyClearedSaved={startsAt:null,titles:['Mốc mới']}`; `contentSchemaVersion=2`); `node scripts/public-payload-qa.mjs` PASS (5 mục, exit 0 — và bắt đủ 5 vấn đề trên server giả, exit 1); `node --check` cả bốn script OK; Flyway V22/V23 `success=t` (phiên 1); API E2E thật (phiên 1, có khôi phục dữ liệu).
+- **Dữ liệu local:** DB giữ nguyên trạng thái trước kiểm thử — 5 mục body `'Hi'` ở cả DRAFT và PUBLISHED, `payload=null`, TIMELINE `starts_at` 2026-12-24 01:23Z, màu `#ff5c5c`; `wedding.content_schema_version=2` (chỉ là dấu khả năng). Phiên 8 **không ghi** dữ liệu vào DB (QA editor dùng mock PUT).
+- **Việc cần người dùng nhập (không được tự bịa):** nội dung thật của Giới thiệu/Gia đình/Nghi lễ/Mốc lịch trình/Trang phục; tên, địa điểm, lịch, màu thật.
+- **Giới hạn còn lại (minh bạch):** contrast audit vẫn là lấy mẫu — 52 phần tử bỏ qua vì nền là ảnh hoặc có alpha và cố ý không kết luận; chưa kiểm thử trên Safari iOS/Zalo thiết bị thật; chưa in thử PDF/QR vật lý; INTRO chưa có ảnh chân dung (D07); preview “link không hợp lệ” chỉ mô phỏng câu chữ — quyền thật vẫn do `AccessGate`/`SectionService` quyết định; preview “lời mời riêng” chưa chọn được từng khách cụ thể; script kiểm tra **chỉ đọc** payload công khai đã ở repo (`scripts/public-payload-qa.mjs`), còn kịch bản E2E có ghi/phát hành thử thì chỉ chạy từ `%TEMP%` và không đưa vào repo.
+- **Việc cần làm ngay ở phiên tiếp theo:** rà `git diff` + `git diff --cached` rồi commit nếu đồng ý (AI không tự commit); sau đó chờ nội dung thật của người dùng để kiểm tra hiển thị cuối.
 - **Điều tuyệt đối không làm khi resume:** đoán đã test, tự công bố giờ cưới, xóa code người dùng, dùng dữ liệu riêng trong public payload, tự deploy hoặc migrate production, hoặc ghi nội dung giả như thông tin thật.

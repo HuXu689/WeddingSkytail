@@ -63,6 +63,25 @@ class SectionValidationTest {
         assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("TIMELINE",map("timeline",duplicate)))));
         assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("TIMELINE",map("timeline",List.of(map("title","Thiếu giờ")))))));
     }
+    /**
+     * T18: hàng TIMELINE cũ chỉ có starts_at (payload null, hoặc payload.timeline rỗng) phải lưu được
+     * mà không bắt người dùng đặt tên mốc — nếu không, mọi thay đổi khác trên trang đều bị chặn.
+     * Ngược lại, mục TIMELINE không còn nguồn mốc nào vẫn bị từ chối (khớp CHECK của V23).
+     */
+    @Test void legacyTimelineWithStartsAtIsSavableWithoutNamedMilestone(){
+        var legacy=new SectionService.Section("TIMELINE","PUBLIC",true,"Mốc lịch trình","",Instant.parse("2026-12-24T01:23:00Z"),null,map("timeline",List.of()));
+        assertDoesNotThrow(()->SectionService.validate(structured(legacy)));
+        var noSource=new SectionService.Section("TIMELINE","PUBLIC",false,"Mốc lịch trình","",null,null,map("timeline",List.of()));
+        assertThrows(RuntimeException.class,()->SectionService.validate(structured(noSource)));
+        var unnamed=new SectionService.Section("TIMELINE","PUBLIC",true,"Mốc lịch trình","",Instant.parse("2026-12-24T01:23:00Z"),null,map("timeline",List.of(map("at","2026-12-24T01:23:00Z","title",""))));
+        assertThrows(RuntimeException.class,()->SectionService.validate(structured(unnamed)));
+    }
+    /** T19: sau khi bỏ ngày giờ cũ, mục TIMELINE chỉ còn mốc chi tiết trong payload — vẫn hợp lệ. */
+    @Test void timelineWithMilestonesOnlyIsSavable(){
+        var cleared=new SectionService.Section("TIMELINE","PUBLIC",true,"Mốc lịch trình","",null,null,map("timeline",List.of(map("at","2027-12-22T03:00:00Z","title","Mốc mới"))));
+        assertDoesNotThrow(()->SectionService.validate(structured(cleared)));
+    }
+
     @Test void rejectsInvalidMilestoneAudienceAndInstant(){
         assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("TIMELINE",map("timeline",List.of(map("at","2026-12-24T01:23:00Z","title","A","audience","ALL")))))));
         assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("TIMELINE",map("timeline",List.of(map("at","mai","title","A")))))));

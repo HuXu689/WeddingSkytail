@@ -2,9 +2,9 @@
 import {useEffect,useRef,useState} from 'react';
 import {api,ApiError} from '@/shared/api';
 import {createOpenIntent} from './open-intent';
+import {INVITATION_UNAVAILABLE as unavailable} from './access-copy';
 
 const openInvitation=createOpenIntent<unknown>(api);
-const unavailable='Thiệp hiện không khả dụng hoặc phiên đã hết hạn. Hãy mở lại link/QR gốc hoặc liên hệ người gửi.';
 
 /** The envelope contains only generic copy: no recipient, design or event before authorization. */
 export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>void}){

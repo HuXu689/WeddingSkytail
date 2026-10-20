@@ -1,9 +1,10 @@
 // Isolated frontend regression audit. All /api/v1 requests use fixtures, never real guest data.
 import {spawn} from 'node:child_process';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
-const origin=process.env.INVITATION_QA_ORIGIN??'http://127.0.0.1:3000';
+// Next.js 16 dev chặn origin 127.0.0.1 (allowedDevOrigins); dùng localhost cho mặc định.
+const origin=process.env.INVITATION_QA_ORIGIN??'http://localhost:3000';
 const directory=resolve('.qa-artifacts/invitation-review');mkdirSync(directory,{recursive:true});
 const browser=spawn(process.env.CHROME_PATH??'C:/Program Files/Google/Chrome/Application/chrome.exe',['--headless','--disable-gpu','--no-first-run',`--user-data-dir=${directory}/chrome`,'--remote-debugging-port=9241','about:blank'],{stdio:'ignore'});
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -26,6 +27,24 @@ try{
  const party={id:'party',title:long,start_at:'2027-12-20T10:00:00Z',timezone:'Asia/Ho_Chi_Minh',venue:long,address:long,state:'PUBLISHED',max_people:5,status:null,total_people:null,note:null,event_note:long,response_version:0,rsvp_open:true,maps_url:'https://maps.google.com',dress_code:long,parking:long,change_notice:long,revision:1};
  const fixture={displayName:long,salutation:'Trân trọng kính mời',wedding:{names:'Nguyễn Hoàng Minh Anh & Trần Nguyễn Quốc Bảo',message:long,theme:'ELEGANT',accent:'OLIVE',story:long,footer:long,show_story:true,heroUrl:picture,albumUrls:Array(5).fill(picture),show_countdown:true},events:[party,{...party,id:'cancelled',state:'CANCELLED',status:'ATTENDING',rsvp_open:false}],wishes:[{display_name:long,message:long,created_at:'2026-10-20T00:00:00Z'}]};
  party.deadline='2027-12-19T10:00:00Z';fixture.events[1].deadline=party.deadline;
+ // Nội dung 5 phần (content schema 2). Thiệp khách hợp lệ nhận cả mục riêng tư vì máy chủ đã cấp quyền.
+const contrastSource=readFileSync(resolve('scripts/contrast-audit.mjs'),'utf8').replace(/export\s+/g,'');
+const longNote='Mô tả dài để kiểm tra ngắt dòng và tràn khung '.repeat(4)+'X'.repeat(64);
+const sectionsLong=[
+ {kind:'INTRO',audience:'PUBLIC',enabled:true,title:'Giới thiệu hai bạn',body:'Lời dẫn đủ dài để kiểm tra nhịp chữ và ngắt dòng trên màn hẹp của phần giới thiệu.',startsAt:null,color:null,payload:{people:[{name:'Nguyễn Hoàng Minh Anh',role:'Cô dâu',note:longNote},{name:'Trần Nguyễn Quốc Bảo',role:'Chú rể',note:'Một đoạn ngắn.'}]}},
+ {kind:'FAMILY',audience:'PUBLIC',enabled:true,title:'Gia đình',body:'',startsAt:null,color:null,payload:{groups:[{label:'Nhà gái',members:[{name:'Bà Nguyễn Thị Hoa',note:'Mẹ'},{name:'Ông Trần Văn Hùng',note:'Bố'}]},{label:'Nhà trai',members:[{name:'Bà Lê Thị Mai',note:'Mẹ'},{name:'Ông Nguyễn Văn An',note:'Bố'},{name:'Chị Nguyễn Thu Hà',note:'Chị gái'}]}]}},
+ {kind:'CEREMONY',audience:'PRIVATE',enabled:true,title:'Nghi lễ riêng',body:'',startsAt:null,color:null,payload:{items:[{title:'Lễ gia tiên',lead:'Kính mời gia đình hai bên',time:'2027-12-20T01:23:00Z',venue:long,address:long,directions:'Đi theo hướng dẫn của gia đình.'},{title:'Tiệc thân mật',lead:'',time:null,venue:'Tư gia',address:'',directions:''}]}},
+ {kind:'TIMELINE',audience:'PUBLIC',enabled:true,title:'Mốc lịch trình',body:'',startsAt:null,color:null,payload:{timeline:[{at:'2027-12-20T09:00:00Z',title:'Đón khách',note:'Có xe đưa đón.',venue:'Sảnh chính',audience:'PUBLIC',tentative:false},{at:'2027-12-20T01:23:00Z',title:'Lễ gia tiên',note:'',venue:'Tư gia nhà gái',audience:'PRIVATE',tentative:true},{at:'2027-12-21T04:00:00Z',title:'Tiệc mừng',note:'Kết thúc dự kiến 21:00.',venue:'Nhà hàng The Bloom',audience:'PUBLIC',tentative:false}]}},
+ {kind:'DRESS_CODE',audience:'PUBLIC',enabled:true,title:'Trang phục',body:'Tông sáng và thoải mái để bạn nhảy cùng chúng mình cả buổi.',startsAt:null,color:null,payload:{palette:[{name:'Trắng ngà',color:'#fffdf9'},{name:'Xanh rêu',color:'#52664c'},{name:'Đỏ trầm',color:'#823b42'}],avoid:'Hạn chế màu quá tối và họa tiết rối.'}}
+];
+const sectionsShort=[
+ {kind:'INTRO',audience:'PUBLIC',enabled:true,title:'Giới thiệu hai bạn',body:'Chúng mình quen nhau ở Đà Nẵng.',startsAt:null,color:null,payload:{people:[{name:'An',role:'Cô dâu',note:'Thích hoa dại.'},{name:'Bình',role:'Chú rể',note:'Mê cà phê.'}]}},
+ {kind:'FAMILY',audience:'PUBLIC',enabled:true,title:'Gia đình',body:'',startsAt:null,color:null,payload:{groups:[{label:'Nhà gái',members:[{name:'Bà Hoa',note:'Mẹ'}]},{label:'Nhà trai',members:[{name:'Ông An',note:'Bố'},{name:'Chị Hà',note:'Chị gái'}]}]}},
+ {kind:'CEREMONY',audience:'PRIVATE',enabled:true,title:'Nghi lễ riêng',body:'',startsAt:null,color:null,payload:{items:[{title:'Lễ gia tiên',lead:'Kính mời gia đình.',time:'2027-12-20T01:23:00Z',venue:'Tư gia',address:'12 Lê Lợi',directions:''}]}},
+ {kind:'TIMELINE',audience:'PUBLIC',enabled:true,title:'Mốc lịch trình',body:'',startsAt:null,color:null,payload:{timeline:[{at:'2027-12-20T09:00:00Z',title:'Đón khách',note:'',venue:'Sảnh',audience:'PUBLIC',tentative:false},{at:'2027-12-20T01:23:00Z',title:'Lễ gia tiên',note:'',venue:'Tư gia',audience:'PRIVATE',tentative:true}]}},
+ {kind:'DRESS_CODE',audience:'PUBLIC',enabled:true,title:'Trang phục',body:'Tông sáng.',startsAt:null,color:null,payload:{palette:[{name:'Trắng ngà',color:'#fffdf9'},{name:'Đỏ trầm',color:'#823b42'}],avoid:'Tránh màu quá tối.'}}
+];
+fixture.wedding.sections=sectionsLong;
  await command('Page.enable');await command('Runtime.enable');
  await command('Page.addScriptToEvaluateOnNewDocument',{source:`
  window.fixture=${JSON.stringify(fixture)};window.saved=0;
@@ -106,10 +125,56 @@ try{
  // Screenshot regression: short copy must not collapse into a tall title column.
  await command('Page.addScriptToEvaluateOnNewDocument',{source:`
   window.fixture.displayName='Anh Quân';
-  Object.assign(window.fixture.wedding,{theme:'TRADITIONAL',accent:'BURGUNDY',names:'An & Bình',message:'Trân trọng mời bạn chung vui trong ngày hạnh phúc.',story:'Câu chuyện của chúng mình bắt đầu từ một buổi chiều đầy nắng.',footer:'Cảm ơn bạn đã đến chung vui',heroUrl:${JSON.stringify(picture)},albumUrls:Array(7).fill(${JSON.stringify(picture)})});
+  Object.assign(window.fixture.wedding,{theme:'TRADITIONAL',accent:'BURGUNDY',names:'An & Bình',message:'Trân trọng mời bạn chung vui trong ngày hạnh phúc.',story:'Câu chuyện của chúng mình bắt đầu từ một buổi chiều đầy nắng.',footer:'Cảm ơn bạn đã đến chung vui',heroUrl:${JSON.stringify(picture)},albumUrls:Array(7).fill(${JSON.stringify(picture)}),sections:${JSON.stringify(sectionsShort)}});
   window.fixture.events=[{...window.fixture.events[0],title:'Tiệc mừng cùng bạn bè',venue:'The Bloom Wedding House',address:'88 Trần Phú, Hải Châu, Đà Nẵng',event_note:null,dress_code:null,parking:null,revision:0,status:'ATTENDING',total_people:1,note:'Rất vui được góp mặt trong ngày vui.'}];window.fixture.wishes=[];
  `});
  await command('Page.navigate',{url:`${origin}/invitation/desktop-layout`});await until(`document.querySelector('.rsvp-form')`);
+ // T11: kiểm chứng 5 phần nội dung trong browser thật (fixture, không dùng dữ liệu khách thật).
+ const sectionReport=await evaluate(`(()=>{
+  const pick=selector=>[...document.querySelectorAll(selector)];
+  const classOf={INTRO:'content-intro',FAMILY:'content-family',CEREMONY:'content-ceremony',TIMELINE:'content-timeline',DRESS_CODE:'content-dress-code'};
+  const timeline=pick('.content-timeline .timeline-item');
+  return {
+   order:Object.keys(classOf).filter(kind=>document.querySelector('.'+classOf[kind])),
+   headings:pick('.content-section .invitation-section-heading h2').map(e=>e.textContent),
+   introPeople:pick('.content-intro .intro-person').length,
+   introRoles:pick('.content-intro .intro-person-role').map(e=>e.textContent),
+   familyGroups:pick('.content-family .family-group').length,
+   familyMembers:pick('.content-family .family-member-name').length,
+   ceremonyCards:pick('.content-ceremony .ceremony-card').length,
+   ceremonyMetaLabels:pick('.content-ceremony .ceremony-meta dt').map(e=>e.textContent),
+   timelineTimes:timeline.map(e=>e.querySelector('time').getAttribute('datetime')),
+   timelineDays:pick('.content-timeline .timeline-day').map(e=>e.textContent),
+   timelineTentative:pick('.content-timeline .timeline-tentative').length,
+   palette:pick('.content-dress-code .dress-palette li').map(e=>e.querySelector('.dress-color-name').textContent+'|'+e.querySelector('.dress-color-hex').textContent),
+   swatches:pick('.content-dress-code .dress-swatch').length,
+   avoid:Boolean(document.querySelector('.content-dress-code .dress-avoid'))
+  };
+ })()`);
+ report.push({sections:sectionReport});
+ assert.deepEqual(sectionReport.order,['INTRO','FAMILY','CEREMONY','TIMELINE','DRESS_CODE'],'Thứ tự 5 phần không đúng');
+ assert.deepEqual(sectionReport.headings,['Giới thiệu hai bạn','Gia đình','Nghi lễ riêng','Mốc lịch trình','Trang phục']);
+ assert.equal(sectionReport.introPeople,2);assert.deepEqual(sectionReport.introRoles,['Cô dâu','Chú rể']);
+ assert.equal(sectionReport.familyGroups,2);assert.equal(sectionReport.familyMembers,3);
+ assert.equal(sectionReport.ceremonyCards,1);
+ assert.ok(sectionReport.ceremonyMetaLabels.includes('Thời gian')&&sectionReport.ceremonyMetaLabels.includes('Địa điểm'));
+ assert.deepEqual(sectionReport.timelineTimes,['2027-12-20T01:23:00Z','2027-12-20T09:00:00Z'],'Mốc phải sắp theo thời gian');
+ assert.equal(sectionReport.timelineTentative,1,'Nhãn “Dự kiến” phải hiện cho mốc chưa chốt');
+ assert.deepEqual(sectionReport.palette,['Trắng ngà|#FFFDF9','Đỏ trầm|#823B42'],'Tên màu phải đi kèm mã màu');
+ assert.equal(sectionReport.swatches,2);assert.ok(sectionReport.avoid);
+ // Mốc/mục riêng vẫn hiển thị cho khách hợp lệ: quyền do máy chủ quyết định, client không tự ẩn.
+ assert.equal(await evaluate(`document.body.textContent.includes('Lễ gia tiên')`),true);
+ const contrast=await evaluate(`(()=>{${contrastSource}
+  return inspectContrast(document.querySelector('.wedding-body'));})()`);
+ report.push({contrast:{measured:contrast.samples.length,skipped:contrast.skipped.length,gradientSamples:contrast.samples.filter(sample=>sample.gradient).length,worst:contrast.samples.map(sample=>sample.ratio).sort((left,right)=>left-right)[0]??null,failures:contrast.failures}});
+ assert.ok(contrast.samples.length>=10,`Cần đủ mẫu contrast cho 5 phần mới, chỉ đo được ${contrast.samples.length}`);
+ assert.ok(contrast.samples.some(sample=>sample.gradient),'Cần ít nhất một mẫu đo trên nền gradient (thẻ nghi lễ)');
+ assert.ok(contrast.samples.some(sample=>String(sample.className).includes('ceremony')),'Cần mẫu đo từ nội dung thẻ nghi lễ');
+ assert.deepEqual(contrast.failures,[],'Có cặp màu không đạt ngưỡng contrast trong 5 phần mới');
+ await command('Emulation.setDeviceMetricsOverride',{width:1440,height:1200,deviceScaleFactor:1,mobile:false});await wait(150);
+ await evaluate(`document.querySelectorAll('.content-section')[0].scrollIntoView({block:'start'});true`);await wait(150);await screenshot('sections-desktop');
+ await metrics(390,844);await wait(150);await screenshot('sections-mobile');
+ assert.equal(await evaluate('document.documentElement.scrollWidth'),390,'5 phần mới gây tràn ngang trên mobile');
  for(const [width,height] of [[320,844],[390,844],[768,1024],[1024,900],[1440,1000],[1920,1080]]){
   await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await wait(150);
   const geometry=await evaluate(`(()=>{
@@ -140,5 +205,5 @@ try{
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.wedding-inner')).animationName`),'none');
  assert.deepEqual(errors,[],'Uncaught browser exceptions');
  writeFileSync(`${directory}/report.json`,JSON.stringify(report,null,2));
- console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, albums 1–5; 6 short-copy desktop/mobile layouts, control padding, story/title geometry, 125–200% zoom-equivalent viewports, textarea resize, reduced motion. Artifacts: ${directory}`);
+ console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, albums 1–5; 6 short-copy desktop/mobile layouts, control padding, story/title geometry, 125–200% zoom-equivalent viewports, textarea resize, reduced motion; 5 phần nội dung (INTRO/FAMILY/CEREMONY/TIMELINE/DRESS_CODE) với thứ tự, sắp theo thời gian, nhãn màu, swatch và contrast đo trong browser. Artifacts: ${directory}`);
 }finally{socket?.close();browser.kill();}
