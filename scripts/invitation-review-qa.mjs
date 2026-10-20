@@ -3,6 +3,7 @@ import {spawn} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
+import {decodePng,worstPixelContrast,CONTROL_PNG_BLACK_WHITE,CONTROL_PNG_GRAY} from './contrast-pixels.mjs';
 // Next.js 16 dev chặn origin 127.0.0.1 (allowedDevOrigins); dùng localhost cho mặc định.
 const origin=process.env.INVITATION_QA_ORIGIN??'http://localhost:3000';
 const directory=resolve('.qa-artifacts/invitation-review');mkdirSync(directory,{recursive:true});
@@ -29,6 +30,40 @@ try{
  party.deadline='2027-12-19T10:00:00Z';fixture.events[1].deadline=party.deadline;
  // Nội dung 5 phần (content schema 2). Thiệp khách hợp lệ nhận cả mục riêng tư vì máy chủ đã cấp quyền.
 const contrastSource=readFileSync(resolve('scripts/contrast-audit.mjs'),'utf8').replace(/export\s+/g,'');
+/**
+ * T20: đo contrast bằng pixel thật cho các mẫu mà computed style không kết luận được (nền ảnh,
+ * alpha, opacity). Chữ được ẩn tạm trong lúc chụp nên vùng đo chỉ còn nền đã composite; contrast
+ * lấy theo pixel XẤU NHẤT. `CONTRAST_QA_DUMP=1` lưu từng vùng đã đo vào `.qa-artifacts/.../probes`.
+ */
+const measurePixels=async pending=>{
+ const samples=[],skipped=[];
+ if(!pending.length)return {samples,skipped};
+ await evaluate(`(()=>{if(document.getElementById('contrast-probe-style'))return true;const style=document.createElement('style');style.id='contrast-probe-style';style.textContent='[data-contrast-probe],[data-contrast-probe] *{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;text-decoration-color:transparent!important}';document.head.append(style);return true;})()`);
+ for(const item of pending){
+  try{
+   await evaluate(`(()=>{const el=window.__contrastPending[${item.index}];if(!el)return false;el.scrollIntoView({block:'center',inline:'center'});return true;})()`);
+   let opacity=item.opacity,previous=-2;
+   for(let attempt=0;attempt<12;attempt++){
+    opacity=await evaluate(`(()=>{const el=window.__contrastPending[${item.index}];return el?window.__contrastHelpers.effectiveOpacity(el):-1;})()`);
+    if(opacity===previous)break;
+    previous=opacity;await wait(140);
+   }
+   if(opacity<=0){skipped.push({text:item.text,reason:'hidden'});continue;}
+   const box=await evaluate(`(()=>{const el=window.__contrastPending[${item.index}];return el?window.__contrastHelpers.textBox(el):null;})()`);
+   if(!box||box.width<2||box.height<2){skipped.push({text:item.text,reason:'no-box'});continue;}
+   if(box.width*box.height>400000){skipped.push({text:item.text,reason:'too-large'});continue;}
+   await evaluate(`window.__contrastPending[${item.index}].setAttribute('data-contrast-probe','')`);
+   await wait(60);
+   const shot=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:box.x,y:box.y,width:box.width,height:box.height,scale:1}});
+   await evaluate(`window.__contrastPending[${item.index}].removeAttribute('data-contrast-probe')`);
+   const image=Buffer.from(shot.data,'base64');
+   if(process.env.CONTRAST_QA_DUMP){const folder=resolve(directory,'probes');mkdirSync(folder,{recursive:true});writeFileSync(`${folder}/${String(item.index).padStart(2,'0')}-${(item.className||item.tag).replace(/[^a-z0-9-]+/gi,'-')}.png`,image);}
+   const measured=worstPixelContrast(decodePng(image),item.foreground,opacity);
+   samples.push({text:item.text,tag:item.tag,className:item.className,color:item.color,background:'pixels',pixels:measured.pixels,opacity,size:item.size,ratio:measured.ratio,required:item.required,pass:measured.ratio>=item.required});
+  }catch(error){skipped.push({text:item.text,reason:String(error.message).slice(0,120)});}
+ }
+ return {samples,skipped};
+};
 const longNote='Mô tả dài để kiểm tra ngắt dòng và tràn khung '.repeat(4)+'X'.repeat(64);
 const sectionsLong=[
  {kind:'INTRO',audience:'PUBLIC',enabled:true,title:'Giới thiệu hai bạn',body:'Lời dẫn đủ dài để kiểm tra nhịp chữ và ngắt dòng trên màn hẹp của phần giới thiệu.',startsAt:null,color:null,payload:{people:[{name:'Nguyễn Hoàng Minh Anh',role:'Cô dâu',note:longNote},{name:'Trần Nguyễn Quốc Bảo',role:'Chú rể',note:'Một đoạn ngắn.'}]}},
@@ -121,6 +156,16 @@ fixture.wedding.sections=sectionsLong;
   assert.equal(await evaluate('document.documentElement.scrollWidth'),320);
   await evaluate(`document.querySelector('.album-main').click();true`);await until(`document.querySelector('dialog[open]')`);
   await evaluate(`document.querySelector('.lightbox-close').click();true`);
+ if(count===5){
+  // T20: cover KHÔNG ảnh dùng chữ accent trên nền sáng; scrim chỉ dành cho cover có ảnh nên ở
+  // đây mọi mẫu chữ phải đo được bằng computed style (hoặc pixel) và đạt ngưỡng.
+  const noPhoto=await evaluate(`(()=>{${contrastSource}
+   return inspectContrast(document.querySelector('.wedding-inner'));})()`);
+  const noPhotoPixels=await measurePixels(noPhoto.pending);
+  const noPhotoFailures=[...noPhoto.failures,...noPhotoPixels.samples.filter(sample=>!sample.pass)];
+  report.push({contrastNoPhoto:{measured:noPhoto.samples.length,pixelSamples:noPhotoPixels.samples.length,skipped:noPhoto.skipped.length+noPhotoPixels.skipped.length,failures:noPhotoFailures}});
+  assert.deepEqual(noPhotoFailures,[],'Cover không có ảnh phải đạt contrast (chữ accent trên nền sáng)');
+ }
  }
  // Screenshot regression: short copy must not collapse into a tall title column.
  await command('Page.addScriptToEvaluateOnNewDocument',{source:`
@@ -164,13 +209,26 @@ fixture.wedding.sections=sectionsLong;
  assert.equal(sectionReport.swatches,2);assert.ok(sectionReport.avoid);
  // Mốc/mục riêng vẫn hiển thị cho khách hợp lệ: quyền do máy chủ quyết định, client không tự ẩn.
  assert.equal(await evaluate(`document.body.textContent.includes('Lễ gia tiên')`),true);
+ // T20: đối chứng cho bộ đo pixel — nếu bộ giải mã hoặc phép chọn "nền xấu nhất" sai thì dừng ngay,
+ // để một PASS ở dưới không phải là kết quả rỗng.
+ const controlBlackWhite=decodePng(Buffer.from(CONTROL_PNG_BLACK_WHITE,'base64'));
+ const controlGray=decodePng(Buffer.from(CONTROL_PNG_GRAY,'base64'));
+ assert.deepEqual([...controlBlackWhite.pixels],[0,0,0,255,255,255,255,255],'Giải mã PNG đen/trắng sai');
+ assert.equal(worstPixelContrast(controlBlackWhite,[255,255,255]).ratio,1,'Phải lấy pixel nền XẤU NHẤT (trắng trên trắng = 1:1)');
+ assert.equal(worstPixelContrast(controlGray,[255,255,255]).ratio,4.54,'Xám #767676 trên trắng phải là 4.54:1');
+ assert.ok(worstPixelContrast(controlGray,[255,255,255],.5).ratio<4.54,'Chữ bán trong suốt phải bị tính lại theo nền');
  const contrast=await evaluate(`(()=>{${contrastSource}
-  return inspectContrast(document.querySelector('.wedding-body'));})()`);
- report.push({contrast:{measured:contrast.samples.length,skipped:contrast.skipped.length,gradientSamples:contrast.samples.filter(sample=>sample.gradient).length,worst:contrast.samples.map(sample=>sample.ratio).sort((left,right)=>left-right)[0]??null,failures:contrast.failures}});
+  return inspectContrast(document.querySelector('.wedding-inner'));})()`);
+ const pixel=await measurePixels(contrast.pending);
+ const contrastFailures=[...contrast.failures,...pixel.samples.filter(sample=>!sample.pass)];
+ const contrastWorst=[...contrast.samples,...pixel.samples].map(sample=>sample.ratio).sort((left,right)=>left-right)[0]??null;
+ report.push({contrast:{measured:contrast.samples.length,pixelSamples:pixel.samples.length,skipped:contrast.skipped.length+pixel.skipped.length,pixelSkipped:pixel.skipped,gradientSamples:contrast.samples.filter(sample=>sample.gradient).length,worst:contrastWorst,failures:contrastFailures}});
  assert.ok(contrast.samples.length>=10,`Cần đủ mẫu contrast cho 5 phần mới, chỉ đo được ${contrast.samples.length}`);
  assert.ok(contrast.samples.some(sample=>sample.gradient),'Cần ít nhất một mẫu đo trên nền gradient (thẻ nghi lễ)');
  assert.ok(contrast.samples.some(sample=>String(sample.className).includes('ceremony')),'Cần mẫu đo từ nội dung thẻ nghi lễ');
- assert.deepEqual(contrast.failures,[],'Có cặp màu không đạt ngưỡng contrast trong 5 phần mới');
+ assert.ok(pixel.samples.length>=5,`Cần đo được chữ trên nền ảnh/alpha bằng pixel thật, chỉ được ${pixel.samples.length}`);
+ assert.ok(pixel.samples.some(sample=>String(sample.className).includes('cover')),'Cần mẫu chữ trên ảnh hero (nền ảnh + scrim)');
+ assert.deepEqual(contrastFailures,[],'Có cặp màu không đạt ngưỡng contrast trong 5 phần mới');
  await command('Emulation.setDeviceMetricsOverride',{width:1440,height:1200,deviceScaleFactor:1,mobile:false});await wait(150);
  await evaluate(`document.querySelectorAll('.content-section')[0].scrollIntoView({block:'start'});true`);await wait(150);await screenshot('sections-desktop');
  await metrics(390,844);await wait(150);await screenshot('sections-mobile');
