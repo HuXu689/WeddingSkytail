@@ -7,6 +7,18 @@
 /* The public route is a website, not the narrow invitation-entry card. */
 main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 .public-wedding-page .wedding-canvas{box-shadow:none}
+/* Portaled to the document body so canvas containment/animations cannot move the fixed control. */
+.invitation-music{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:15}
+.invitation-music-button{display:grid;place-items:center;width:48px;height:48px;min-height:48px;padding:0;border:1px solid var(--compat-color-fff);border-radius:50%;background:var(--wedding-accent,var(--olive));color:var(--compat-color-fff);box-shadow:0 4px 18px var(--compat-color-25332918);cursor:pointer}
+.invitation-music-button[aria-pressed="false"]{background:var(--compat-color-fffdf9);color:var(--wedding-accent,var(--olive));border-color:currentColor}
+.invitation-music-button:focus-visible{outline:3px solid var(--wedding-accent,var(--olive));outline-offset:4px}
+.invitation-music audio{display:none}
+.invitation-music-prompt{position:absolute;right:60px;bottom:0;width:max-content;max-width:calc(100vw - 108px);padding:10px 14px;border:1px solid currentColor;border-radius:14px;background:var(--compat-color-fffdf9);color:var(--wedding-accent,var(--olive));box-shadow:0 4px 18px var(--compat-color-25332918);text-align:left;font-size:14px;line-height:1.4;cursor:pointer}
+.invitation-music-prompt span{display:block;font-size:12px;font-weight:400}
+.invitation-music-prompt:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.wedding-canvas:has(>.invitation-music.is-preview){position:relative}
+.invitation-music.is-preview{position:absolute}
+.invitation-music .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .public-wedding-page .wedding-body{width:100%;max-width:1280px;padding-inline:clamp(20px,4cqw,64px)}
 .public-wedding-page .wedding-cover{min-height:clamp(560px,80svh,860px)}
 .public-wedding-page .cover-content{max-width:760px;padding-inline:clamp(24px,6cqw,112px)}
@@ -227,6 +239,39 @@ dialog.album-lightbox .lightbox-close{top:max(16px,env(safe-area-inset-top));rig
  .wedding-canvas .album-main:hover img,.wedding-canvas .album-side:hover img{transform:none}
 }
 /* Guest layout: content must wrap, not merely disappear behind canvas overflow:hidden. */
+/* The opened invitation is a page; only the consent/PIN gate is a narrow card.
+   Scoped here so public pages and the admin preview retain their own geometry. */
+main.invitation-gate{width:100%;max-width:860px}
+main.invitation-open{width:100%;max-width:none;padding:0;margin:0}
+.invitation-open .wedding-canvas{overflow:visible;box-shadow:none}
+.invitation-open .wedding-body{--guest-gutter:clamp(16px,4cqw,48px);width:100%;max-width:1280px;padding:0 var(--guest-gutter) 32px}
+.invitation-open .wedding-events{margin-inline:calc(-1 * var(--guest-gutter));padding:0 var(--guest-gutter) 40px}
+.invitation-open .wedding-events>.section-intro,.invitation-open .rsvp-summary,.invitation-open .event-card{max-width:960px;margin-inline:auto}
+.invitation-open .section-intro{display:block;padding:40px 0 24px}
+.invitation-open .section-intro .eyebrow{margin:0 0 12px}
+.invitation-open .section-intro h2,.invitation-open .wedding-story h2,.invitation-open .album-heading h2{font-size:clamp(28px,3.6cqw,42px);line-height:1.22}
+.invitation-open .wedding-events .event-card{grid-template-columns:42px minmax(0,1fr);gap:20px;padding:24px;border-radius:8px;box-shadow:none}
+.invitation-open .event-content{width:100%}
+.invitation-open .rsvp-form{width:100%;max-width:720px;padding:24px}
+.invitation-open .wish-book{width:100%;max-width:768px;margin:32px auto 0;padding:28px}
+.invitation-open .wish-book .section-intro{padding:0 0 16px;margin-bottom:0}
+.invitation-open .wish-form{gap:12px}
+.invitation-open .wish-form label{margin:8px 0}
+.invitation-open .wedding-story{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:clamp(24px,4cqw,48px);padding:clamp(40px,5cqw,64px) 0}
+.invitation-open .wedding-story h2{max-width:15ch}
+.invitation-open .wedding-album{padding:clamp(40px,5cqw,64px) 0}
+.invitation-open .wedding-thanks{padding:48px 16px}
+@container (max-width:900px){
+ .invitation-open .wedding-story{display:block}
+ .invitation-open .wedding-story h2{max-width:none}
+ .invitation-open .story-copy{margin-top:24px}
+}
+@container (max-width:600px){
+ .invitation-open .wedding-events .event-card{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px}
+ .invitation-open .event-number{width:42px;height:42px;padding:0;border-radius:50%}
+ .invitation-open .rsvp-form{padding:16px}
+ .invitation-open .wish-book{padding:20px 16px}
+}
 .theme-elegant .hero-split .cover-photo{width:100%;max-width:100%}
 .wedding-canvas .event-card{grid-template-columns:54px minmax(0,1fr)}
 .event-content,.rsvp-heading>div,.section-intro>*,.album-heading>*,.wish-book .row>*{min-width:0}

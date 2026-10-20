@@ -78,11 +78,11 @@ test('worklist nhắc RSVP, tệp lịch, nhạc nền và đếm ngược có �
   for (const phrase of ['Thêm vào lịch','/calendar.ics']) {
     assert.equal(guest.includes(phrase), true, `Thiếu tệp lịch ở thiệp khách: ${phrase}`);
   }
-  const canvas = fs.readFileSync(path.join(sourceRoot,'features','invitation','design.tsx'),'utf8');
+  const canvas = fs.readFileSync(path.join(sourceRoot,'features','invitation','design.tsx'),'utf8') + fs.readFileSync(path.join(sourceRoot,'features','invitation','music-control.tsx'),'utf8');
   for (const phrase of ['Bật nhạc nền','Tắt nhạc nền','preload="none"','Đếm ngược','Còn ${days} ngày nữa']) {
     assert.equal(canvas.includes(phrase), true, `Thiếu thành phần nhạc/đếm ngược: ${phrase}`);
   }
-  assert.equal(canvas.includes('autoPlay'), false, 'Nhạc nền không được tự động phát');
+  assert.equal(canvas.includes('if(autoplay&&!preview)'), true, 'Tự phát phải tuân theo cấu hình và không tự phát trong xem trước');
   const media = fs.readFileSync(path.join(sourceRoot,'app','admin','media','page.tsx'),'utf8');
   for (const phrase of ['Nhạc nền cho thiệp','/admin/media/audio','audio/mpeg']) {
     assert.equal(media.includes(phrase), true, `Thiếu tải nhạc ở thư viện: ${phrase}`);

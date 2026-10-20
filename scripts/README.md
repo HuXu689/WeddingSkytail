@@ -1,5 +1,27 @@
 # Dữ liệu demo
 
+## Kiểm tra nhạc thật và chính sách tự phát
+
+`node scripts/music-real-qa.mjs` mặc định kiểm tra stack Docker tại
+`http://localhost:8088/w/our-wedding`: dùng API và tệp nhạc đã phát hành thật,
+không thay thế `play()` và không gắn `userGesture` vào lệnh đọc trạng thái.
+Script dùng profile Chrome mới, kiểm tra mở/tải lại và thời gian phát thực sự tăng.
+Không sửa dữ liệu, không tạo khách và không ghi lượt mở lời mời thật.
+
+- Mặc định dùng chính sách `document-user-activation-required`: xác nhận tự phát bị
+  chặn và âm thanh chạy sau thao tác chuột thật do Chrome DevTools gửi.
+- Đặt `MUSIC_QA_EXPECT_PROMPT=1` để bắt buộc lời nhắc nghe nhạc xuất hiện khi bị chặn.
+- Đặt `MUSIC_QA_POLICY=no-user-gesture-required` để kiểm tra nhánh trình duyệt cho
+  phép tự phát (chỉ cờ của browser test, không phải cách vượt chính sách cho khách).
+- Đặt `MUSIC_QA_PRIVATE=1` để kiểm tra trang thiệp riêng với envelope quyền truy cập
+  giả lập nhưng thiết kế public/API/tệp âm thanh thật. Đây không phải kiểm thử
+  end-to-end guest authentication/PIN.
+- Có thể đặt `INVITATION_QA_ORIGIN`, `MUSIC_QA_URL`, `CHROME_PATH` cho môi trường khác.
+
+Tự phát có âm thanh khi chưa tương tác không thể được website bảo đảm trên mọi
+trình duyệt. Cần nghiệm thu thêm Safari iOS và trình duyệt trong Zalo trên thiết bị
+thật. Test headless xác nhận giải mã/thời gian phát, không xác nhận loa vật lý.
+
 ## Giữ database phát triển gọn sau kiểm thử
 
 Các script trong `deploy/verify-*.ps1` và `deploy/smoke.ps1` tạo dữ liệu mới mỗi lần chạy.

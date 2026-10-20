@@ -103,9 +103,42 @@ try{
   await evaluate(`document.querySelector('.album-main').click();true`);await until(`document.querySelector('dialog[open]')`);
   await evaluate(`document.querySelector('.lightbox-close').click();true`);
  }
+ // Screenshot regression: short copy must not collapse into a tall title column.
+ await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+  window.fixture.displayName='Anh Quân';
+  Object.assign(window.fixture.wedding,{theme:'TRADITIONAL',accent:'BURGUNDY',names:'An & Bình',message:'Trân trọng mời bạn chung vui trong ngày hạnh phúc.',story:'Câu chuyện của chúng mình bắt đầu từ một buổi chiều đầy nắng.',footer:'Cảm ơn bạn đã đến chung vui',heroUrl:${JSON.stringify(picture)},albumUrls:Array(7).fill(${JSON.stringify(picture)})});
+  window.fixture.events=[{...window.fixture.events[0],title:'Tiệc mừng cùng bạn bè',venue:'The Bloom Wedding House',address:'88 Trần Phú, Hải Châu, Đà Nẵng',event_note:null,dress_code:null,parking:null,revision:0,status:'ATTENDING',total_people:1,note:'Rất vui được góp mặt trong ngày vui.'}];window.fixture.wishes=[];
+ `});
+ await command('Page.navigate',{url:`${origin}/invitation/desktop-layout`});await until(`document.querySelector('.rsvp-form')`);
+ for(const [width,height] of [[320,844],[390,844],[768,1024],[1024,900],[1440,1000],[1920,1080]]){
+  await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await wait(150);
+  const geometry=await evaluate(`(()=>{
+   const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+   const canvas=document.querySelector('.wedding-canvas'),story=document.querySelector('.wedding-story'),heading=story.querySelector('h2');
+   const fields=[...document.querySelectorAll('.rsvp-form input,.rsvp-form select,.rsvp-form textarea,.wish-form input,.wish-form textarea')];
+   const outside=fields.filter(e=>{const r=e.getBoundingClientRect(),form=e.closest('form'),p=form.getBoundingClientRect(),s=getComputedStyle(form);return r.left<p.left+parseFloat(s.paddingLeft)-1||r.right>p.right-parseFloat(s.paddingRight)+1;}).map(e=>e.tagName);
+   const intros=[...document.querySelectorAll('.wedding-events>.section-intro,.wish-book .section-intro')].map(e=>({label:rect(e.querySelector('.eyebrow')),title:rect(e.querySelector('h2'))}));
+   return {width:innerWidth,documentWidth:document.documentElement.scrollWidth,canvas:rect(canvas),story:rect(story),storyHeading:rect(heading),outside,intros};
+  })()`);
+  report.push({shortCopy:geometry});assert.ok(geometry.documentWidth<=width);assert.deepEqual(geometry.outside,[],'Form control escaped inner padding');
+  assert.ok(Math.abs(geometry.canvas.width-geometry.documentWidth)<=1,'Opened invitation must fill the available viewport');
+  assert.ok(Math.abs(geometry.canvas.left)<=1,'Opened invitation must start at the viewport edge');
+  for(const intro of geometry.intros)assert.ok(intro.title.top>=intro.label.bottom,'Section label must be above its title');
+  if(width>=768){assert.ok(geometry.storyHeading.height<170,'Short heading collapsed into a narrow column');assert.ok(geometry.story.height<330,'Short story has excessive empty space');}
+  await evaluate(`window.scrollTo(0,0);true`);await screenshot(`private-layout-${width}`);
+  await evaluate(`document.querySelector('.rsvp-form textarea').focus();document.querySelector('.rsvp-form').scrollIntoView({block:'center'});true`);await screenshot(`private-form-${width}`);
+ }
+ // Desktop browser zoom reduces the CSS viewport; test 125%, 150% and 200% equivalents.
+ for(const zoom of [1.25,1.5,2]){
+  const width=Math.round(1920/zoom);
+  await command('Emulation.setDeviceMetricsOverride',{width,height:Math.round(1080/zoom),deviceScaleFactor:zoom,mobile:false});
+  assert.ok(await evaluate(`document.documentElement.scrollWidth<=${width}`));
+  await evaluate(`(()=>{const field=document.querySelector('.rsvp-form textarea');field.style.height='300px';field.focus();return true;})()`);
+  assert.equal(await evaluate(`(()=>{const e=document.querySelector('.rsvp-form textarea'),r=e.getBoundingClientRect(),p=e.closest('form').getBoundingClientRect();return r.left>=p.left+4&&r.right<=p.right-4&&r.bottom<=p.bottom;})()`),true);
+ }
  await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.wedding-inner')).animationName`),'none');
  assert.deepEqual(errors,[],'Uncaught browser exceptions');
  writeFileSync(`${directory}/report.json`,JSON.stringify(report,null,2));
- console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, reduced motion. Artifacts: ${directory}`);
+ console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, albums 1–5; 6 short-copy desktop/mobile layouts, control padding, story/title geometry, 125–200% zoom-equivalent viewports, textarea resize, reduced motion. Artifacts: ${directory}`);
 }finally{socket?.close();browser.kill();}

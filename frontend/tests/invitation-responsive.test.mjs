@@ -4,6 +4,21 @@ import {readFileSync} from 'node:fs';
 const css=readFileSync(new URL('../src/features/invitation/design.css',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/app/invitation/[id]/page.tsx',import.meta.url),'utf8');
 
+test('opened private invitation uses a wide page while consent and PIN keep a bounded gate',()=>{
+ assert.match(page,/className=\{`invitation-page \$\{data\?'invitation-open':'invitation-gate'\}`\}/);
+ assert.match(css,/main\.invitation-open\{width:100%;max-width:none;padding:0;margin:0\}/);
+ assert.match(css,/main\.invitation-gate\{width:100%;max-width:860px\}/);
+ assert.match(css,/\.invitation-open \.wedding-canvas\{overflow:visible;box-shadow:none\}/);
+ assert.match(css,/--guest-gutter:clamp\(16px,4cqw,48px\)/);
+});
+test('private section labels stack above titles and short stories use a bounded gap',()=>{
+ assert.match(css,/\.invitation-open \.section-intro\{display:block/);
+ assert.match(css,/\.invitation-open \.wish-book \.section-intro\{padding:0 0 16px/);
+ assert.match(css,/@container \(max-width:900px\)\{\s*\.invitation-open \.wedding-story\{display:block\}/);
+ assert.match(css,/gap:clamp\(24px,4cqw,48px\);padding:clamp\(40px,5cqw,64px\) 0/);
+ assert.match(css,/\.invitation-open \.rsvp-form\{width:100%;max-width:720px;padding:24px\}/);
+});
+
 test('guest layout constrains intrinsic photo width and wraps long event content',()=>{
  assert.match(css,/\.theme-elegant \.hero-split \.cover-photo\{width:100%;max-width:100%\}/);
  assert.match(css,/\.wedding-canvas \.event-card\{grid-template-columns:54px minmax\(0,1fr\)\}/);
