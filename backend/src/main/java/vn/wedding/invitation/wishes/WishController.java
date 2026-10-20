@@ -12,6 +12,8 @@ public class WishController {
     public WishController(WishService wishes) { this.wishes=wishes; }
     public record ModerationInput(String state,long expectedVersion) {}
     public record MessageInput(String message,long expectedVersion) {}
+    public record PinInput(@jakarta.validation.constraints.NotNull Boolean pinned,long expectedVersion) {}
+    @PutMapping("/admin/wishes/{id}/pin") Object pin(@PathVariable UUID id,@Valid @RequestBody PinInput input) { return wishes.pin(id,input.pinned(),input.expectedVersion()); }
     /** A guest writes a wish only after passing the same gate as the invitation. */
     @PostMapping("/guest/invitations/{id}/wishes") Object submit(@PathVariable UUID id,@Valid @RequestBody WishService.Input input,HttpSession session) { return wishes.submit(id,input,session); }
     /** The author can always re-read their own wishes, including the ones still pending. */

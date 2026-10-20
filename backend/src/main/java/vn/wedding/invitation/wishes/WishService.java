@@ -66,7 +66,7 @@ public class WishService {
         answer.put("total",db.queryForObject("SELECT count(*) FROM wishes w"+filter,Long.class,args.toArray()));
         args.add(page*50);
         answer.put("counts",db.queryForMap("SELECT count(*) FILTER (WHERE state='PENDING') pending,count(*) FILTER (WHERE state='APPROVED') approved,count(*) FILTER (WHERE state='REJECTED') rejected FROM wishes"));
-        answer.put("rows",db.queryForList("SELECT w.id,w.display_name,w.message,w.state,w.created_at,w.moderated_at,w.moderated_by,w.revision,i.id invitation_id,i.display_name invitation_name,i.group_name,(SELECT string_agg(e.title,' · ' ORDER BY e.start_at) FROM assignments a JOIN events e ON e.id=a.event_id WHERE a.invitation_id=i.id AND e.state<>'CANCELLED') assigned_events FROM wishes w JOIN invitations i ON i.id=w.invitation_id"+filter+" ORDER BY case when w.state='PENDING' then 0 else 1 end,w.created_at DESC,w.id DESC LIMIT 50 OFFSET ?",args.toArray()));
+        answer.put("rows",db.queryForList("SELECT w.id,w.display_name,w.message,w.state,w.pinned,w.created_at,w.moderated_at,w.moderated_by,w.revision,i.id invitation_id,i.display_name invitation_name,i.group_name,(SELECT string_agg(e.title,' · ' ORDER BY e.start_at) FROM assignments a JOIN events e ON e.id=a.event_id WHERE a.invitation_id=i.id AND e.state<>'CANCELLED') assigned_events FROM wishes w JOIN invitations i ON i.id=w.invitation_id"+filter+" ORDER BY case when w.state='PENDING' then 0 else 1 end,w.created_at DESC,w.id DESC LIMIT 50 OFFSET ?",args.toArray()));
         return answer;
     }
     public Map<String,Object> moderate(UUID wishId,String state,long expectedVersion,java.security.Principal principal) {
@@ -76,9 +76,19 @@ public class WishService {
         ApiErrors.require(!rows.isEmpty(),"Lời chúc không tồn tại.");
         var row=rows.getFirst();
         ApiErrors.version(number(row,"revision"),expectedVersion);
-        db.update("UPDATE wishes SET state=?,moderated_at=now(),moderated_by=?,revision=revision+1 WHERE id=?",normalized,principal==null?"owner":principal.getName(),wishId);
+        db.update("UPDATE wishes SET state=?,pinned=CASE WHEN ?='APPROVED' THEN pinned ELSE false END,moderated_at=now(),moderated_by=?,revision=revision+1 WHERE id=?",normalized,normalized,principal==null?"owner":principal.getName(),wishId);
         db.update("INSERT INTO audit(action,target) VALUES(?,?)",normalized.equals("APPROVED")?"WISH_APPROVE":"WISH_REJECT",wishId.toString());
         return Map.of("id",wishId,"state",normalized);
+    }
+    public Map<String,Object> pin(UUID wishId,boolean pinned,long expectedVersion) {
+        var rows=db.queryForList("SELECT * FROM wishes WHERE id=? FOR UPDATE",wishId);
+        ApiErrors.require(!rows.isEmpty(),"Lời chúc không tồn tại.");
+        var row=rows.getFirst();
+        ApiErrors.version(number(row,"revision"),expectedVersion);
+        ApiErrors.require(!pinned||"APPROVED".equals(row.get("state")),"Chỉ ghim lời chúc đã được duyệt.");
+        db.update("UPDATE wishes SET pinned=?,revision=revision+1 WHERE id=?",pinned,wishId);
+        db.update("INSERT INTO audit(action,target) VALUES(?,?)",pinned?"WISH_PIN":"WISH_UNPIN",wishId.toString());
+        return Map.of("id",wishId,"pinned",pinned);
     }
     /** The owner may fix a typo before approving; the system never silently rewrites a guest's text. */
     public Map<String,Object> update(UUID wishId,String message,long expectedVersion) {

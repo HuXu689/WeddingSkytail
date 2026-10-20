@@ -1,5 +1,6 @@
 /** F03 wire contract: deliberately excludes invitation/event/author and moderation metadata. */
 export interface ApprovedWishItem {
+ pinned:boolean;
  id:string;
  display_name:string;
  message:string;

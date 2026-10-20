@@ -25,3 +25,8 @@ test('admin pagination resets with filters and SQL uses a deterministic tie brea
  assert.match(service,/w.created_at DESC,w.id DESC LIMIT 50/);
  assert.match(service,/answer.put\("total"/);
 });
+test('pin is explicit approved-only admin metadata, with a public text label',()=>{
+ const admin=read('../src/app/admin/wishes/page.tsx');
+ assert.match(admin,/row.state!=='APPROVED'/);assert.match(admin,/pinned:!row.pinned,expectedVersion:row.revision/);
+ assert.match(read('../src/features/invitation/wish-feed.tsx'),/wish.pinned&&<span className="field-hint">Được chủ tiệc ghim/);
+});

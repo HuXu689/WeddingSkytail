@@ -493,7 +493,42 @@ fixture.wedding.sections=sectionsLong;
  assert.equal(await evaluate(`document.querySelector('.event-location-editor textarea').value`),'QA vị trí thay đổi');
  for(const width of [390,1440]){await metrics(width);assert.equal(await evaluate('document.documentElement.scrollWidth'),width);await evaluate(`document.querySelector('.event-location-editor').scrollIntoView();true`);await screenshot(`map-admin-${width}`);}
  report.push({mapAdmin:{validation:true,version:3,notice:true,conflictRetainsDraft:true}});
- assert.deepEqual(errors,[],'Uncaught browser exceptions');
+  await command('Page.addScriptToEvaluateOnNewDocument',{source:`
+   const beforeWishes=window.fetch;window.wishWrites=[];
+   window.queueRows=Array.from({length:51},(_,i)=>({id:'qa-'+i,display_name:'Khách minh họa '+i,message:'Lời chúc minh họa '+i,state:i===0?'PENDING':'APPROVED',pinned:false,revision:0,invitation_name:'Thiệp minh họa',group_name:'',assigned_events:null,created_at:'2030-01-01T00:00Z',moderated_at:null}));
+   window.fetch=async(input,init)=>{
+    const url=new URL(String(input),location.origin);
+    if(url.pathname==='/api/v1/admin/wishes'){
+     const state=url.searchParams.get('state'),query=url.searchParams.get('query')||'',page=Number(url.searchParams.get('page')||0);
+     const rows=window.queueRows.filter(r=>(!state||r.state===state)&&r.display_name.includes(query));
+     return new Response(JSON.stringify({rows:rows.slice(page*50,page*50+50),total:rows.length,counts:{pending:1,approved:50,rejected:0}}),{status:200});
+    }
+    if(url.pathname.startsWith('/api/v1/admin/wishes/')){
+     const id=url.pathname.split('/')[5],row=window.queueRows.find(r=>r.id===id),body=JSON.parse(init.body);window.wishWrites.push({path:url.pathname,...body});
+     if(window.moderationConflict){window.moderationConflict=false;return new Response(JSON.stringify({detail:'QA moderation conflict'}),{status:409});}
+     if(url.pathname.endsWith('/pin'))row.pinned=body.pinned;else{row.state=body.state;if(row.state!=='APPROVED')row.pinned=false;}row.revision++;
+     return new Response('{}',{status:200});
+    }
+    return beforeWishes(input,init);
+   };`});
+  await command('Page.navigate',{url:`${origin}/admin/wishes`});await until(`document.querySelectorAll('.wish-queue-item').length===50`);
+  const adminButton=label=>evaluate(`[...document.querySelectorAll('.admin-main button')].find(b=>b.textContent===${JSON.stringify(label)}).click();true`);
+  await adminButton('Trang sau');await until(`document.querySelectorAll('.wish-queue-item').length===1`);
+  assert.ok(await evaluate(`document.querySelector('.wish-queue-item').textContent.includes('Khách minh họa 50')`));
+  await evaluate(`document.querySelector('.admin-main select').value='PENDING';document.querySelector('.admin-main select').dispatchEvent(new Event('change',{bubbles:true}));true`);
+  await until(`document.querySelector('.wish-queue-item h3')?.textContent==='Khách minh họa 0'`);
+  assert.equal(await evaluate(`[...document.querySelectorAll('.wish-queue-item button')].find(b=>b.textContent==='Ghim lời chúc').disabled`),true);
+  await evaluate(`document.querySelector('.admin-main select').value='';document.querySelector('.admin-main select').dispatchEvent(new Event('change',{bubbles:true}));true`);await until(`document.querySelectorAll('.wish-queue-item').length===50`);
+  await evaluate(`window.moderationConflict=true;document.querySelector('.wish-queue-item button:not([disabled]):nth-child(2)').click();true`);
+  await until(`document.querySelector('.admin-main [role=alert]')?.textContent.includes('QA moderation conflict')`);
+  await adminButton('Duyệt');await until(`!document.querySelector('.wish-queue-item button:nth-child(4)').disabled`);
+  await adminButton('Ghim lời chúc');await until(`document.querySelector('.wish-queue-item button:nth-child(4)')?.textContent==='Bỏ ghim'`);
+  await adminButton('Bỏ ghim');await until(`document.querySelector('.wish-queue-item button:nth-child(4)')?.textContent==='Ghim lời chúc'`);
+  await adminButton('Không hiển thị');await until(`document.querySelector('.wish-queue-item .wish-state')?.textContent==='Không hiển thị'`);
+  assert.deepEqual(await evaluate(`window.wishWrites.map(r=>r.expectedVersion)`),[0,0,1,2,3]);
+  for(const width of [390,1440]){await metrics(width);assert.equal(await evaluate('document.documentElement.scrollWidth'),width);await screenshot('wishes-admin-'+width);}
+  report.push({wishAdmin:{pagination:true,filterResetsPage:true,pendingCannotPin:true,conflictRetry:true,approvePinUnpinHide:true,revisionPayload:true}});
+  assert.deepEqual(errors,[],'Uncaught browser exceptions');
  writeFileSync(`${directory}/report.json`,JSON.stringify(report,null,2));
  console.log(`PASS: 21 theme/viewport cases; long content, draft preservation, RSVP conflict/save/double-submit, event tools, 4 modal sizes, focus/keyboard, sealed/PIN gates, albums 1–5; 6 short-copy desktop/mobile layouts, control padding, story/title geometry, 125–200% zoom-equivalent viewports, textarea resize, reduced motion; 5 phần nội dung (INTRO/FAMILY/CEREMONY/TIMELINE/DRESS_CODE) với thứ tự, sắp theo thời gian, nhãn màu, swatch và contrast đo trong browser. Artifacts: ${directory}`);
 }finally{socket?.close();browser.kill();}

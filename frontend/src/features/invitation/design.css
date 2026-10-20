@@ -421,3 +421,25 @@ dialog.album-lightbox figcaption{flex-shrink:0;margin:0}
 .calendar-details ul{list-style:none;margin:0;padding:0}
 .calendar-details li{padding:16px 0;border-top:1px solid var(--inv-hairline)}
 .calendar-details p{margin:6px 0;line-height:1.7}
+.gift-box{text-align:center;padding:48px 16px;border-top:1px solid var(--inv-hairline);margin-top:32px}
+.gift-box h2{font-family:var(--font-serif);font-size:clamp(28px,5vw,42px)}
+.gift-trigger{display:inline-flex;align-items:center;gap:12px;margin-top:16px;min-height:52px}
+.gift-symbol{font-size:28px;transition:transform 180ms ease}
+.gift-trigger:hover .gift-symbol,.gift-trigger:focus-visible .gift-symbol{transform:translateY(-3px) rotate(-8deg)}
+.gift-unavailable{padding:24px 0;text-align:center}
+.gift-dialog{box-sizing:border-box;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--compat-color-596354);border-radius:12px;background:var(--compat-color-fffdf9);color:var(--text-primary);overflow:auto;font-family:var(--font-body)}
+.gift-dialog::backdrop{background:var(--compat-color-00000022)}
+.gift-dialog-content{padding:24px;overflow-wrap:anywhere;animation:gift-open 180ms ease-out}
+.gift-dialog h2,.gift-dialog h3{font-family:var(--font-serif)}
+.gift-close{display:block;margin-left:auto}
+.gift-options{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.gift-options button{flex:1;min-width:0;white-space:normal}
+.gift-options button[aria-pressed=true]{outline:2px solid var(--wedding-accent,var(--olive));outline-offset:2px}
+.gift-description{white-space:pre-wrap}
+.gift-qr{display:block;width:min(280px,100%);height:auto;object-fit:contain;background:var(--compat-color-fff);padding:12px;box-sizing:border-box;border:0;border-radius:0;margin:20px auto}
+.gift-dialog .row{flex-wrap:wrap}
+.gift-dialog{overscroll-behavior:contain}
+.gift-dialog button:focus-visible,.gift-dialog a:focus-visible,.gift-trigger:focus-visible{outline:3px solid var(--wedding-accent,var(--olive));outline-offset:3px}
+@keyframes gift-open{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.gift-symbol{transition:none}.gift-dialog-content{animation:none}.gift-trigger:hover .gift-symbol,.gift-trigger:focus-visible .gift-symbol{transform:none}}
+@media(max-width:400px){.gift-dialog-content{padding:16px}.gift-dialog .row>*{width:100%}}

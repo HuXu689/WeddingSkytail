@@ -1,6 +1,6 @@
 # PLAN_TASK_FEATURES — Bản đồ, lịch cưới, RSVP, lời chúc và hộp quà QR
 
-> CHECKPOINT 2026-10-21 05:47 +07:00: F01–F07 DONE; F08 IN_PROGRESS (feed cursor public/guest + admin pagination đã triển khai, chưa ghim/moderation acceptance đầy đủ). FE 151/151, types/build/browser PASS; BE 131 pass + 1 opt-in skip. F09–F13 TODO; không migrate/deploy stack wedding.
+> CHECKPOINT 2026-10-21 06:48 +07:00: F01–F13 DONE trong phạm vi ghi nhận; không còn task triển khai mở. Hướng dẫn vận hành: docs/17-invitation-features-operations.md. Bằng chứng F12: FE159/159, BE136+skip1, integration1/1,6 browser scripts PASS. Benchmark/browser→DB E2E/device/QR thật vẫn NOT VERIFIED. Source chưa deploy/migrate wedding; không production-ready mặc định.
 > Đặt file này ở thư mục gốc website. Đây là kế hoạch thực thi và nơi lưu tiến độ cho nhiều phiên AI coding.
 > File liên quan nếu đã có: `PLAN_TASK.md` — kế hoạch thiết kế và cá nhân hóa các section thiệp cưới. Không tự đánh dấu task trong file đó là hoàn tất.
 
@@ -79,6 +79,8 @@ Tóm tắt ngắn trạng thái rồi tiếp tục task đang dở hoặc task T
 4. Animation, tối ưu hiệu năng, polish.
 
 ## 2. Project Snapshot — điền bằng kết quả khảo sát
+
+> F11: source đã nối map/lịch/form disclosures/feed wishes/admin gifts và gift dialog public/guest; baseline F01 dưới đây không phải UI hiện tại. V26 pinning có trong working tree, chưa áp dụng wedding8088. F11 cross-route fixture kiểm nháp/phát hành/quyền UI; SQL/session/security/persistence thật có bằng chứng disposable HTTP F03/F08, chưa một lượt browser→DB E2E. Xem Test Log/Handoff mới nhất, không chạy lại seed/migration từ baseline.
 
 > Bảng dưới giữ baseline F01. Cập nhật F03 2026-10-20 23:58: source đã có V24 coordinates và V25 gift_settings/gift_assets cùng API/types; AdminPermissions có owner-only gift guard. Upgrade/persistence/full HTTP đã PASS trên PostgreSQL 17 disposable bằng `scripts/features-persistence-qa.ps1`, không phải stack wedding đang chạy. UI vẫn theo baseline, chưa nối tính năng mới. Xem checkpoint F03 DONE.
 
@@ -368,12 +370,12 @@ Chỉ một task triển khai chính IN_PROGRESS mỗi phiên; có thể tiếp 
 | F05 | Map: quản trị, hiển thị, chỉ đường và fallback | F03, F04 | DONE |
 | F06 | Lịch tháng nội tuyến và liên kết sự kiện | F03, F04 | DONE |
 | F07 | Thu gọn RSVP/lời chúc và luồng submit | F03, F04 | DONE |
-| F08 | Feed lời chúc và moderation admin | F03, F04, F07 | IN_PROGRESS |
-| F09 | Cấu hình QR một/hai người nhận và upload | F03 | TODO |
-| F10 | Hộp quà, dialog QR, tải/copy và animation | F04, F09 | TODO |
-| F11 | Tích hợp public/private/editor, responsive và a11y | F05–F10 | TODO |
-| F12 | Test bảo mật, hồi quy, hiệu năng và sửa lỗi | F11 | TODO |
-| F13 | Dọn diff, hướng dẫn vận hành và bàn giao | F12 | TODO |
+| F08 | Feed lời chúc và moderation admin | F03, F04, F07 | DONE |
+| F09 | Cấu hình QR một/hai người nhận và upload | F03 | DONE |
+| F10 | Hộp quà, dialog QR, tải/copy và animation | F04, F09 | DONE |
+| F11 | Tích hợp public/private/editor | F05–F10 | DONE |
+| F12 | Test bảo mật, hồi quy, hiệu năng và sửa lỗi | F11 | DONE |
+| F13 | Dọn diff, hướng dẫn vận hành và bàn giao | F12 | DONE |
 
 ### F01 — Khảo sát có bằng chứng
 
@@ -542,9 +544,19 @@ Bước tiếp theo cụ thể:
 
 ## 14. Decision Log
 
+- **DF22 / F13:** hướng dẫn vận hành source mới nằm trong docs/17-invitation-features-operations.md, README-IMPLEMENTATION liên kết và ghi rõ các đợt cũ là lịch sử. Không đổi trạng thái PLAN_TASK.md, không “dọn” index/change người dùng; không tự biến các mục NOT VERIFIED thành kế hoạch triển khai hoặc nghiệm thu production.
+
+- **DF21 / F12:** test quyền mới guest A/B chạy trên PG17 disposable fresh/random port/tmpfs, mở rộng test opt-in đã có; không dùng database wedding hoặc token thật. QA fixture/performance không đại diện production. F12 DONE với các ô NOT VERIFIED tường minh theo tiêu chí task, không tuyên bố production-ready.
+
+- **DF20 / F11:** tích hợp xuyên route dùng state sessionStorage chỉ trong script QA, không app. Backend SQL/filter/persistence F03/F08 là bằng chứng riêng, không gộp thành browser→DB E2E. Không khởi động backend source vào wedding DB để thử UI.
+
+- **DF19 / F10:** GiftBox cuối nội dung WeddingCanvas, public/guest scope riêng, dialog tải lại view mỗi lần mở và QR chỉ mount sau chủ động mở. Native modal portal body, focus restore/scroll lock, hai mã dùng nhóm nút aria-pressed và một panel. Download PNG no-store qua endpoint gated + fallback ảnh gốc. Không copy mô tả thành số tài khoản (schema không có field hợp lệ), không claim scan/quiet zone ảnh nguồn.
+
 | ID | Quyết định | Cơ sở / giới hạn | Task |
 |---|---|---|---|
-| DF16 | F08 thay payload wishes cũ bằng feed riêng, refresh có chủ đích; giữ thứ tự cursor DF11 | Không tải trùng LIMIT 20/30, không tự thêm realtime/polling. Ghim chưa triển khai: cần quyết định contract sắp xếp/cursor và migration additive trước khi đánh dấu F08 DONE | F08 |
+| DF18 | Admin gift dùng route /admin/gifts riêng, menu OWNER; editor giữ đủ 2 recipients khi chuyển mode; publish độc lập | Tái dùng API F03, không đổi schema. Lưu nháp cho phép thiếu, publish enabled cần đủ và owner xác nhận; thay đổi/reset confirmation, lỗi giữ draft; conflict khóa save/publish đến tải lại có xác nhận. Gỡ ảnh chỉ bỏ tham chiếu nháp, không xóa asset | F09 |
+| DF16 | F08 thay payload wishes cũ bằng feed riêng, refresh có chủ đích | Không tải trùng LIMIT 20/30, không tự thêm realtime/polling. Thứ tự mở rộng DF17 cho ghim; không coi cache đã tải là realtime | F08 |
+| DF17 | V26 thêm pinned=false; chỉ APPROVED được ghim; ẩn bỏ ghim nguyên tử; admin OWNER/EDITOR theo quyền moderation hiện có | Cursor tuple pinned DESC/created_at DESC/id DESC. Cursor cũ 2 phần = không ghim; cursor ghim có prefix 1. Scope/approval vẫn lọc SQL trước pagination. Pin thay đổi giữa các trang có thể đổi vị trí: dedupe + làm mới chủ động, không cam kết snapshot isolation qua nhiều request | F08 |
 | DF01 | “Tất cả lời chúc” = tất cả lời chúc được duyệt và có quyền xem | Không công khai pending hoặc dữ liệu riêng | F03, F08 |
 | DF02 | Không chọn provider map trước khi khảo sát | Chưa biết tích hợp hiện tại, key và yêu cầu dịch vụ | F01, F02 |
 | DF03 | Chọn một pattern form chính, không mặc định xây cả accordion và modal | Giữ trải nghiệm và code gọn | F02, F07 |
@@ -688,6 +700,59 @@ Bước tiếp theo cụ thể:
 
 ## 15. Test Log
 
+### F13 final — 2026-10-21 06:48 +07:00
+
+- Chỉ sửa tài liệu: thêm docs/17-invitation-features-operations.md, README-IMPLEMENTATION phần source mới/runtime chưa đồng bộ, sắp lại headings scripts/README và V23→V26 đúng source, cập nhật plan. Không production code/schema/test mutation trong phiên.
+- Node kiểm local Markdown links và code fences:3 files/3 links PASS; paths thật đã đối chiếu với routes, migrations, GiftService, VenueMap và calendar. `git diff HEAD --check` exit0 (lượt đầu phát hiện blank line EOF của scripts/README do chỉnh docs, đã sửa rồi rerun). `node --check`3 script feature-integration/gift-dialog/gift-review PASS.
+- Review diff tổng HEAD gồm staged/unstaged, giữ migration cũ/schema sections/dependency/next-env không đổi; không debug log tạm hoặc QR/tài khoản thật mới trong phần tác vụ. File QA/artifacts gitignored không xóa vì có bằng chứng kiểm thử. Không chạy lại FE/BE/browser do F13 chỉ docs; các kết quả F12 ngay trước đó được giữ là bằng chứng trước, không ghi như lệnh F13 vừa chạy.
+
+### F12 final — 2026-10-21 06:41 +07:00
+
+| Nhóm | Kết quả thực chạy | Bằng chứng / giới hạn |
+|---|---|---|
+| FE build/tests/types |159/159, build/typecheck exit0|`.qa-artifacts/features-f12-test.log`, `features-f12-build.log`, `features-f12-types.log`; không script lint|
+| BE verify |137 discovered,136 pass+1 opt-in skip, exit0|`features-f12-backend.log`; skip integration chạy riêng phía dưới|
+| HTTP/SQL/security/restart |integration1/1 PASS|`features-f12-persistence.log`; script fresh PG17 tmpfs V23→V26, full sessions/CSRF/IDOR, gift private/public/assets, upload immutable PNG, moderation/pin/audit, map revision/change notice, tied timestamp feed, app restart|
+| Guest A/B mới |PASS|GuestB không dùng grant A cho gifts/feed/asset/ICS; tập feed16/16 có15 shared và1 event riêng mỗi khách, exact whitelist DTO. Cache-Control no-store/nosniff/no-referrer asset PASS. Chỉ fixture ephemeral|
+| Browser regression |6 scripts exit0|`features-f12-{gift-dialog-review-qa,feature-integration-qa,gift-review-qa,invitation-review-qa,editor-review-qa,media-review-qa}.log`|
+| Contrast/XSS gift |PASS|`features-f12-dialog-final.log`, `.qa-artifacts/gift-dialog-review/report.json`:3 theme×3 accent,8 samples/tổ hợp, worst6.19,0 skipped/pending/fail. Label/description input HTML được escape, không DOM img hoặc thực thi onerror. Không audit toàn bộ WCAG|
+| Map/calendar/forms/wishes |PASS phạm vi fixture+unit+HTTP|Consent deferred map/provider allowlist; calendar leap/timezone/selection; RSVP conflict/retry/idempotency/draft; wishes pagination/moderation. Marker địa điểm thật và map network/provider thực NOT VERIFIED|
+| Performance |Partial/NOT VERIFIED|No SDK/dependency mới; deferred QR asset trước open và map trước consent PASS, feed12+lookahead bounded. Chưa đo CLS/LCP/bundle delta/latency/feed lớn so với baseline cùng điều kiện; không suy ra PASS performance từ build|
+| Browser→DB/device/QR |NOT VERIFIED|Browser fixture và Java HTTP→DB là2 lớp kiểm độc lập, chưa end-to-end1 lượt. Chưa Safari/Zalo/touch/screen reader thật, quét QR/quiet zone/đúng người nhận; cần chủ thiệp và thiết bị|
+
+- F12 không sửa production code/schema. Không failure mới trong lượt kiểm tra này; thay đổi chỉ mở rộng test guestB/headers/DTO và browser contrast/XSS. Không đọc.env hoặc mutation wedding. Container QA disposable đã stop/remove; server3000 dừng; next-env imports dev đã trả baseline. Bảo toàn28 paths staged.
+
+### F11 final — 2026-10-21 06:28 +07:00
+
+- FE159/159, build/types exit0: `.qa-artifacts/features-f11-test.log`, `features-f11-build.log`, `features-f11-types.log`.
+- `node scripts/feature-integration-qa.mjs` exit0: `features-f11-integration-final.log`, `.qa-artifacts/feature-integration/report.json`. Editor upload/save→reload→publish→guest/public; nháp không ảnh hưởng live, PRIVATE không lộ public, PUBLIC chỉ sau publish, public không guest calls; closed/revoked/PIN không gift calls. Enter native button PASS, label dài/dialog không tràn widths320/390/768/1440. API/PNG synthetic không QR thật.
+- gift-dialog-review exit0 (`features-f11-dialog.log`): active recipient regression giữ download ready cùng focus/Space/Escape/retry/download. Đã đọc ảnh `gift-320.png`: dialog cuộn đúng; PNG synthetic trắng không phải QR.
+- invitation-review và editor-review exit0 (`features-f11-regression.log`, `features-f11-editor.log`): hồi quy map/calendar/forms/feed/moderation/layout và3-context sections editor. Backend không đổi, không chạy lại verify/migration.
+- Integration lần đầu mock approved-wishes trả nhầm invitation DTO gây render error; sửa fixture. Lần sau script inject sessionStorage vào about:blank gây SecurityError; giới hạn đúng origin rồi rerun PASS. Không sửa app để giấu test fail; debug log tạm đã bỏ.
+- NOT VERIFIED: một lượt browser→DB E2E, Safari/Zalo/screen reader/touch thật, QR scan/quiet zone/đúng người nhận. UI fixture không chứng minh server authorization; backend HTTP/session/CSRF/SQL disposable F03/F08 vẫn là bằng chứng riêng phù hợp backend không đổi.
+
+### F10 final — 2026-10-21 06:18 +07:00
+
+- FE `npm test`158/158, build/typecheck exit0: `.qa-artifacts/features-f10-test-final.log`, `features-f10-build-final.log`, `features-f10-types-final.log`. Lượt đầu2 failures do token không tồn tại; sửa dùng token hiện hữu rồi rerun PASS.
+- `node scripts/gift-dialog-review-qa.mjs` exit0: `features-f10-browser-final.log`, `.qa-artifacts/gift-dialog-review/report.json` và screenshots320/390/768/1440. Kiểm deferredAssets/public+guest scope/single-dual/Escape restore/Space reopen/ShiftTab containment/backdrop/retry view+ảnh/download fallback/reduced motion/off hidden. Synthetic PNG không phải QR; không xác minh người nhận/scan/quiet zone thật.
+- invitation-review và gift-review regression exit0: `features-f10-regression.log`, `features-f10-admin-regression.log`; mọi API fixture. Backend không sửa, không chạy migration/seed/DB trong phiên.
+- QA corrections: Enter automation đầu không kích hoạt, chưa kết luận UI bug; mở đầu bằng click và sau focus restore kiểm Space PASS. Test ảnh lỗi gặp reuse cùng URL: đổi synthetic asset id + mock no-store/cacheDisabled, retry403 PASS. Không lấy timeout làm PASS, không sửa security app để test qua.
+
+| F09 final 2026-10-21 06:06 +07:00 | Kết quả / bằng chứng | Giới hạn |
+|---|---|---|
+| FE test/build/types | 155/155, build/types exit0; `.qa-artifacts/features-f09-test-final.log`, `features-f09-build-final.log`, `features-f09-types-final.log` | Lượt đầu thiếu CSS check/warning; lượt sau raw white vi phạm tokens, sửa dùng token có sẵn rồi rerun PASS |
+| Gift browser | `node scripts/gift-review-qa.mjs` exit0; `features-f09-browser-final.log`, `.qa-artifacts/gift-review/report.json` | Tất cả API/ảnh synthetic fixture; không quét QR/người nhận thật |
+| Regression browser | `node scripts/invitation-review-qa.mjs` exit0; `features-f09-regression.log` | Thiệp/layout/form/calendar/feed/admin moderation fixture, không DB |
+| Backend | Không sửa backend, không chạy lại migration/seed/verify trong F09 | Tái dùng bằng chứng F03/F08 disposable HTTP/persistence/owner-only; chưa nối UI với DB disposable trong cùng E2E |
+
+| F08 final 2026-10-21 05:58 +07:00 | Kết quả / bằng chứng | Giới hạn |
+|---|---|---|
+| FE test/build/types | 152/152; build/types exit 0; `.qa-artifacts/features-f08-complete-test.log`, `features-f08-pin-build.log`, `features-f08-pin-types.log` | Không thêm dependency/lint script |
+| Backend verify | 137 discovered, 136 pass + 1 opt-in skip; exit 0; `features-f08-complete-backend.log` | Unit mocks không thay SQL integration |
+| PostgreSQL disposable HTTP/restart | `scripts/features-persistence-qa.ps1` PASS; `features-f08-pin-persistence-final2.log`; V23→V26, pending/approve/pin/unpin/hide, CSRF/401/409/422/audit/filter, feed scope/tied timestamps/persistence restart | Không đụng wedding DB; Java runtime máy khác target 21 |
+| Browser fixture | `features-f08-pin-browser.log` exit 0; report wishAdmin pagination/filter reset/pendingCannotPin/conflictRetry/approvePinUnpinHide/revisionPayload=true; mobile 390 + desktop 1440 không tràn | API mock, không Safari/Zalo/thiết bị thật |
+| Lỗi và rerun | Integration đầu 422 do fixture đã chèn >3 wishes; chuyển lifecycle trước pagination fixtures. Lượt sau expected403/actual401: guest có CSRF nhưng không login admin đúng 401; sửa assertion. Final PASS | Không sửa quota/security để cho test qua |
+
 | Task | Lệnh / thao tác thật | Kết quả | Giới hạn / lỗi |
 |---|---|---|---|
 | F01 baseline FE | Trong frontend: `npm test` | PASS 130/130, exit 0 | `.qa-artifacts/features-f01-frontend-test.log`; đa số test source contracts, không thay browser QA |
@@ -733,6 +798,68 @@ Bước tiếp theo cụ thể:
 - Nếu không có backend/storage/phân quyền, ghi rõ phần bị chặn và đề xuất bổ sung nhỏ nhất; không mô phỏng bằng frontend rồi gọi là hoàn chỉnh.
 
 ## 17. Handoff — cập nhật trước khi dừng mỗi phiên
+
+### Bàn giao cuối — F13 DONE — 2026-10-21 06:48 +07:00
+
+- F01–F13 DONE trong phạm vi ghi nhận; không còn IN_PROGRESS/TODO trong ledger. Nếu người dùng chỉ yêu cầu “tiếp tục kế hoạch” lần nữa, không tạo tính năng/migration/deploy mới hoặc chạy lại seed mù quáng: đọc checkpoint và báo phần NOT VERIFIED cần mục tiêu/điều kiện cụ thể, chỉ sửa khi có regression có bằng chứng.
+- Đã đọc Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22 và files/diff trước sửa. F12 logs source đúng FE159/BE136+skip1/integration1/1/six-browser PASS; không làm lại task. Hướng dẫn thao tác và backup/QA/giới hạn tại docs/17-invitation-features-operations.md; README-IMPLEMENTATION trỏ tài liệu và ghi source khác runtime8088. scripts/README headings nay không trộn public payload/editor với gift scripts; upgrade docs V26.
+- F13 files sửa: PLAN_TASK_FEATURES.md, README-IMPLEMENTATION.md, scripts/README.md; thêm docs/17-invitation-features-operations.md. Bao gồm map consent/coordinates, calendar source/timezone/ICS, disclosures, feed/moderation/pin/refresh, owner gift draft/publish/revision/conflict, upload PNG5MiB220–4096/bytea/backup/orphan asset, gated QR/download/privacy, client legacy wishes payload đã bỏ và manual acceptance.
+- Git: HEAD05e58b0. Đầu phiên28 paths staged; trong phiên tác nhân ngoài stage thành29 (bao gồm F11/F12 và feature-integration script), AI không stage/unstage/commit; giữ nguyên index. F13 docs ngoài index, docs17 mới untracked. Phiên sau kiểm status/diff thực tế, không dựa số file lịch sử.
+- Test Log F13: docs links/fences và diff/syntax PASS, không chạy lại app test vì chỉ docs. Không commit/push/deploy/seed/migrate/query database wedding, không đọc.env hoặc tạo QR/account thật. Stack4 containers8088 không đổi; không khởi động app/backend/QA DB phiên này.
+- **Chưa áp dụng source mới vào stack wedding.** V24/V25/V26 cần được người vận hành kiểm schema/backup/restore và phê duyệt rollout; không khởi động backend source vào DB dùng chung để kiểm UI. Flyway có side effect khi app start. Không cam kết runtime8088 hoặc production đã có tính năng.
+- **NOT VERIFIED còn lại:** browser→backend→DB E2E một lượt, benchmark cùng baseline/CLS/LCP/bundle delta, Safari/Zalo/touch/screen reader thật, quét QR/người nhận/quiet zone/marker địa điểm cưới thật. Chưa copy tài khoản vì schema không có field. Chưa orphan asset cleanup, không realtime invalidate nội dung đã tải; file tải về không thu hồi được. Không kết luận WCAG hay production-ready.
+- Nếu cần vòng tiếp: chốt một mục chưa verified với môi trường/data fixture/thiết bị được phép; thiết kế test isolation trước mọi mutation; bảo toàn PLAN_TASK.md schema sections và user index. Deploy/migration/shared DB/commit cần yêu cầu riêng của người dùng.
+
+### Resume ưu tiên — F12 DONE — 2026-10-21 06:41 +07:00
+
+- Đọc Snapshot/Ledger/Decision/Test/Handoff và PLAN_TASK.md T21/T22/privacy; đối chiếu F11 source/log đúng DONE không làm lại. Git HEAD05e58b0,28 paths staged giữ nguyên; F11/F12 changes ngoài index + feature-integration script untracked. Không stage/unstage/commit/push/deploy.
+- F12 sửa test `FeaturePersistenceIntegrationTest.java` ngoài index: guestB riêng session/grant/assignment, không truy cập A gifts/feed/assets/ICS, DTO allowlist/feed intersection16/16/shared15, headers no-store/nosniff/no-referrer. Chạy scripts/features-persistence-qa.ps1 đọc trước, fresh PG17 cached image/random name/tmpfs, không volume hay .env,1/1 PASS và restart. Không blind rerun migration: chạy lại vì assertions mới, DB mới/trống được test xác nhận.
+- `scripts/gift-dialog-review-qa.mjs` mở rộng contrast all3 themes×3 accents bằng helper hiện hữu và XSS text/description.9×8 mẫu worst6.19,0 skip/fail/pending; XSS không thực thi. Không QR/tài khoản thật. Source app và migration không đổi phiên này.
+- Test Log F12 matrix phía trên: FE159, BE136+skip1, build/types, integration1/1,6 browser regression scripts PASS. Không lỗi mới cần sửa app. Kiểm lại diff/syntax, next-env dev imports baseline; QA server3000 và disposable container đã dừng, wedding4 containers8088 không đổi.
+- **NOT VERIFIED cần giữ rõ:** performance benchmark cùng baseline/CLS/LCP/bundle delta, browser→DB E2E1 lượt, Safari/Zalo/touch/screen reader, QR scan/người nhận/quiet zone và map marker thật. Không gọi WCAG/production-ready; F12 DONE theo tiêu chí phần chưa xác minh báo rõ, không phải nghiệm thu mọi môi trường.
+- **Tiếp F13 TODO:** dọn riêng tài liệu/copy nhầm/đường dẫn và review diff, viết hướng dẫn map/lịch/disclosures/feed moderation/gift settings/publish/gated asset, backup PNG bytea/giới hạn5MB/owner confirmation/cleanup orphan chưa có, chạy QA và còn NOT VERIFIED. Không tự deploy/migrate/commit; không thay PLAN_TASK.md trạng thái DONE. Đồng bộ README-IMPLEMENTATION hiện còn mô tả cũ với features source và phân biệt stack8088 chưa cập nhật.
+
+### Resume ưu tiên — F11 DONE — 2026-10-21 06:28 +07:00
+
+- Đọc Snapshot/Ledger/Decision/Test/Handoff và PLAN_TASK.md T21/T22/schema/privacy, kiểm Git/diff/source/log F10 đúng DONE không làm lại. HEAD05e58b0 không đổi. Đầu phiên index rỗng, tác nhân ngoài đã stage F08–F10 thành28 paths trong phiên; AI không stage/unstage/commit, giữ index. F11 ngoài index + script untracked; phải kiểm Git lúc resume.
+- Sửa gift-box: active recipient no-op tránh reset ready khi img không remount; retry metadata reset imageReady/imageError/downloadError. Chuyển getComputedStyle ra effect, bỏ CSSProperties import. design.css thêm dialog overscroll contain. tests/gift-box thêm1 regression; gift-dialog-review thêm browser active-recipient check.
+- Thêm scripts/feature-integration-qa.mjs dùng sessionStorage fixture-only giữ draft/published qua navigation, điều khiển editor thật→save/reload/publish→public/guest UI. Không backend mutation/secrets/dữ liệu thật. Xem Test Log F11 final cho đầy đủ kết quả FE159/build/types/dialog/integration/invitation/editor PASS.
+- Rà soát theo web guidelines đã fetch: semantic button/label/alt/dimensions, reduced motion/focus giữ; sửa layout read render và overscroll. Không claim audit WCAG. Enter đã PASS script mới, giới hạn F10 cũ chỉ là lịch sử.
+- Không đổi backend/schema/dependency/PLAN_TASK.md; không đọc.env/query/seed/migrate/mutate wedding DB. UI gates closed/revoked/PIN không request downstream không thay thế server gate; backend HTTP/PostgreSQL F03/F08 là bằng chứng trước, chưa UI→DB E2E đơn lượt.
+- QA server3000 dừng, next-env dev imports trả baseline, wedding8088 không đổi. Không commit/push/deploy.
+- **Tiếp F12:** test matrix security/performance/a11y còn thiếu, thêm disposable backend assertions khi cần chứ không seed/migrate mù quáng. Giữ user index, chỉ sửa DONE nếu có regression mới. Còn browser→DB E2E, scan thật, Safari/Zalo/touch/screen reader và contrast gift toàn bộ themes NOT VERIFIED, không production-ready. F13 docs/handoff sau QA.
+
+### Resume ưu tiên — F10 DONE — 2026-10-21 06:18 +07:00
+
+- Đọc Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22 và renderer/privacy; kiểm status/diff/source/log F09 đúng FE155/browser PASS, không làm lại. HEAD05e58b0 không đổi, index rỗng; giữ changes F08/F09 ngoài index. Không commit/push/deploy.
+- Thêm `frontend/src/features/invitation/gift-box.tsx`, gift slot cuối WeddingCanvas từ w/[slug]/invitation/[id]. Editor không truyền gift nên không gọi API/QR giả. Scope keyed/encode, stale responses ignored; disabled/empty/incomplete ẩn trigger, lỗi metadata retry.
+- Dialog tải view mới khi mở, ảnh chỉ mount khi mở/hợp lệ; native showModal portal body, initial focus close, Escape/close/backdrop ngoài rect, restore opener, body overflow cleanup. Single/dual một panel nhóm nút aria-pressed đúng nhãn; không đoán giới tính. PNG contain/no crop/no radius/đệm trắng, không cam kết số module quiet zone.
+- Download fetch credentials/no-store/PNG MIME check, giữ bytes/blob/objectURL cleanup, synchronous guard; lỗi có fallback ảnh gốc cùng scope. Không copy vì không field account. Nhắc kiểm người nhận trong app; mở/tải không phải chuyển tiền.
+- design.css thêm theme tokens/font hiện hữu, reduced motion, dialog cuộn viewport; tests/gift-box3 contracts; script gift-dialog-review fixture CDP. Test Log F10 phía trên FE158/build/types/browser/regression PASS. Backend/schema/dependency không đổi, dùng bằng chứng security HTTP/persistence F03/F08 trước đó, không claim UI→DB E2E mới.
+- QA server3000 đã dừng, next-env dev imports trả baseline; wedding8088 không đổi, không đọc.env/query/mutation/seed/migrate dữ liệu thật.
+- **NOT VERIFIED:** scan QR thật/đúng người nhận/quiet zone nguồn, Safari/Zalo/touch/screen reader; Enter automation đầu timeout nên xác minh click+Space, không claim mọi keyboard/device. Copy SKIPPED do thiếu account field.
+- **Tiếp theo F11:** integration public/private/editor payload+UI, closed/revoked/PRIVATE gifts, draft/published và full save→reload→visibility, responsive/a11y. Không sửa section schema hay làm song song PLAN_TASK.md. F12 regression/security/performance, F13 docs/diff. Stack wedding8088 chưa đồng bộ source; không tự migrate/deploy.
+
+### Resume ưu tiên — F09 DONE — 2026-10-21 06:06 +07:00
+
+- Đọc Project Snapshot/Ledger/Decision/Test/Handoff, PLAN_TASK.md T21/T22 và privacy/schema liên quan; kiểm git status/diff + F08 code/log PASS. F08 DONE không làm lại. HEAD vẫn `05e58b0`; các thay đổi F08 chưa commit và V26/WishPinTest được giữ nguyên ngoài index, không tự stage/commit.
+- Thêm `frontend/src/app/admin/gifts/page.tsx`, `features/admin/gift-editor.tsx`: cấu hình enabled/single-dual/private-public, hai recipient label/description/assetId, upload PNG qua uploadFile CSRF, preview owner-gated, lưu draft và publish revision riêng. Không QR/tài khoản mặc định, không dùng /media hoặc dịch vụ ngoài. Menu shell OWNER-only, backend vẫn là lớp bảo vệ thật.
+- UI giữ recipient thứ hai dù SINGLE, gỡ ảnh chỉ unlink draft; PNG lỗi giữ tên/mô tả/ảnh trước đó. Dirty guard beforeunload, synchronous busy ref chống submit trùng; 409 giữ draft và khóa save/publish đến tải lại có Confirm (mất sửa chưa lưu được nói rõ). Reload request lỗi hiện trong modal. Save success cập nhật revision từ response, không phụ thuộc GET reload để tránh báo thất bại giả sau mutation thành công.
+- Publish cần saved/changed/complete/confirmation nếu enabled, reset confirmation khi sửa hoặc save/reload; preview ảnh lỗi chặn enabled publish. PUBLIC warning rõ ràng; disabled publish không yêu cầu xác nhận QR. Không suy diễn quét ảnh/nhận tiền; chủ thiệp vẫn phải tự kiểm người nhận.
+- Sửa admin.css thêm grid/preview/check/warning dùng token có sẵn, responsive2→1 cột dưới800px. Thêm tests/gift-editor.test.mjs3 cases + scripts/gift-review-qa.mjs (CDP API/PNG fixture), scripts/README hướng dẫn. Không thêm dependency/backend/schema. Test Log phía trên: FE155, build/types/browser/regression PASS; ảnh/report `.qa-artifacts/gift-review`.
+- Runtime wedding8088 không đổi; không đọc .env, không query/mutate DB thật, không migrate/seed/publish stack. Không chạy lại disposable migration vì backend không thay đổi; kiểm backend persistence là bằng chứng F03/F08 trước đó, không gọi là kiểm E2E UI→DB mới. QA server3000 đã dừng; next-env imports dev đã trả đúng baseline.
+- **Tiếp theo F10:** đọc DF12/DF14, GiftController guest/public view/assets và WeddingCanvas; làm hộp quà/dialog native showModal có scope đúng, chỉ tải QR sau chủ động mở, Escape/close/focus restore/reduced motion/download. Không lẫn invitation QR với gift QR, không render QR giả hoặc dùng admin URL cho khách. F11/F12 sẽ nối integration/a11y/security matrix. F10–F13 vẫn TODO.
+- Giới hạn F09: chưa quét QR thật, chưa kiểm Safari/Zalo/touch/screen reader, beforeunload không chặn navigation nội bộ SPA; assets orphan chưa có cleanup/delete theo DF13. Feature khách chưa có trước F10, không tuyên bố QR đã xuất hiện trên thiệp.
+
+### Resume ưu tiên — F08 DONE — 2026-10-21 05:58 +07:00
+
+- Đối chiếu Snapshot/Ledger/Decision/Test/Handoff và PLAN_TASK.md privacy/schema; F07 và phần F08 phiên trước có code/log đúng. Lúc bắt đầu còn 18 file staged; trong phiên HEAD đổi sang `05e58b0` lúc 05:51:42 do tác nhân bên ngoài (AI không commit), đã kiểm git log/show và bảo toàn. Index hiện rỗng; các thay đổi mới vẫn ngoài index. Không tuyên bố trạng thái 18 staged còn đúng khi resume.
+- F08 hoàn thành: V26 `wish_pinning.sql` additive pinned default false + CHECK chỉ APPROVED + feed index. WishService pin lock/version/audit; hide bỏ pin nguyên tử. WishController PUT admin/wishes/{id}/pin có @Valid NotNull Boolean; dùng quyền moderation OWNER/EDITOR hiện có, guest không có admin auth bị 401 khi CSRF hợp lệ.
+- WishFeedService DTO thêm pinned, tuple cursor theo DF17; decode tương thích cursor không ghim cũ. Scope/approval gate không đổi. Admin queue thêm pinned, UI nút ghim/bỏ ghim disabled khi chưa APPROVED, gửi revision; feed hiển thị nhãn ghim không dựa vào màu.
+- Files chính: backend wishes/{WishService,WishController,WishFeedService}.java, migration V26; tests WishPinTest (4), WishFeedTest thêm pinned cursor, FeaturePersistenceIntegrationTest thêm lifecycle và migration count26; frontend admin/wishes, shared/admin-types/invitation-features, invitation/wish-feed, test wish-feed; browser QA script mở rộng admin fixture. Giữ nguyên PLAN_TASK.md, schema section và dữ liệu thật.
+- Test Log final phía trên: FE152, BE136+skip1, integration1/1, browser PASS. Migration chỉ trong container ngẫu nhiên tmpfs do script tạo; container đã tự dừng/xóa, wedding stack vẫn 4 container cũ ở8088. Không seed/migrate/mutation DB wedding, không push/deploy. QA server3000 đã dừng; next-env import đã khôi phục đúng dev paths ban đầu.
+- Bước tiếp: F09 TODO, đủ F03 dependency. Đọc gift settings/assets API và owner-only contract đã có, xây admin cấu hình/upload/preview an toàn, không tự nhập QR hoặc thông tin nhận tiền. F10 sau F09. Không làm lại F08 DONE; kiểm regression khi mở rộng gift/schema.
+- Giới hạn: chưa migration V26 vào stack wedding; source mới cần V26 khi chạy. Không realtime thu hồi nội dung đã tải: bấm Làm mới lời chúc để nhận moderation mới. Cursor pin không phải snapshot qua các request đồng thời. Chưa Safari/Zalo/screen reader thật; kiểm device thuộc F11/F12. Không xác nhận production-ready.
 
 ### Resume ưu tiên — F08 IN_PROGRESS — 2026-10-21 05:47 +07:00
 

@@ -4,7 +4,7 @@ import {usePathname} from 'next/navigation';
 import {useEffect,useState} from 'react';
 import {api} from '@/shared/api';
 import {isActiveRoute} from '@/shared/routes';
-const navigation=[['/admin','Tổng quan','◈',''],['/admin/wedding','Thiệp cưới','❀',''],['/admin/media','Thư viện ảnh','▧',''],['/admin/events','Buổi tiệc','▦',''],['/admin/invitations','Khách & lời mời','♡',''],['/admin/import','Nhập danh sách','⇧',''],['/admin/exports','Xuất QR','▤','OWNER'],['/admin/print','Trung tâm in','⎙',''],['/admin/responses','Phản hồi','✓',''],['/admin/reminders','Nhắc chưa phản hồi','◔',''],['/admin/wishes','Sổ lời chúc','✎',''],['/admin/audit','Nhật ký','≡','OWNER'],['/admin/users','Quản trị người dùng','⚙','OWNER'],['/admin/account','Tài khoản của tôi','☺','']];
+const navigation=[['/admin','Tổng quan','◈',''],['/admin/wedding','Thiệp cưới','❀',''],['/admin/media','Thư viện ảnh','▧',''],['/admin/events','Buổi tiệc','▦',''],['/admin/invitations','Khách & lời mời','♡',''],['/admin/import','Nhập danh sách','⇧',''],['/admin/exports','Xuất QR','▤','OWNER'],['/admin/print','Trung tâm in','⎙',''],['/admin/responses','Phản hồi','✓',''],['/admin/reminders','Nhắc chưa phản hồi','◔',''],['/admin/wishes','Sổ lời chúc','✎',''],['/admin/gifts','Quà mừng','◇','OWNER'],['/admin/audit','Nhật ký','≡','OWNER'],['/admin/users','Quản trị người dùng','⚙','OWNER'],['/admin/account','Tài khoản của tôi','☺','']];
 export function AdminShell({children}:{children:React.ReactNode}){
  const path=usePathname();const [busy,setBusy]=useState(false),[error,setError]=useState(''),[role,setRole]=useState<string|null>(null);
  useEffect(()=>{void api<{role:string}>('/auth/me').then(me=>setRole(me.role)).catch(()=>setRole(null));},[]);

@@ -1,5 +1,14 @@
 # Wedding website — bản lõi 0.1.0
 
+## Cập nhật tính năng thiệp — F01–F13 (2026-10-21)
+
+Source hiện có bản đồ opt-in, lịch tháng, form RSVP/lời chúc thu gọn, feed lời chúc phân trang và hộp quà QR có cấu hình OWNER-only. Hướng dẫn thao tác, quyền public/private, backup và giới hạn: [docs/17-invitation-features-operations.md](docs/17-invitation-features-operations.md). Tiến độ và bằng chứng từng phiên: [PLAN_TASK_FEATURES.md](PLAN_TASK_FEATURES.md).
+
+- Schema source bổ sung V24 (tọa độ), V25 (gift settings/assets), V26 (ghim lời chúc). Không sửa migration đã áp dụng; không chạy backend source với database chưa được chuẩn bị. Stack wedding ở cổng 8088 **chưa được đồng bộ/deploy bởi các phiên này**; kết quả source/local không chứng minh runtime đó đã có tính năng mới.
+- Feed mới dùng API cursor theo scope; payload thiệp không còn trường `wishes` giới hạn cũ. Client ngoài repository nếu có cần chuyển sang endpoint feed trước triển khai đồng bộ.
+- QA gần nhất: frontend159/159, build/typecheck; backend136 pass +1 integration opt-in skip, integration riêng1/1 PASS trên PostgreSQL disposable;6 browser scripts fixture PASS. Contrast dialog9 tổ hợp thấp nhất6,19:1. Chi tiết và phần NOT VERIFIED nằm trong kế hoạch; không xác nhận production-ready.
+- Những mục “Cập nhật đợt …” dưới đây là **lịch sử tại thời điểm kiểm thử**, không phải toàn bộ trạng thái mới nhất hoặc cam kết nghiệm thu mọi môi trường. Chưa kiểm một lượt browser→backend→DB, benchmark hiệu năng cùng baseline, Safari/Zalo/screen reader/touch và quét QR thật.
+
 ## Cập nhật đợt 7 — nội dung 5 phần tùy chọn có cấu trúc (T03–T10)
 
 - Migration `V22__section_payload.sql`: `wedding_sections` thêm cột `payload` jsonb và `wedding.content_schema_version` cho phép giá trị 1 hoặc 2. Migration `V23__timeline_payload_source.sql` thay CHECK cũ (`TIMELINE` bắt buộc `starts_at`) bằng điều kiện linh hoạt hơn: `starts_at` **hoặc** `payload.timeline`. Cột phẳng cũ vẫn là đường tương thích cho hàng đã phát hành nên không cần backfill.

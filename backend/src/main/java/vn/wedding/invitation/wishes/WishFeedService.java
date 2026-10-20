@@ -20,9 +20,9 @@ public class WishFeedService {
     private final AccessGate gate;
     public WishFeedService(JdbcTemplate db,AccessGate gate){this.db=db;this.gate=gate;}
 
-    public record Item(UUID id,String display_name,String message,Instant created_at) {}
+    public record Item(UUID id,String display_name,String message,Instant created_at,boolean pinned) {}
     public record Page(List<Item> items,String nextCursor) {}
-    private record Position(Instant at,UUID id) {}
+    private record Position(Instant at,UUID id,boolean pinned) {}
 
     public Page publicFeed(String slug,String cursor){
         var rows=db.queryForList("SELECT id FROM wedding WHERE slug=? AND published=true",slug);
@@ -42,30 +42,35 @@ public class WishFeedService {
             args.add(invitationId);
         }
         String after="";
-        if(position!=null){after=" AND (w.created_at,w.id)<(?,?)";args.add(Timestamp.from(position.at()));args.add(position.id());}
+        if(position!=null){after=" AND (w.pinned,w.created_at,w.id)<(?,?,?)";args.add(position.pinned());args.add(Timestamp.from(position.at()));args.add(position.id());}
         args.add(PAGE_SIZE+1);
-        var rows=db.queryForList("SELECT w.id,w.display_name,w.message,w.created_at FROM wishes w WHERE w.state='APPROVED' AND "+scope+after+" ORDER BY w.created_at DESC,w.id DESC LIMIT ?",args.toArray());
+        var rows=db.queryForList("SELECT w.id,w.display_name,w.message,w.created_at,w.pinned FROM wishes w WHERE w.state='APPROVED' AND "+scope+after+" ORDER BY w.pinned DESC,w.created_at DESC,w.id DESC LIMIT ?",args.toArray());
         var items=new ArrayList<Item>();
         for(var row:rows.subList(0,Math.min(PAGE_SIZE,rows.size()))){
-            items.add(new Item((UUID)row.get("id"),(String)row.get("display_name"),(String)row.get("message"),AccessGate.instant(row.get("created_at"))));
+            items.add(new Item((UUID)row.get("id"),(String)row.get("display_name"),(String)row.get("message"),AccessGate.instant(row.get("created_at")),Boolean.TRUE.equals(row.get("pinned"))));
         }
         String next=null;
-        if(rows.size()>PAGE_SIZE){var last=items.getLast();next=encode(last.created_at(),last.id());}
+        if(rows.size()>PAGE_SIZE){var last=items.getLast();next=encode(last.created_at(),last.id(),last.pinned());}
         return new Page(List.copyOf(items),next);
     }
     static String encode(Instant at,UUID id){
-        return Base64.getUrlEncoder().withoutPadding().encodeToString((at+"|"+id).getBytes(StandardCharsets.UTF_8));
+        return encode(at,id,false);
+    }
+    static String encode(Instant at,UUID id,boolean pinned){
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(((pinned?"1|":"")+at+"|"+id).getBytes(StandardCharsets.UTF_8));
     }
     private static Position decode(String cursor){
         if(cursor==null)return null;
         ApiErrors.require(!cursor.isBlank()&&cursor.length()<=160,"Vị trí lời chúc không hợp lệ. Vui lòng tải lại.");
         try{
             String[] parts=new String(Base64.getUrlDecoder().decode(cursor),StandardCharsets.UTF_8).split("\\|",-1);
-            if(parts.length!=2)throw new IllegalArgumentException();
-            var position=new Position(Instant.parse(parts[0]),UUID.fromString(parts[1]));
+            boolean pinned=parts.length==3&&parts[0].equals("1");
+            if(parts.length!=2&&!pinned)throw new IllegalArgumentException();
+            int offset=pinned?1:0;
+            var position=new Position(Instant.parse(parts[offset]),UUID.fromString(parts[offset+1]),pinned);
             if(position.at().isBefore(Instant.parse("0001-01-01T00:00:00Z"))||position.at().isAfter(Instant.parse("9999-12-31T23:59:59.999999Z")))throw new IllegalArgumentException();
             // Reject noncanonical UUID/base64 spellings rather than accept ambiguous positions.
-            if(!encode(position.at(),position.id()).equals(cursor))throw new IllegalArgumentException();
+            if(!encode(position.at(),position.id(),position.pinned()).equals(cursor))throw new IllegalArgumentException();
             return position;
         }catch(RuntimeException error){
             ApiErrors.require(false,"Vị trí lời chúc không hợp lệ. Vui lòng tải lại.");

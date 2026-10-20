@@ -74,7 +74,7 @@ class FeaturePersistenceIntegrationTest {
         for(UUID id:List.of(event,other))db.update("INSERT INTO events(id,event_code,title,start_at,deadline,venue,address,timezone,capacity,state) VALUES(?,?,'QA fixture','2030-01-02T00:00Z','2030-01-01T00:00Z','Fixture venue','Fixture address','Asia/Ho_Chi_Minh',10,'PUBLISHED')",id,"QA-"+id);
         try{
             start();
-            assertEquals(25,db.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class));
+            assertEquals(26,db.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class));
             assertNull(db.queryForMap("SELECT latitude,longitude FROM events WHERE id=?",event).get("latitude"));
             assertThrows(org.springframework.dao.DataAccessException.class,()->db.update("UPDATE events SET latitude=1 WHERE id=?",event));
             assertThrows(org.springframework.dao.DataAccessException.class,()->db.update("UPDATE events SET latitude=91,longitude=0 WHERE id=?",event));
@@ -120,6 +120,20 @@ class FeaturePersistenceIntegrationTest {
             assertEquals(403,guest.request("GET",guestPath+"/gifts/assets/"+second,"",false).statusCode());
             assertEquals(200,anonymous.request("GET",publicPath+"/assets/"+first,"",false).statusCode());
             assertEquals(403,anonymous.request("GET",publicPath+"/assets/"+second,"",false).statusCode());
+            // F12: a second real guest session cannot reuse the first guest's grant or assignments.
+            UUID invitationB=UUID.randomUUID();String tokenB=context.getBean(TokenService.class).mint();
+            db.update("INSERT INTO invitations(id,display_name,token_hash,token_cipher) VALUES(?,'QA guest B',?,?)",invitationB,TokenService.hash(tokenB),context.getBean(TokenService.class).encrypt(tokenB,invitationB));
+            db.update("INSERT INTO assignments(invitation_id,event_id,max_people) VALUES(?,?,2)",invitationB,other);
+            var guestB=new Browser();guestB.csrf();
+            assertEquals(200,guestB.request("POST","/api/v1/guest-links/redeem","{\"token\":\""+tokenB+"\"}",true).statusCode());
+            String guestBPath="/api/v1/guest/invitations/"+invitationB;
+            assertEquals(200,guestB.request("POST",guestBPath+"/open","{}",true).statusCode());
+            for(String suffix:List.of("/gifts","/approved-wishes","/gifts/assets/"+first))assertEquals(403,guestB.request("GET",guestPath+suffix,"",false).statusCode());
+            assertEquals(403,guestB.request("GET",guestBPath+"/events/"+event+"/calendar.ics","",false).statusCode());
+            var publicImage=anonymous.request("GET",publicPath+"/assets/"+first,"",false);
+            assertTrue(publicImage.headers().firstValue("Cache-Control").orElse("").contains("no-store"));
+            assertEquals("nosniff",publicImage.headers().firstValue("X-Content-Type-Options").orElse(""));
+            assertEquals("no-referrer",publicImage.headers().firstValue("Referrer-Policy").orElse(""));
             // Map endpoint uses real JDBC, optimistic version, and published-change notice.
             String location="/api/v1/admin/events/"+event+"/location";
             assertEquals(422,owner.request("PUT",location,"{\"latitude\":0,\"longitude\":0,\"confirmed\":true,\"expectedVersion\":0}",true).statusCode());
@@ -129,6 +143,30 @@ class FeaturePersistenceIntegrationTest {
             // Feed pagination, tied timestamps and assignment filtering through actual SQL.
             assertEquals(422,guest.request("POST",guestPath+"/wishes","{\"message\":\"QA fixture wish\",\"eventId\":\""+other+"\"}",true).statusCode());
             assertEquals(0,db.queryForObject("SELECT count(*) FROM wishes",Integer.class));
+            // Complete F08 moderation lifecycle over real HTTP/session/CSRF and PostgreSQL.
+            guest.csrf();
+            var submitted=guest.body(guest.request("POST",guestPath+"/wishes","{\"message\":\"QA moderation lifecycle\"}",true),200);
+            String wishId=submitted.get("id").asString(),wishPath="/api/v1/admin/wishes/"+wishId;
+            assertEquals("PENDING",submitted.get("state").asString());
+            assertFalse(new String(anonymous.request("GET","/api/v1/public/weddings/our-wedding/wishes","",false).body(),StandardCharsets.UTF_8).contains(wishId));
+            assertEquals(401,guest.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":0}",true).statusCode());
+            assertEquals(403,owner.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":0}",false).statusCode());
+            assertEquals(422,owner.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":0}",true).statusCode());
+            assertEquals(200,owner.request("POST",wishPath,"{\"state\":\"APPROVED\",\"expectedVersion\":0}",true).statusCode());
+            assertEquals(409,owner.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":0}",true).statusCode());
+            assertEquals(200,owner.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":1}",true).statusCode());
+            var pinned=anonymous.body(anonymous.request("GET","/api/v1/public/weddings/our-wedding/wishes","",false),200);
+            assertEquals(wishId,pinned.get("items").get(0).get("id").asString());
+            assertTrue(pinned.get("items").get(0).get("pinned").asBoolean());
+            assertTrue(new String(guest.request("GET",guestPath+"/approved-wishes","",false).body(),StandardCharsets.UTF_8).contains(wishId));
+            assertEquals(200,owner.request("PUT",wishPath+"/pin","{\"pinned\":false,\"expectedVersion\":2}",true).statusCode());
+            assertEquals(200,owner.request("PUT",wishPath+"/pin","{\"pinned\":true,\"expectedVersion\":3}",true).statusCode());
+            assertEquals(200,owner.request("POST",wishPath,"{\"state\":\"REJECTED\",\"expectedVersion\":4}",true).statusCode());
+            assertFalse(db.queryForObject("SELECT pinned FROM wishes WHERE id=?",Boolean.class,UUID.fromString(wishId)));
+            for(String path:List.of("/api/v1/public/weddings/our-wedding/wishes",guestPath+"/approved-wishes"))assertFalse(new String(guest.request("GET",path,"",false).body(),StandardCharsets.UTF_8).contains(wishId));
+            assertEquals(3,db.queryForObject("SELECT count(*) FROM audit WHERE target=? AND action IN ('WISH_PIN','WISH_UNPIN')",Integer.class,wishId));
+            var queue=owner.body(owner.request("GET","/api/v1/admin/wishes?state=REJECTED&query=QA%20moderation","",false),200);
+            assertEquals(1,queue.get("total").asInt());assertEquals(wishId,queue.get("rows").get(0).get("id").asString());
             for(int n=0;n<15;n++)wish(invitation,null,"APPROVED");
             wish(invitation,event,"APPROVED");wish(invitation,other,"APPROVED");wish(invitation,null,"PENDING");
             var page=anonymous.body(anonymous.request("GET","/api/v1/public/weddings/our-wedding/wishes","",false),200);
@@ -137,6 +175,12 @@ class FeaturePersistenceIntegrationTest {
             var ids=new HashSet<String>();page.get("items").forEach(item->assertTrue(ids.add(item.get("id").asString())));rest.get("items").forEach(item->assertTrue(ids.add(item.get("id").asString())));
             var guestPage=guest.body(guest.request("GET",guestPath+"/approved-wishes","",false),200);
             var guestRest=guest.body(guest.request("GET",guestPath+"/approved-wishes?cursor="+guestPage.get("nextCursor").asString(),"",false),200);assertEquals(4,guestRest.get("items").size());
+            var guestBPage=guestB.body(guestB.request("GET",guestBPath+"/approved-wishes","",false),200);
+            var guestBRest=guestB.body(guestB.request("GET",guestBPath+"/approved-wishes?cursor="+guestBPage.get("nextCursor").asString(),"",false),200);
+            var aIds=new HashSet<String>();guestPage.get("items").forEach(item->aIds.add(item.get("id").asString()));guestRest.get("items").forEach(item->aIds.add(item.get("id").asString()));
+            var bIds=new HashSet<String>();guestBPage.get("items").forEach(item->bIds.add(item.get("id").asString()));guestBRest.get("items").forEach(item->bIds.add(item.get("id").asString()));
+            assertEquals(16,aIds.size());assertEquals(16,bIds.size());var common=new HashSet<>(aIds);common.retainAll(bIds);assertEquals(15,common.size());
+            for(var item:guestBPage.get("items")){var keys=new HashSet<String>();item.properties().forEach(entry->keys.add(entry.getKey()));assertEquals(Set.of("id","display_name","message","created_at","pinned"),keys);}
             // Existing mutation boundaries remain protected with real sessions and CSRF enabled.
             assertEquals(403,anonymous.request("POST","/api/v1/admin/wishes/"+UUID.randomUUID(),"{}",false).statusCode());
             assertEquals(403,guest.request("POST",guestPath+"/wishes","{\"message\":\"QA fixture wish\"}",false).statusCode());
@@ -158,7 +202,7 @@ class FeaturePersistenceIntegrationTest {
             var reloaded=new Browser();reloaded.login("fixture-owner");
             var config=reloaded.body(reloaded.request("GET",admin,"",false),200);assertEquals(2,config.get("draft").get("revision").asInt());assertEquals(2,config.get("published").get("revision").asInt());assertEquals(second.toString(),config.get("draft").get("second").get("assetId").asString());
             assertArrayEquals(png,reloaded.request("GET",admin+"/assets/"+first,"",false).body());
-            assertEquals(25,db.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class));
+            assertEquals(26,db.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class));
         }finally{if(context!=null)context.close();}
     }
     void wish(UUID invitation,UUID event,String state){

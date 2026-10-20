@@ -215,4 +215,13 @@
 .music-item div { display:flex; flex-direction:column; gap:2px; }
 .music-item small { color:var(--compat-color-6b7268); }
 .music-item audio { width:100%; }
+.gift-editor { display:grid; gap:20px; }
+.gift-editor form { display:grid; gap:16px; }
+.gift-editor .check { display:flex; align-items:flex-start; gap:10px; }
+.gift-editor .check input { width:auto; flex:none; margin-top:4px; }
+.gift-editor .warning { padding:12px 16px; border-left:3px solid currentColor; background:var(--compat-color-fbfaf7); }
+.gift-recipient-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.gift-recipient { min-width:0; margin:0; }
+.gift-qr-preview { display:block; width:min(100%,280px); height:auto; object-fit:contain; background:var(--compat-color-fff); margin:16px auto; }
+@media(max-width:800px) { .gift-recipient-grid { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:700px) { .reminder-head { flex-direction:column; } .reminder-counts span { min-width:calc(50% - 7px); } }

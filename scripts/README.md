@@ -1,4 +1,4 @@
-# Dữ liệu demo
+# Scripts QA và dữ liệu demo
 
 ## Kiểm tra nhạc thật và chính sách tự phát
 
@@ -39,7 +39,7 @@ Cần Docker đang chạy, image `postgres:17-alpine` đã cached và Maven depe
 
 - Tạo container PostgreSQL mới với tên/cổng random chỉ trên `127.0.0.1`, database tmpfs;
   không đọc `.env`, không mount volume, không dùng stack `wedding` hoặc `wedding-qa` cũ.
-- Dùng dữ liệu fixture tổng hợp: upgrade V23→V25, map constraints/trigger, gift PNG bytea,
+- Dùng dữ liệu fixture tổng hợp: upgrade V23→V26, map constraints/trigger, gift PNG bytea,
   draft/published/revision, HTTP OWNER/EDITOR/guest/CSRF/PIN/access gate, feed scope và restart.
   Không có QR/tài khoản nhận tiền thật; đây không phải kiểm nghiệm quét QR hay browser UI.
 - Script `finally` stop đúng container random của lần gọi (`--rm`), xóa database tạm đó;
@@ -132,6 +132,16 @@ node scripts/public-payload-qa.mjs
 
 Bộ kiểm tra này đã được thử bằng server giả cố tình rò dữ liệu riêng: script bắt đủ các vấn đề và thoát khác 0.
 
+## Tích hợp xuyên trang (F11, fixture)
+
+Chạy `node scripts/feature-integration-qa.mjs` khi frontend local3000 chạy; đổi `FEATURE_INTEGRATION_QA_ORIGIN`/`CHROME_PATH`. Script dùng sessionStorage **chỉ trong fixture QA** giữ nháp/phát hành qua điều hướng editor→save→reload→publish→public/guest. Kiểm nháp không đổi live, PRIVATE chỉ guest, PUBLIC sau publish, closed/revoked/PIN không gọi gift API, Enter mở dialog và label dài widths320/390/768/1440. Artifacts `.qa-artifacts/feature-integration`. Không dữ liệu thật/database/mutation backend; không thay thế một lượt browser→DB E2E hay chứng minh quyền server.
+
+## Hộp quà trên thiệp (F10)
+
+F12 mở rộng script này: contrast dialog3 theme×3 accent (8 mẫu chữ/tổ hợp) và XSS label/description chỉ hiển thị text. Full HTTP/SQL A/B dùng `./scripts/features-persistence-qa.ps1`: tự tạo PostgreSQL17 disposable mới bằng cached image, tmpfs/random localhost port, migration chỉ DB trống, stop/remove trong finally; không dùng `.env` hay volume wedding. Chỉ chạy khi cần kiểm chứng DB mới; không thay bằng chạy backend vào database wedding. Browser fixture không tương đương browser→DB E2E; benchmark performance/thiết bị thật/scan QR vẫn cần kiểm riêng.
+
+Chạy `node scripts/gift-dialog-review-qa.mjs` với frontend local3000; đổi `GIFT_DIALOG_QA_ORIGIN`/`CHROME_PATH`. API và PNG synthetic, không database hoặc QR thật. Kiểm public/guest scope, không tải ảnh trước khi mở, single/dual, Space/Escape/ShiftTab/backdrop/focus restore, retry view/ảnh/download, disabled hidden, reduced motion và widths320/390/768/1440. Artifacts `.qa-artifacts/gift-dialog-review`. Không thay kiểm quét QR thật hoặc audit thiết bị.
+
 ## Kiểm tra trình chỉnh sửa thiệp (mock API)
 
 ```powershell
@@ -139,3 +149,7 @@ node scripts/editor-review-qa.mjs
 ```
 
 Chrome headless mở `/admin/wedding` và mô phỏng **toàn bộ** `/api/v1/admin/*` ngay trong trang: không đăng nhập backend thật, không ghi dữ liệu, không dùng nội dung khách thật. Script kiểm tra: nạp đủ 5 loại nội dung cùng bộ trường riêng; cảnh báo “mục đang bật nhưng chưa có nội dung” hiện đúng và mất khi nhập nội dung (và **không báo nhầm** hàng cũ chỉ có `startsAt`); nút ↑/↓ đổi thứ tự người/nhóm làm đổi cả thứ tự trường lẫn payload gửi lên; nút ở biên bị vô hiệu hoá; xem trước đủ **ba ngữ cảnh** — “lời mời riêng” có mốc `PRIVATE`, “thiệp chung” ẩn mốc `PRIVATE`, “link sai/đã thu hồi/hết hạn” render **0 phần** và dùng chung câu chữ với trang thiệp (kèm đối chứng 7 phần ở ngữ cảnh hợp lệ); **hàng TIMELINE cũ lưu được khi chưa đặt tên mốc** (mốc gốc có ghi chú, không `required`, không nút xóa; payload lưu có `timeline: []`, giữ `startsAt`, và thiệp vẫn render `.timeline-legacy-time`); **bỏ được “ngày giờ cũ”** khi đã có mốc chi tiết (nút tắt khi chưa có mốc, lưu `startsAt: null`, giữ mốc chi tiết); editor gửi `contentSchemaVersion: 2`. Báo cáo và ảnh chụp nằm trong `.qa-artifacts/editor-review`. Mặc định `http://localhost:3000`; đổi bằng `EDITOR_QA_ORIGIN` và `CHROME_PATH`.
+
+## Cấu hình quà mừng (F09)
+
+Chạy `node scripts/gift-review-qa.mjs` khi frontend local đang chạy ở `http://localhost:3000` (đổi bằng `GIFT_QA_ORIGIN`, `CHROME_PATH`). Script mở `/admin/gifts`, mock API và ảnh PNG ngay trong browser; không đăng nhập backend, không upload QR thật và không ghi database. Kiểm mode một/hai giữ dữ liệu, upload/save/publish retry, revision/conflict/reload confirmation, thiếu QR chặn publish, owner confirmation, PUBLIC warning, disable không cần xác nhận QR, EDITOR không xem cấu hình/menu, viewport 390/1440. Artifacts tại `.qa-artifacts/gift-review`. Ảnh màu synthetic không phải mã QR; kiểm quét/đúng người nhận phải do chủ thiệp thực hiện với ảnh thật trước phát hành.

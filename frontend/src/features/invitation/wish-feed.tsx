@@ -29,7 +29,7 @@ function ScopedWishFeed({path}:{path:string}){
  // The parent remounts this component whenever the scope path changes.
  },[path]);
  return <div className="wish-feed" aria-busy={busy}>
-  <div className="wish-list">{items.map(wish=><blockquote className="wish-item" key={wish.id}><p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}</cite></blockquote>)}</div>
+  <div className="wish-list">{items.map(wish=><blockquote className="wish-item" key={wish.id}>{wish.pinned&&<span className="field-hint">Được chủ tiệc ghim</span>}<p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}</cite></blockquote>)}</div>
   {busy&&<p role="status" className="field-hint">Đang tải lời chúc…</p>}
   {loaded&&!busy&&items.length===0&&<p className="field-hint">Chưa có lời chúc nào được duyệt.</p>}
   {error&&<p role="alert" className="error">{error}</p>}

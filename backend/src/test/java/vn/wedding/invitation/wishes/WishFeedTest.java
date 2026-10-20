@@ -58,7 +58,7 @@ class WishFeedTest {
         assertEquals(12,page.items().size());
         assertEquals(new UUID(0,2),page.items().getLast().id());
         assertEquals(WishFeedService.encode(AT,new UUID(0,2)),page.nextCursor());
-        assertEquals(Set.of("id","display_name","message","created_at"),
+        assertEquals(Set.of("id","display_name","message","created_at","pinned"),
             Arrays.stream(WishFeedService.Item.class.getRecordComponents()).map(c->c.getName()).collect(java.util.stream.Collectors.toSet()));
     }
     @Test void cursorUsesStrictTupleComparisonForTiedTimestamps(){
@@ -66,9 +66,9 @@ class WishFeedTest {
         String cursor=WishFeedService.encode(AT,last);
         var page=feed.guestFeed(invitationId,session,cursor);
         var sql=ArgumentCaptor.forClass(String.class);
-        verify(db).queryForList(sql.capture(),eq(invitationId),eq(Timestamp.from(AT)),eq(last),eq(13));
-        assertTrue(sql.getValue().contains("(w.created_at,w.id)<(?,?)"));
-        assertTrue(sql.getValue().contains("ORDER BY w.created_at DESC,w.id DESC LIMIT ?"));
+        verify(db).queryForList(sql.capture(),eq(invitationId),eq(false),eq(Timestamp.from(AT)),eq(last),eq(13));
+        assertTrue(sql.getValue().contains("(w.pinned,w.created_at,w.id)<(?,?,?)"));
+        assertTrue(sql.getValue().contains("ORDER BY w.pinned DESC,w.created_at DESC,w.id DESC LIMIT ?"));
         assertTrue(page.items().isEmpty());assertNull(page.nextCursor());
     }
     @Test void malformedCursorsNeverReachSql(){
@@ -76,6 +76,11 @@ class WishFeedTest {
             assertThrows(RuntimeException.class,()->feed.guestFeed(invitationId,session,cursor));
         }
         verifyNoInteractions(db);
+    }
+    @Test void pinnedCursorPreservesPinPartitionAndTimestampTieBreaker(){
+        UUID last=new UUID(0,2);
+        feed.guestFeed(invitationId,session,WishFeedService.encode(AT,last,true));
+        verify(db).queryForList(contains("(w.pinned,w.created_at,w.id)<(?,?,?)"),eq(invitationId),eq(true),eq(Timestamp.from(AT)),eq(last),eq(13));
     }
     @Test void exactPageHasNoNextCursor(){
         var rows=new ArrayList<Map<String,Object>>();for(int i=12;i>=1;i--)rows.add(fixture(i));
