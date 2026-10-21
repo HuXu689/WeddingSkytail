@@ -1,5 +1,9 @@
 # Scripts QA và dữ liệu demo
 
+## Kiểm tra cuộn menu quản trị
+
+`node scripts/admin-sidebar-review-qa.mjs` dùng frontend local3000, mock API OWNER, không dữ liệu thật. Đổi origin bằng `ADMIN_SIDEBAR_QA_ORIGIN`. Kiểm lăn chuột tới footer, focus/Tab tới mục cuối, sidebar không cuộn trang chính, viewport desktop1440×900/1366×600/1024×400/800×320 và mobile320/390/760 không tràn ngang. Artifacts `.qa-artifacts/admin-sidebar-review`.
+
 ## Kiểm tra nhạc thật và chính sách tự phát
 
 `node scripts/music-real-qa.mjs` mặc định kiểm tra stack Docker tại

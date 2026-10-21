@@ -1,6 +1,9 @@
 /* Admin components share the same palette as invitations, but have independent layout. */
 .admin-shell { display:grid; grid-template-columns:244px minmax(0,1fr); min-height:100vh; background:linear-gradient(135deg,var(--compat-color-f4f5ef),var(--compat-color-eef1e9)); }
-.sidebar { background:var(--compat-color-fffdf7e8); border-right:1px solid var(--line); padding:32px 20px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; backdrop-filter:blur(16px); }
+.sidebar { background:var(--compat-color-fffdf7e8); border-right:1px solid var(--line); padding:32px 20px; position:sticky; top:0; height:100vh; height:100dvh; min-height:0; align-self:start; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-gutter:stable; scroll-padding-block:16px; display:flex; flex-direction:column; backdrop-filter:blur(16px); }
+/* Scroll the entire sidebar, including its footer; never compress navigation targets to fit. */
+.sidebar>.brand,.sidebar>nav,.sidebar>.sidebar-foot { flex-shrink:0; }
+.sidebar nav a:focus-visible,.sidebar-foot a:focus-visible { outline:3px solid var(--olive); outline-offset:2px; }
 .brand { text-decoration:none; display:block; text-align:center; margin-bottom:36px; }
 .brand>span { font-size:40px; display:block; line-height:1; color:var(--compat-color-879477); }
 .brand strong { font:25px 'Segoe UI',Arial,sans-serif; font-weight:600; display:block; margin-top:10px; letter-spacing:-.3px; }
@@ -166,7 +169,7 @@
 .pin-issued-code { font-family:ui-monospace,Consolas,monospace; font-size:22px; letter-spacing:4px; font-weight:700; color:var(--compat-color-3d4a30); }
 @media(max-width:1000px) { .admin-shell { grid-template-columns:205px minmax(0,1fr); } .admin-main { padding:28px 24px; } .admin-topbar { padding:16px 24px; } .welcome-banner { flex-direction:column; align-items:flex-start; } }
 @media(max-width:760px) {
- .admin-shell { display:block; } .sidebar { position:static; height:auto; padding:18px 16px 12px; border-right:0; border-bottom:1px solid var(--line); }
+ .admin-shell { display:block; } .sidebar { position:static; height:auto; overflow-y:visible; overscroll-behavior-y:auto; scrollbar-gutter:auto; padding:18px 16px 12px; border-right:0; border-bottom:1px solid var(--line); }
  .brand { text-align:left; margin-bottom:16px; } .brand>span,.brand small,.sidebar-foot { display:none; } .brand strong { margin:0; font-size:23px; }
  .sidebar nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; } .sidebar nav a { padding:8px 5px; gap:5px; font-size:12px; justify-content:center; text-align:center; overflow-wrap:anywhere; } .sidebar nav a>span { display:none; }
   .admin-topbar { padding:12px 16px; font-size:12px; } .admin-main { padding:24px 16px 40px; } .welcome-banner { padding:24px; } .pagination { font-size:13px; } .pagination button { padding:10px; }.admin-overview{gap:8px}.admin-overview>div{padding:14px 10px;display:block;text-align:center}.overview-icon{margin:0 auto 9px}.admin-overview strong{display:block;font-size:24px}.dashboard-section-heading{align-items:start;flex-direction:column;gap:6px}
