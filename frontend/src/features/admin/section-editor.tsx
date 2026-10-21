@@ -36,6 +36,9 @@ function isLegacyMilestone(section:ContentSection,item:TimelineItem):boolean{
 function timelineForEditor(section:ContentSection):TimelineItem[]{
   const items=section.payload?.timeline??[];
   if(items.length||!section.startsAt) return items;
+  // Mốc gốc hàng cũ giữ PUBLIC có chủ đích: server vẫn trả starts_at của hàng legacy trên bản
+  // public, và isLegacyMilestone dựa vào audience!=='PRIVATE'; đổi default ở đây sẽ lệch
+  // preview/server và phá luồng lưu hàng cũ (xem RD09).
   return [{at:section.startsAt,title:'',note:'',venue:'',audience:'PUBLIC',tentative:false}];
 }
 const upgrade=(section:ContentSection):ContentSection=>{
@@ -114,10 +117,10 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
   function update(index:number,patch:Partial<ContentSection>){setRows(old=>old!.map((row,i)=>i===index?{...row,...patch}:row));}
   function updatePayload(index:number,patch:SectionPayload){setRows(old=>old!.map((row,i)=>i===index?{...row,payload:{...(row.payload??{}),...patch}}:row));}
   function move(index:number,offset:number){setRows(old=>{const next=[...old!];[next[index],next[index+offset]]=[next[index+offset],next[index]];return next;});}
-  function add(kind:ContentSection['kind']){setRows(old=>[...old!,{kind,audience:'PRIVATE',enabled:false,title:kinds[kind],body:'',startsAt:null,color:null,payload:kind==='TIMELINE'?{timeline:[{at:'',title:'',note:'',venue:'',audience:'PUBLIC',tentative:false}]}:defaultPayload(kind)}]);}
+  function add(kind:ContentSection['kind']){setRows(old=>[...old!,{kind,audience:'PRIVATE',enabled:false,title:kinds[kind],body:'',startsAt:null,color:null,payload:kind==='TIMELINE'?{timeline:[{at:'',title:'',note:'',venue:'',audience:'PRIVATE',tentative:false}]}:defaultPayload(kind)}]);}
   /** Link không hợp lệ: máy chủ từ chối trước khi gửi dữ liệu nên không có phần nào để hiển thị. */
   const previewSections=context==='invalid'?[]:(rows??[]).filter(row=>context==='guest'||row.audience==='PUBLIC').map(row=>context==='guest'?row:{...row,payload:publicPayload(row)});
-  return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}
+  return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}{rows!==null&&<PublicExposurePanel rows={rows}/>}
   {rows===null?<p>Đang tải cấu hình…</p>:<form onSubmit={async event=>{event.preventDefault();const problem=firstProblem(rows);if(problem){setError(problem);return;}setError('');if(await save(rows.map(forSave)))setOriginal(JSON.stringify(rows));}}>
   <fieldset disabled={busy}>{rows.map((row,index)=><div className="section-editor-item" key={index}>
     <h3>{index+1}. {kinds[row.kind]}</h3>
@@ -130,12 +133,28 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
     <div className="row"><button type="button" className="secondary" disabled={index===0} onClick={()=>move(index,-1)}>Lên</button><button type="button" className="secondary" disabled={index===rows.length-1} onClick={()=>move(index,1)}>Xuống</button></div>
   </div>)}<label>Thêm nội dung<select value="" disabled={rows.length>=20} onChange={e=>{if(!e.target.value)return;add(e.target.value as ContentSection['kind']);}}><option value="">Chọn loại nội dung</option>{Object.entries(kinds).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p>Tắt mục không xóa nội dung. Thông tin buổi tiệc và RSVP không thể tắt hoặc đổi thứ tự tại đây.</p><button disabled={!dirty}>Lưu nháp nội dung tùy chọn</button></fieldset></form>}
   {rows&&<details><summary>Xem trước theo ngữ cảnh</summary><p className="field-hint">Xem trước chỉ mô phỏng hiển thị; máy chủ quyết định quyền thật và luôn lọc mục riêng tư khỏi thiệp chung.</p><label>Ngữ cảnh<select value={context} onChange={e=>setContext(e.target.value as PreviewContext)}><option value="guest">Lời mời riêng (khách đã mở thiệp)</option><option value="public">Thiệp chung (công khai)</option><option value="invalid">Link sai, đã thu hồi hoặc hết hạn</option></select></label>
+  {context==='public'&&rows&&rows.some(row=>row.enabled&&row.audience==='PRIVATE')&&<p className="field-hint">Đang ẩn khỏi thiệp chung vì quyền riêng tư: {rows.filter(row=>row.enabled&&row.audience==='PRIVATE').map(row=>kinds[row.kind]).join(', ')}.</p>}
   {context==='invalid'?<div className="preview-denied" role="note">
     <p><strong>Khách mở link không hợp lệ sẽ không thấy phần nội dung nào.</strong> Không có mục công khai, lời mời riêng, tên khách hay lịch trình nào được gửi về máy khách.</p>
     <p>{INVITATION_UNAVAILABLE}</p>
     <p className="field-hint">Máy chủ từ chối trước khi trả dữ liệu, nên đây chỉ là câu chữ mô phỏng — không phải lớp bảo vệ. Link đã thu hồi cũng dùng chung thông báo này.</p>
   </div>:<ContentSections sections={previewSections}/>}</details>}
   </section>;
+}
+
+/** Tóm tắt đọc từ draft hiện có: những gì sẽ lên thiệp chung sau khi phát hành (RD02, không gọi API). */
+function PublicExposurePanel({rows}:{rows:ContentSection[]}){
+  const publicRows=rows.filter(row=>row.enabled&&row.audience==='PUBLIC');
+  const hidden=rows.filter(row=>row.enabled&&row.audience==='PRIVATE');
+  const describe=(row:ContentSection):string=>{
+    const milestones=row.kind==='TIMELINE'?(row.payload?.timeline??[]).filter(item=>item.audience!=='PRIVATE'&&item.title.trim()).map(item=>item.title.trim()):[];
+    return milestones.length?`${kinds[row.kind]} (mốc công khai: ${milestones.join(', ')})`:kinds[row.kind];
+  };
+  return <div className="public-exposure-panel" role="note" aria-label="Nội dung sẽ xuất hiện trên thiệp chung">
+    <p><strong>Sẽ xuất hiện trên thiệp chung:</strong> {publicRows.length?`${publicRows.map(describe).join('; ')}.`:'chưa có mục công khai nào.'}</p>
+    {hidden.length>0&&<p className="field-hint">Chỉ xuất hiện trong lời mời riêng: {hidden.map(row=>kinds[row.kind]).join(', ')}.</p>}
+    {publicRows.some(row=>row.kind==='CEREMONY')&&<p className="section-empty-warning"><span aria-hidden="true">!</span> Nghi lễ riêng đang bật công khai trên thiệp chung. Cân nhắc chuyển quyền xem về "Chỉ lời mời riêng" nếu không muốn khách ngoài nhìn thấy.</p>}
+  </div>;
 }
 
 type FieldProps={row:ContentSection;index:number;updatePayload:(index:number,patch:SectionPayload)=>void;updateRow:(index:number,patch:Partial<ContentSection>)=>void};
@@ -245,7 +264,7 @@ function TimelineFields({row,index,updatePayload,updateRow}:FieldProps){
       <label><input type="checkbox" checked={item.tentative??false} onChange={e=>patch(position,{tentative:e.target.checked})}/>Giờ chưa chốt (hiện nhãn “Dự kiến”)</label>
       {legacy?<p className="field-hint">Mốc cũ không có nút xóa vì ngày giờ nằm ở dữ liệu gốc của mục; đặt tên để thay bằng mốc chi tiết.</p>:<button type="button" className="secondary" onClick={()=>setItems(items.filter((_,i)=>i!==position))}>Xóa mốc này</button>}
     </fieldset>;})}
-    {items.length<20&&<button type="button" className="secondary" onClick={()=>setItems([...items,{at:'',title:'',note:'',venue:'',audience:'PUBLIC',tentative:false}])}>Thêm mốc</button>}
+    {items.length<20&&<button type="button" className="secondary" onClick={()=>setItems([...items,{at:'',title:'',note:'',venue:'',audience:'PRIVATE',tentative:false}])}>Thêm mốc</button>}
   </div>;
 }
 

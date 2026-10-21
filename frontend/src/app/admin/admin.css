@@ -228,3 +228,6 @@
 .gift-qr-preview { display:block; width:min(100%,280px); height:auto; object-fit:contain; background:var(--compat-color-fff); margin:16px auto; }
 @media(max-width:800px) { .gift-recipient-grid { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:700px) { .reminder-head { flex-direction:column; } .reminder-counts span { min-width:calc(50% - 7px); } }
+.public-exposure-panel{margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--status-warning-border);border-radius:var(--radius-md)}
+.public-exposure-panel p{margin:0 0 6px}
+.public-exposure-panel p:last-child{margin:0}

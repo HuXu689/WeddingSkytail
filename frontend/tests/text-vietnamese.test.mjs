@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {coupleNames,nfc,oneLine,paragraphs,text} from '../src/shared/text.ts';
 
 /**
@@ -78,4 +79,9 @@ test('coupleNames trả về tên đã NFC và không làm mất dấu', () => {
 test('coupleNames không tách một tên đơn có chữ "và" bên trong từ khác', () => {
   assert.deepEqual(coupleNames('Nguyễn Văn An'), ['Nguyễn Văn An']);
   assert.deepEqual(coupleNames('Trần Văn Khánh'), ['Trần Văn Khánh']);
+});
+
+test('RD13: heading trong thiệp buộc text-rendering:auto để không lệch dấu Việt cỡ lớn', () => {
+  const css = readFileSync(new URL('../src/features/invitation/design.css', import.meta.url), 'utf8');
+  assert.match(css, /\.wedding-canvas h1,\.wedding-canvas h2,\.wedding-canvas h3\{text-rendering:auto\}/);
 });
