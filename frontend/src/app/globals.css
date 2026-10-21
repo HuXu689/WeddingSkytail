@@ -14,7 +14,7 @@
   --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-xl:24px; --radius-pill:999px;
   --shadow-card:0 4px 24px #25332906; --shadow-panel:0 12px 40px #25332910; --shadow-float:0 24px 90px #25332918;
   --content-narrow:760px; --content-invitation:860px; --content-main:1120px; --content-wide:1280px;
-  --motion-fast:150ms; --motion-base:250ms; --motion-reveal:650ms; --motion-ease:cubic-bezier(.2,.7,.2,1);
+  --motion-fast:150ms; --motion-base:250ms; --motion-reveal:650ms; --dur-fast:160ms; --dur-med:280ms; --dur-slow:560ms; --motion-ease:cubic-bezier(.2,.7,.2,1);
 }
 * { box-sizing:border-box; }
 body { margin:0; background:radial-gradient(circle at 10% 10%,var(--compat-color-f1e9dc) 0,var(--compat-paint-7472616e73706172656e74) 28%),var(--paper); color:var(--ink); font:16px/1.65 Arial,sans-serif; }

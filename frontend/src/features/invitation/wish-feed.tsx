@@ -3,6 +3,8 @@ import {useEffect,useRef,useState} from 'react';
 import {api} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
 import {approvedWishPath,type ApprovedWishItem,type ApprovedWishPage,type WishFeedScope} from '@/shared/invitation-features';
+/** dd/mm/yyyy ngắn cho caption lời chúc; trả chuỗi rỗng khi thiếu/không hợp lệ để không hiện ngày rỗng. */
+function wishStamp(value:string){const date=new Date(value);return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}).format(date);}
 
 /** A keyed scope prevents a late response from displaying another invitation's feed. */
 export function WishFeed({scope}:{scope:WishFeedScope}){
@@ -29,11 +31,11 @@ function ScopedWishFeed({path}:{path:string}){
  // The parent remounts this component whenever the scope path changes.
  },[path]);
  return <div className="wish-feed" aria-busy={busy}>
-  <div className="wish-list">{items.map(wish=><blockquote className="wish-item" key={wish.id}>{wish.pinned&&<span className="field-hint">Được chủ tiệc ghim</span>}<p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}</cite></blockquote>)}</div>
+  <div className="wish-list">{items.map(wish=><blockquote className="wish-item motion-fade" key={wish.id}>{wish.pinned&&<span className="field-hint">Được chủ tiệc ghim</span>}<p>{text(wish.message)}</p><cite>{oneLine(wish.display_name)}{wishStamp(wish.created_at)&&<span className="wish-time"> · {wishStamp(wish.created_at)}</span>}</cite></blockquote>)}</div>
   {busy&&<p role="status" className="field-hint">Đang tải lời chúc…</p>}
   {loaded&&!busy&&items.length===0&&<p className="field-hint">Chưa có lời chúc nào được duyệt.</p>}
   {error&&<p role="alert" className="error">{error}</p>}
-  <div className="row">{error?<button type="button" className="secondary" disabled={busy} onClick={()=>void load(retryCursor.current)}>Thử tải lại lời chúc</button>:cursor&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(cursor)}>Xem thêm lời chúc</button>}
-  {loaded&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(null)}>Làm mới lời chúc</button>}</div>
+  <div className="row">{error?<button type="button" className="secondary" disabled={busy} onClick={()=>void load(retryCursor.current)}>{busy?'Đang tải…':'Thử tải lại lời chúc'}</button>:cursor&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(cursor)}>{busy?'Đang tải…':'Xem thêm lời chúc'}</button>}
+  {loaded&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(null)}>{busy?'Đang tải…':'Làm mới lời chúc'}</button>}</div>
  </div>;
 }

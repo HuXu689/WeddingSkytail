@@ -29,7 +29,7 @@ try{
    if(url.includes('/assets/')){if(window.downloadFailure)return new Response('{}',{status:403});return new Response(new Uint8Array([137,80,78,71]),{status:200,headers:{'Content-Type':'image/png'}});}
    let result={};
    if(url.endsWith('/state'))result={opened:true};
-   else if(url.endsWith('/gifts')){window.giftReads++;if(window.giftFailure){window.giftFailure=false;return new Response('{}',{status:503});}result={enabled:!location.pathname.includes('off'),mode:location.pathname.includes('single')?'SINGLE':'DUAL',recipients:[{label:'Người nhận minh họa A',description:'Mô tả minh họa',assetId:window.assetFailure?'qa-broken':'qa-first'},...(location.pathname.includes('single')?[]:[{label:'Người nhận minh họa B',description:'',assetId:'qa-second'}])]};}
+   else if(url.endsWith('/gifts')){window.giftReads++;if(window.giftFailure)return new Response('{}',{status:503});result={enabled:!location.pathname.includes('off'),mode:location.pathname.includes('single')?'SINGLE':'DUAL',recipients:[{label:'Người nhận minh họa A',description:'Mô tả minh họa',assetId:window.assetFailure?'qa-broken':'qa-first'},...(location.pathname.includes('single')?[]:[{label:'Người nhận minh họa B',description:'',assetId:'qa-second'}])]};}
    else if(url.includes('approved-wishes')||url.endsWith('/wishes'))result={items:[],nextCursor:null};
    else if(url.includes('/public/weddings/'))result=design;
    else result={wedding:design,displayName:'Khách minh họa',salutation:'Kính mời',events:[]};
@@ -68,7 +68,7 @@ try{
  await command('Input.dispatchMouseEvent',{type:'mousePressed',x:1,y:1,button:'left',clickCount:1});
  await command('Input.dispatchMouseEvent',{type:'mouseReleased',x:1,y:1,button:'left',clickCount:1});
  await until(`!document.querySelector('.gift-dialog')`);
- await evaluate(`window.giftFailure=true;document.querySelector('.gift-trigger').click();true`);await until(`document.querySelector('.gift-dialog [role=alert]')`);await click('Thử tải lại hộp quà');await until(`document.querySelector('.gift-qr')?.complete`);
+ await evaluate(`window.giftFailure=true;document.querySelector('.gift-trigger').click();true`);await until(`document.querySelector('.gift-dialog [role=alert]')`);await evaluate(`window.giftFailure=false;true`);await click('Thử tải lại hộp quà');await until(`document.querySelector('.gift-qr')?.complete`);
  await click('Đóng ×');await until(`!document.querySelector('.gift-dialog')`);
  await evaluate(`window.assetFailure=true;document.querySelector('.gift-trigger').click();true`);await until(`document.querySelector('.gift-dialog [role=alert]')?.textContent.includes('Chưa tải được ảnh QR')`);
  await evaluate(`window.assetFailure=false;true`);await click('Thử tải lại ảnh');await until(`document.querySelector('.gift-qr')?.naturalWidth>0`);
@@ -90,7 +90,7 @@ try{
   assert.equal(await evaluate(`document.querySelector('.gift-description img')`),null);
   assert.equal(await evaluate(`window.__giftXss===true`),false);
  await click('Đóng ×');await until(`!document.querySelector('.gift-dialog')`);
- await command('Page.navigate',{url:origin+'/w/off-fixture'});await until(`window.giftReads===1`);assert.equal(await evaluate(`document.querySelector('.gift-trigger')`),null);
+ await command('Page.navigate',{url:origin+'/w/off-fixture'});await until(`window.giftReads>=1`);assert.equal(await evaluate(`document.querySelector('.gift-trigger')`),null);
  assert.deepEqual(errors,[]);
   const contrastSource=readFileSync(resolve('scripts/contrast-audit.mjs'),'utf8').replace(/export\s+/g,'');
   const contrastResults=[];

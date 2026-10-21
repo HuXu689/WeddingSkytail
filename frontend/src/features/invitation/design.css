@@ -1,4 +1,4 @@
-.wedding-canvas{--wedding-accent:#52664c;--inv-serif:var(--font-serif,'Times New Roman',Times,serif);--inv-sans:var(--font-body,Arial,'Segoe UI',sans-serif);--inv-paper:#fffdf9;--inv-paper-deep:#f6f1e7;--inv-ink:#2b2a26;--inv-muted:#6f6a60;--inv-champagne:#c3a26b;--inv-champagne-soft:#e7dbc2;--inv-hairline:rgba(43,42,38,.13);background:var(--compat-color-fffdf7);color:var(--compat-color-29352c);overflow:hidden;box-shadow:0 24px 90px var(--compat-color-25332918);container-type:inline-size;--inv-fs-h2:clamp(26px,3.2cqw,34px);--inv-fs-h3:clamp(19px,2.1cqw,22px);--inv-fs-caption:12px;--inv-sp-section:clamp(32px,5.5cqw,64px);--inv-sp-paper:clamp(22px,3.2cqw,34px);--inv-radius-paper:12px;--inv-shadow-paper:0 14px 34px rgba(37,51,41,.08);--inv-paper-bright:#fffefb;--inv-paper-modern:#f6f5f1;--inv-card-modern:#fff;--inv-wash-elegant:linear-gradient(180deg,rgba(82,102,76,.05),rgba(82,102,76,0) 420px);--inv-wash-traditional:linear-gradient(180deg,rgba(130,59,66,.06),rgba(130,59,66,0) 420px)}.wedding-inner{animation:cardIn var(--motion-reveal,650ms) var(--motion-ease,ease) both}@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.wedding-canvas{--wedding-accent:#52664c;--inv-serif:var(--font-serif,'Times New Roman',Times,serif);--inv-sans:var(--font-body,Arial,'Segoe UI',sans-serif);--inv-paper:#fffdf9;--inv-paper-deep:#f6f1e7;--inv-ink:#2b2a26;--inv-muted:#6f6a60;--inv-champagne:#c3a26b;--inv-champagne-soft:#e7dbc2;--inv-hairline:rgba(43,42,38,.13);background:var(--compat-color-fffdf7);color:var(--compat-color-29352c);overflow:hidden;box-shadow:0 24px 90px var(--compat-color-25332918);container-type:inline-size;--inv-fs-h2:clamp(26px,3.2cqw,34px);--inv-fs-h3:clamp(19px,2.1cqw,22px);--inv-fs-caption:12px;--inv-sp-section:clamp(32px,5.5cqw,64px);--inv-sp-paper:clamp(22px,3.2cqw,34px);--inv-radius-paper:12px;--inv-shadow-paper:0 14px 34px rgba(37,51,41,.08);--inv-shadow-lift:0 6px 16px rgba(37,51,41,.1);--inv-paper-bright:#fffefb;--inv-paper-modern:#f6f5f1;--inv-card-modern:#fff;--inv-wash-elegant:linear-gradient(180deg,rgba(82,102,76,.05),rgba(82,102,76,0) 420px);--inv-wash-traditional:linear-gradient(180deg,rgba(130,59,66,.06),rgba(130,59,66,0) 420px)}.wedding-inner{animation:cardIn var(--motion-reveal,650ms) var(--motion-ease,ease) both}@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 .wedding-cover{min-height:min(760px,78vh);position:relative;display:grid;align-items:end;isolation:isolate;background:var(--compat-color-263229)}.cover-photo,.cover-photo::after{position:absolute;inset:0}.cover-photo{z-index:-2;overflow:hidden}.cover-photo::after{content:'';background:linear-gradient(180deg,var(--compat-color-17201808) 20%,var(--compat-color-17201810) 42%,var(--compat-color-172018bf) 100%)}.cover-photo img{width:100%;height:100%;display:block;object-fit:cover;transform:scale(1.04);animation:heroReveal 650ms var(--motion-ease,ease) forwards;filter:saturate(.9)}@keyframes heroReveal{to{transform:scale(1)}}
 .cover-content{max-width:780px;padding:clamp(42px,7vw,92px) clamp(24px,7vw,90px);color:var(--compat-color-fff);text-shadow:0 2px 22px var(--compat-color-15201688)}.cover-photo+.cover-content::before{content:'';position:absolute;inset:auto 0 0;height:76%;z-index:-1;background:linear-gradient(0deg,var(--compat-color-172018b8) 0%,var(--compat-color-172018b8) 52%,var(--compat-paint-7472616e73706172656e74) 100%);pointer-events:none}.wedding-cover:not(:has(.cover-photo)){background:radial-gradient(ellipse at top,var(--compat-color-e9edde),var(--compat-color-fffdf7) 70%);color:var(--compat-color-29352c)}.wedding-cover:not(:has(.cover-photo)) .cover-content{color:var(--wedding-accent);text-shadow:none;margin:auto;text-align:center}.wedding-ornament{font-size:42px;display:block;line-height:1.1;color:currentColor;pointer-events:none}.wedding-cover h1{font-family:var(--inv-serif,'Times New Roman',Times,serif);font-size:clamp(48px,8cqw,104px);font-weight:400;line-height:1.05;letter-spacing:normal;margin:18px 0}.recipient-name{font-family:var(--inv-sans,Arial,sans-serif);font-size:clamp(20px,3cqw,30px);font-weight:400;line-height:1.35;letter-spacing:normal;margin:8px 0;color:inherit}.wedding-rule{height:1px;width:90px;background:currentColor;margin:24px 0;opacity:.65;pointer-events:none}.wedding-message{font-family:var(--inv-sans,Arial,sans-serif);font-size:clamp(16px,1.5cqw,19px);line-height:1.85;letter-spacing:normal;max-width:570px;margin:0;white-space:pre-line;overflow-wrap:anywhere}.cover-caption{display:block;font-family:var(--inv-sans,Arial,sans-serif);font-size:11px;line-height:1.5;letter-spacing:1.5px;text-transform:uppercase;margin-top:28px;opacity:.82}.eyebrow{letter-spacing:1.5px;text-transform:uppercase;font-family:var(--inv-sans,Arial,sans-serif);font-size:11px;font-weight:600;line-height:1.5}.open-invitation{border-radius:30px;margin-top:22px;background:var(--wedding-accent)!important}.wedding-body{max-width:1160px;margin:auto;padding:0 clamp(16px,4vw,64px) 40px}.wedding-events{margin:0 calc(clamp(16px,4vw,64px)*-1);padding:0 clamp(16px,4vw,64px) 34px;background:var(--compat-color-f2f3ea)}.section-intro{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:54px 0 24px}.section-intro h2,.wedding-story h2,.wedding-album h2{font-family:var(--inv-serif,'Times New Roman',Times,serif);font-size:clamp(28px,4vw,48px);font-weight:400;line-height:1.12;letter-spacing:normal;margin:6px 0;color:var(--wedding-accent)}.reveal{opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease}.reveal.is-visible{opacity:1;transform:none}.wedding-story{display:grid;grid-template-columns:minmax(190px,.65fr) minmax(0,1.35fr);gap:clamp(28px,8vw,120px);padding:clamp(70px,10vw,140px) 0;border-bottom:1px solid var(--compat-color-dfe2d5)}.story-copy{font-family:var(--inv-sans,Arial,sans-serif);font-size:clamp(16px,1.55cqw,18px);line-height:1.9;letter-spacing:normal;max-width:650px}.story-copy p{white-space:pre-line;margin:0 0 22px;overflow-wrap:anywhere}.wedding-album{padding:clamp(64px,9vw,120px) 0}.album-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:28px}.album-heading span{color:var(--compat-color-6d7769);font-size:13px}.album-editorial{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:repeat(2,minmax(130px,220px));gap:12px}.album-main{grid-row:1/3;grid-column:1;padding:0;border:0;background:var(--compat-color-e8eadf);min-height:300px}.album-main img,.album-side img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .5s ease}.album-main,.album-side{overflow:hidden;padding:0;border:0;background:var(--compat-color-e8eadf)}.album-main:hover img,.album-side:hover img{transform:scale(1.035)}.album-side.selected{outline:3px solid var(--wedding-accent);outline-offset:-3px}.album-controls{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:18px}.album-arrow{width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;font-size:18px}.album-dots{display:flex;justify-content:center;gap:8px}.album-dots button{width:9px;height:9px;min-height:9px;padding:0;border-radius:50%;background:var(--compat-color-d0d7c8)!important}.album-dots button.active{background:var(--wedding-accent)!important;transform:scale(1.35)}.wedding-thanks{text-align:center;padding:60px 16px 30px;color:var(--wedding-accent)}.wedding-thanks>span{font-size:25px;display:block}.wedding-thanks p{margin:10px auto;max-width:520px;white-space:pre-line;font-size:17px;line-height:1.8;letter-spacing:normal}.wedding-thanks small{color:var(--compat-color-7d847b);font-size:11px;letter-spacing:1px}
 .lightbox{position:fixed;inset:0;z-index:20;background:var(--compat-color-182018ed);display:grid;grid-template-columns:64px minmax(0,900px) 64px;align-items:center;justify-content:center;gap:12px;padding:30px}.lightbox figure{margin:0;text-align:center}.lightbox img{max-width:min(900px,80vw);max-height:84vh;object-fit:contain;border-radius:4px}.lightbox figcaption{color:var(--compat-color-fff);margin-top:8px;font-size:13px}.lightbox-close{position:absolute;right:22px;top:16px;background:var(--compat-paint-7472616e73706172656e74)!important;color:var(--compat-paint-7768697465)!important;font-size:34px;padding:0;min-height:auto}.lightbox-nav{width:52px;height:52px;min-height:52px;padding:0;border-radius:50%;font-size:20px;background:var(--compat-color-ffffff20)!important;color:var(--compat-color-fff)}.lightbox-nav.previous{justify-self:end}.lightbox-nav.next{justify-self:start}.theme-traditional{border:6px double var(--wedding-accent);background:var(--compat-color-fff8ed)}.theme-modern .wedding-cover:not(:has(.cover-photo)){text-align:left}.theme-modern .wedding-cover:not(:has(.cover-photo)) .cover-content{text-align:left}.theme-modern .wedding-cover h1{font-family:Arial,sans-serif;font-weight:700;letter-spacing:-.06em}.theme-modern .wedding-rule{margin-left:0;width:140px}
@@ -61,10 +61,20 @@ main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 .reveal.is-visible{animation:sectionReveal var(--motion-reveal,650ms) var(--motion-ease,ease) both}
 @keyframes sectionReveal{from{opacity:.65;transform:translateY(20px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.wedding-inner,.cover-photo img,.reveal.is-visible{animation:none}.cover-photo img{transform:none}.reveal{opacity:1;transform:none;transition:none}.album-main img,.album-side img{transition:none}}
+/* R08 (R-E): helper hiệu ứng dùng chung — opacity + translateY ≤16px; stagger tùy chọn qua --i (chỉ cho ≤8 khối/screen). */
+.motion-rise{animation:motionRise var(--dur-slow,560ms) var(--motion-ease,ease) both;animation-delay:calc(var(--i,0)*40ms)}
+.motion-fade{animation:motionFade var(--dur-med,280ms) var(--motion-ease,ease) both;animation-delay:calc(var(--i,0)*40ms)}
+@keyframes motionRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes motionFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* R08: nút trong thiệp — hover nâng 1px + bóng, active nén nhẹ, focus-visible viền accent; bỏ qua ô ngày lịch. */
+.wedding-canvas button:hover:not(:disabled):not(.calendar-day),.wedding-canvas .button:hover,.invitation-entry button:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--inv-shadow-lift)}
+.wedding-canvas button:active:not(:disabled):not(.calendar-day),.wedding-canvas .button:active,.invitation-entry button:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+.wedding-canvas button:focus-visible,.wedding-canvas .button:focus-visible,.invitation-entry button:focus-visible{outline:3px solid var(--wedding-accent)}
+@media(prefers-reduced-motion:reduce){.wedding-canvas button:hover,.wedding-canvas .button:hover,.wedding-canvas button:active,.wedding-canvas .button:active,.invitation-entry button:hover,.invitation-entry button:active{transform:none}}
 /* Reply progress, map link and change notice for the guest invitation. */
 .invitation-envelope{position:relative;isolation:isolate;width:min(100%,300px);height:180px;margin:0 auto 32px;background:var(--compat-color-f2ebdf);border:1px solid var(--compat-color-d1c2a8);border-radius:4px 4px 12px 12px;box-shadow:0 16px 36px var(--compat-color-493c2514);pointer-events:none}
-.envelope-flap{position:absolute;inset:0;background:var(--compat-color-e5d7bf);clip-path:polygon(0 0,100% 0,50% 62%);transform-origin:top;transition:transform 550ms ease}
-.envelope-seal{position:absolute;left:calc(50% - 24px);top:78px;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:var(--brand-primary);color:var(--compat-color-fff);font-size:26px;box-shadow:0 3px 10px var(--compat-color-493c2520);transition:opacity 400ms ease,transform 550ms ease}
+.envelope-flap{position:absolute;inset:0;background:var(--compat-color-e5d7bf);clip-path:polygon(0 0,100% 0,50% 62%);transform-origin:top;transition:transform var(--dur-slow,560ms) var(--motion-ease,ease)}
+.envelope-seal{position:absolute;left:calc(50% - 24px);top:78px;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:var(--brand-primary);color:var(--compat-color-fff);font-size:26px;box-shadow:0 3px 10px var(--compat-color-493c2520);transition:opacity var(--dur-med,280ms) var(--motion-ease,ease),transform var(--dur-slow,560ms) var(--motion-ease,ease)}
 .is-opening .envelope-flap{transform:rotateX(160deg)}
 .is-opening .envelope-seal{opacity:0;transform:translateY(16px)}
 .invitation-entry h1:focus{outline:none}
@@ -116,6 +126,12 @@ main.public-wedding-page{width:100%;max-width:none;padding:0;margin:0}
 .wish-item{margin:0;padding:16px 18px;border-left:3px solid var(--wedding-accent);background:var(--compat-paint-72676261283235352c3235352c3235352c2e3729);border-radius:0 16px 16px 0}
 .wish-item p{margin:0 0 8px;font-size:16px;line-height:1.7;white-space:pre-line;letter-spacing:normal}
 .wish-item cite{font-size:12px;font-style:normal;letter-spacing:normal;color:var(--compat-color-596354)}
+/* R09: sổ lưu bút — phiếu giấy lệch nhẹ xen kẽ (thuộc tính rotate độc lập, không đụng transform của motionFade); tắt khi reduced-motion. */
+.wish-list .wish-item{rotate:-.4deg;box-shadow:var(--inv-shadow-paper)}
+.wish-list .wish-item:nth-child(even){rotate:.4deg}
+.wish-list .field-hint{display:inline-block;align-self:flex-start;margin:0 0 6px;padding:3px 10px;border-radius:999px;background:var(--inv-champagne-soft);color:var(--inv-ink);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.wish-time{font-size:11px;color:var(--inv-muted)}
+@media(prefers-reduced-motion:reduce){.wish-list .wish-item{rotate:none}}
 /* ============================================================================
    ART-001 + TYPO-001 · Art direction cho MẪU CHUẨN (ELEGANT).
    Hướng thị giác: "thiệp cưới editorial cao cấp" — giấy ngà ivory, đường kẻ champagne
@@ -235,8 +251,12 @@ dialog.album-lightbox{padding-top:max(30px,env(safe-area-inset-top));padding-bot
 dialog.album-lightbox .lightbox-close{top:max(16px,env(safe-area-inset-top));right:max(22px,env(safe-area-inset-right))}
 .cover-content>.reveal.is-visible:nth-child(3){animation-delay:40ms}
 .cover-content>.reveal.is-visible:nth-child(4){animation-delay:80ms}
+.cover-content>.reveal.is-visible:nth-child(5){animation-delay:120ms}
+.cover-content>.reveal.is-visible:nth-child(6){animation-delay:160ms}
+.cover-content>.reveal.is-visible:nth-child(7){animation-delay:200ms}
+.cover-content>.reveal.is-visible:nth-child(8){animation-delay:240ms}
 .wedding-canvas .reveal:focus-within,.wedding-canvas .reveal:has(form){animation:none}
-.wedding-canvas button,.wedding-canvas a.button,.invitation-entry button{transition:background-color 400ms ease,box-shadow 400ms ease}
+.wedding-canvas button,.wedding-canvas a.button,.invitation-entry button{transition:transform var(--dur-fast,160ms) var(--motion-ease,ease),background-color var(--dur-fast,160ms) var(--motion-ease,ease),box-shadow var(--dur-fast,160ms) var(--motion-ease,ease)}
 .album-lightbox button{transition:background-color 400ms ease}
 @media(hover:hover) and (pointer:fine){
  .wedding-canvas button:not(:disabled):hover,.invitation-entry button:not(:disabled):hover{box-shadow:0 4px 14px var(--compat-color-25332920)}
@@ -407,7 +427,19 @@ dialog.album-lightbox figcaption{flex-shrink:0;margin:0}
 .guest-disclosure-mark{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid var(--inv-hairline);border-radius:50%;font-family:var(--inv-sans);font-size:24px;line-height:1;color:var(--wedding-accent);transition:transform var(--guest-motion-duration) ease}
 .guest-disclosure[open]>summary .guest-disclosure-mark{transform:rotate(45deg)}
 .guest-disclosure-body{padding:4px 4px 20px;min-width:0}
+.guest-disclosure[open] .guest-disclosure-body{animation:motionFade var(--dur-med,280ms) var(--motion-ease,ease) both}
 @media(prefers-reduced-motion:reduce){.guest-disclosure{--guest-motion-duration:0ms}.guest-disclosure-mark{transition:none}}
+/* R09: chip trạng thái RSVP trong summary disclosure + tone cho khối thông báo lỗi/thành công. */
+.guest-disclosure-chip{display:flex}
+.rsvp-chip{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+.rsvp-chip.pending{color:var(--status-warning-fg);background:var(--status-warning-bg)}
+.rsvp-chip.attending{color:var(--status-success-fg);background:var(--status-success-bg)}
+.rsvp-chip.declined{color:var(--status-error-fg);background:var(--status-error-bg)}
+.rsvp-form .rsvp-message{display:flex;gap:8px;align-items:flex-start}
+.rsvp-form .rsvp-message::before{content:'✓';font-weight:700}
+.rsvp-form .rsvp-message.error{background:var(--status-error-bg);color:var(--status-error-fg);border:1px solid var(--status-error-border)}
+.rsvp-form .rsvp-message.error::before{content:'⚠'}
+.rsvp-form .rsvp-message.success{background:var(--status-success-bg);color:var(--status-success-fg);border:1px solid var(--status-success-border)}
 .venue-map{margin-block:18px;min-width:0;text-align:left}
 .venue-map-address{overflow-wrap:anywhere;margin-bottom:12px}
 .venue-map-address p{margin:6px 0;white-space:pre-line}
@@ -415,27 +447,38 @@ dialog.album-lightbox figcaption{flex-shrink:0;margin:0}
 .venue-map-frame{height:280px;border:1px solid var(--inv-hairline,currentColor);background:var(--inv-paper,var(--compat-color-fffdf9))}
 .venue-map-frame iframe{display:block;width:100%;height:100%;border:0}
 .venue-map .row{flex-wrap:wrap}
-.wedding-month-calendar{width:calc(100% - 24px);max-width:640px;margin:24px auto 32px;padding:20px 0;border-block:1px solid var(--inv-hairline);text-align:left}
+.wedding-month-calendar{width:calc(100% - 24px);max-width:640px;margin:24px auto 32px;padding:22px 16px 24px;background:var(--inv-paper-bright);border:1px solid var(--inv-hairline);border-radius:var(--inv-radius-paper);box-shadow:var(--inv-shadow-paper);text-align:left}
 .wedding-month-calendar>header{text-align:center}
-.month-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0}
-.month-navigation h3{margin:0;font-family:var(--inv-serif);font-size:24px}
-.wedding-month-calendar table{width:100%;table-layout:fixed;border-collapse:collapse}
-.wedding-month-calendar th,.wedding-month-calendar td{padding:3px;text-align:center;border:0;vertical-align:middle}
+.month-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 14px}
+.month-navigation h3{margin:0;font-family:var(--inv-serif);font-size:var(--inv-fs-h3)}
+.month-navigation .secondary{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;min-height:42px;padding:0;border-radius:999px;font-size:16px;line-height:1}
+.calendar-grid{animation:calendarIn 240ms var(--motion-ease,ease)}
+.calendar-grid[data-dir="-1"]{animation-name:calendarInBack}
+@keyframes calendarIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+@keyframes calendarInBack{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.wedding-month-calendar table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px}
+.wedding-month-calendar th,.wedding-month-calendar td{padding:0;text-align:center;border:0;vertical-align:middle}
 .wedding-month-calendar th{font-family:var(--inv-sans);font-size:13px;color:var(--inv-muted)}
 .wedding-month-calendar abbr{text-decoration:none}
 .calendar-day,.calendar-plain{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;width:100%;font-family:var(--inv-sans);font-size:16px;line-height:1.3}
-.wedding-month-calendar .calendar-day{padding:6px 1px;border:1px solid var(--wedding-accent);border-radius:4px;background:var(--inv-paper);color:var(--wedding-accent)}
-.calendar-day small{font-size:10px;white-space:nowrap;letter-spacing:0}
-.wedding-month-calendar .calendar-day[aria-pressed=true]{background:var(--wedding-accent);color:var(--compat-color-fff)}
+.wedding-month-calendar .calendar-day{padding:6px 1px 5px;border:1px solid var(--inv-champagne-soft);border-radius:10px;background:var(--inv-paper);color:var(--inv-ink);transition:border-color 160ms var(--motion-ease,ease),box-shadow 160ms var(--motion-ease,ease)}
+.wedding-month-calendar .calendar-day:hover{border-color:var(--wedding-accent)}
+.calendar-day small{display:inline-flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;letter-spacing:0}
+.calendar-day small::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--wedding-accent)}
+.wedding-month-calendar .calendar-day[aria-pressed=true]{background:var(--wedding-accent);border-color:var(--wedding-accent);color:var(--compat-color-fff)}
+.wedding-month-calendar .calendar-day[aria-pressed=true] small::before{background:var(--compat-color-fff)}
 .wedding-month-calendar .calendar-day span,.wedding-month-calendar .calendar-day small{color:inherit}
-.calendar-plain[aria-current=date]{text-decoration:underline;text-underline-offset:5px;font-weight:700}
-.calendar-day[aria-current=date]>span:first-child{text-decoration:underline;text-underline-offset:3px}
-@container(max-width:400px){.wedding-month-calendar th,.wedding-month-calendar td{padding:2px 0}.calendar-day,.calendar-plain{min-height:48px}.month-navigation h3{font-size:20px}}
+.calendar-plain[aria-current=date]{font-weight:700;border-radius:10px;box-shadow:inset 0 0 0 1.5px var(--inv-muted)}
+.wedding-month-calendar .calendar-day[aria-current=date]:not([aria-pressed=true]){box-shadow:inset 0 0 0 1.5px var(--inv-muted)}
+@container(max-width:400px){.wedding-month-calendar table{border-spacing:2px}.month-navigation h3{font-size:20px}.calendar-day small{font-size:0;gap:0}.calendar-day small::before{width:5px;height:5px}}
 .calendar-day:focus-visible{outline:3px solid var(--wedding-accent);outline-offset:2px}
-.calendar-details{margin-top:20px;overflow-wrap:anywhere}
+.calendar-details{margin-top:18px;padding:16px 18px 18px;background:var(--inv-paper);border:1px solid var(--inv-hairline);border-radius:var(--inv-radius-paper);box-shadow:var(--inv-shadow-paper);overflow-wrap:anywhere}
+.calendar-details h3{margin:0;font-family:var(--inv-serif);font-size:var(--inv-fs-h3)}
 .calendar-details ul{list-style:none;margin:0;padding:0}
-.calendar-details li{padding:16px 0;border-top:1px solid var(--inv-hairline)}
+.calendar-details li{padding:12px 0;border-top:1px solid var(--inv-hairline)}
+.calendar-details li:first-child{border-top:0;padding-top:6px}
 .calendar-details p{margin:6px 0;line-height:1.7}
+.wedding-month-calendar>button.secondary{margin-top:10px;border:0;background:none;padding:6px 2px;min-height:44px;color:var(--wedding-accent);font-weight:600;text-decoration:underline;text-underline-offset:4px}
 .gift-box{text-align:center;padding:48px 16px;border-top:1px solid var(--inv-hairline);margin-top:32px}
 .gift-box h2{font-family:var(--font-serif);font-size:clamp(28px,5vw,42px)}
 .gift-trigger{display:inline-flex;align-items:center;gap:12px;margin-top:16px;min-height:52px}

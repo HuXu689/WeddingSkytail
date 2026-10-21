@@ -21,8 +21,8 @@ function ScopedGiftBox({path}:{path:string}){
  </section>;
 }
 function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|null;onClose:()=>void}){
- const dialog=useRef<HTMLDialogElement>(null),close=useRef<HTMLButtonElement>(null),downloading=useRef(false),alive=useRef(true);
- const [view,setView]=useState<GiftView|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0),[selected,setSelected]=useState(0),[imageError,setImageError]=useState(false),[imageReady,setImageReady]=useState(false),[busy,setBusy]=useState(false),[downloadError,setDownloadError]=useState('');
+ const dialog=useRef<HTMLDialogElement>(null),close=useRef<HTMLButtonElement>(null),downloading=useRef(false),alive=useRef(true),copying=useRef(false);
+ const [view,setView]=useState<GiftView|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0),[selected,setSelected]=useState(0),[imageError,setImageError]=useState(false),[imageReady,setImageReady]=useState(false),[busy,setBusy]=useState(false),[downloadError,setDownloadError]=useState(''),[copyNotice,setCopyNotice]=useState('');
  const title=useId(),description=useId(),ownerDocument=opener?.ownerDocument??document;
  useEffect(()=>{
   alive.current=true;const node=dialog.current;node?.showModal();close.current?.focus();
@@ -30,10 +30,10 @@ function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|
   const overflow=ownerDocument.body.style.overflow;ownerDocument.body.style.overflow='hidden';
   return()=>{alive.current=false;node?.close();ownerDocument.body.style.overflow=overflow;if(opener?.isConnected)opener.focus({preventScroll:true});};
  },[opener,ownerDocument]);
- useEffect(()=>{let active=true;setView(null);setError('');setImageReady(false);setImageError(false);setDownloadError('');api<GiftView>(path).then(value=>{if(active){setView(value);setSelected(0);}}).catch(()=>{if(active)setError('Không tải được hộp quà. Vui lòng thử lại hoặc đóng để quay về thiệp.');});return()=>{active=false;};},[path,retry]);
+ useEffect(()=>{let active=true;setView(null);setError('');setImageReady(false);setImageError(false);setDownloadError('');setCopyNotice('');api<GiftView>(path).then(value=>{if(active){setView(value);setSelected(0);}}).catch(()=>{if(active)setError('Không tải được hộp quà. Vui lòng thử lại hoặc đóng để quay về thiệp.');});return()=>{active=false;};},[path,retry]);
  const recipient=view?.recipients[selected],url=recipient?.assetId?`/api/v1${path}/assets/${encodeURIComponent(recipient.assetId)}`:null;
  const available=view?.enabled&&view.recipients.length>0&&view.recipients.every(item=>item.assetId&&item.label.trim());
- function choose(index:number){if(index===selected)return;setSelected(index);setImageError(false);setImageReady(false);setDownloadError('');}
+ function choose(index:number){if(index===selected)return;setSelected(index);setImageError(false);setImageReady(false);setDownloadError('');setCopyNotice('');}
  async function download(){
   if(!url||downloading.current)return;downloading.current=true;setBusy(true);setDownloadError('');
   try{
@@ -43,6 +43,17 @@ function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|
    const objectUrl=URL.createObjectURL(blob),anchor=ownerDocument.createElement('a');anchor.href=objectUrl;anchor.download='qua-mung.png';ownerDocument.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
   }catch{if(alive.current)setDownloadError('Chưa tải được ảnh. Bạn có thể mở ảnh gốc và lưu bằng trình duyệt.');}
   finally{downloading.current=false;if(alive.current)setBusy(false);}
+ }
+ async function copy(){
+  if(!url||copying.current)return;copying.current=true;setCopyNotice('');
+  try{
+   const response=await fetch(url,{credentials:'include',cache:'no-store'});
+   if(!response.ok||!response.headers.get('Content-Type')?.startsWith('image/png'))throw Error();
+   const blob=await response.blob();if(!alive.current)return;
+   await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+   if(alive.current)setCopyNotice('Đã sao chép ảnh QR. Bạn có thể dán vào ứng dụng nhắn tin hoặc ghi chú.');
+  }catch{if(alive.current)setCopyNotice('Trình duyệt chưa cho phép sao chép ảnh. Bạn có thể tải ảnh hoặc mở ảnh gốc.');}
+  finally{copying.current=false;}
  }
  return createPortal(<dialog ref={dialog} className="gift-dialog" aria-labelledby={title} aria-describedby={description}
   onCancel={event=>{event.preventDefault();onClose();}} onClick={event=>{if(event.target===event.currentTarget){const box=event.currentTarget.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)onClose();}}}>
@@ -55,7 +66,8 @@ function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|
    <h3>{oneLine(recipient.label)}</h3>{recipient.description&&<p className="gift-description">{text(recipient.description)}</p>}
    <img key={`${url}-${retry}`} className="gift-qr" src={url} alt={`Mã QR quà mừng — ${oneLine(recipient.label)}`} width={280} height={280} onLoad={()=>{setImageReady(true);setImageError(false);}} onError={()=>{setImageError(true);setImageReady(false);}}/>
    {imageError&&<p role="alert">Chưa tải được ảnh QR. <button type="button" className="secondary" onClick={()=>{setImageError(false);setImageReady(false);setRetry(value=>value+1);}}>Thử tải lại ảnh</button></p>}
-   <div className="row"><button type="button" disabled={busy||!imageReady||imageError} onClick={()=>void download()}>{busy?'Đang tải…':'Tải ảnh QR'}</button><a className="button secondary" href={url} target="_blank" rel="noreferrer">Mở ảnh gốc ↗</a></div>
+   <div className="row"><button type="button" disabled={busy||!imageReady||imageError} onClick={()=>void download()}>{busy?'Đang tải…':'Tải ảnh QR'}</button><button type="button" className="secondary" disabled={busy||!imageReady||imageError} onClick={()=>void copy()}>Sao chép ảnh QR</button><a className="button secondary" href={url} target="_blank" rel="noreferrer">Mở ảnh gốc ↗</a></div>
+   {copyNotice&&<p className="field-hint" role="status">{copyNotice}</p>}
    {downloadError&&<p role="alert">{downloadError}</p>}
    <p className="field-hint">Ảnh tải về giữ nguyên PNG. Việc mở hoặc tải mã không phải là chuyển tiền hay xác nhận đã nhận quà.</p>
   </>}

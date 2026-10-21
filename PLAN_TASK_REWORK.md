@@ -127,7 +127,7 @@ Tóm tắt 5 dòng trạng thái rồi tiếp tục task đang dở hoặc task 
 | Quyền public | `wedding/SectionService.java` lọc `audience='PRIVATE'` và mốc PRIVATE ở server; `publicCalendar()` FE chỉ là projection phụ |
 | QA scripts | `scripts/browser-qa.mjs`, `invitation-review-qa.mjs`, `contrast-audit.mjs`, `contrast-pixels.mjs`, `features-persistence-qa.ps1`, `seed-demo.ps1` |
 | Ảnh bằng chứng cũ | `.qa-artifacts/*.png` và `.qa-artifacts/invitation-review/*.png` (dùng làm ảnh "trước" cho R01) |
-| Trạng thái git | HEAD `07e73c3`; working tree sạch tại thời điểm khảo sát; không tự commit |
+| Trạng thái git | HEAD `c464d51` (người dùng tự commit toàn bộ R02–R06 sau phiên R06); đầu phiên R07 tree sạch; thay đổi R07 hiện chưa commit: `frontend/src/features/invitation/design.css`, `frontend/src/features/invitation/wedding-month-calendar.tsx`, `scripts/rework-theme-shots-qa.mjs` |
 | Môi trường R01 | Node v24.15.0, npm 11.12.1, Chrome headless qua CDP (đường dẫn mặc định), Docker 29.8.0, Java 25.0.1, mvn khả dụng |
 | Baseline R01 | `.qa-artifacts/rework/R01/`: log `fe-test.log` (161/161 pass), `fe-typecheck.log`, `fe-build.log`, `invitation-review.log`, `editor-review.log` (đều exit 0) + 13 ảnh `before-*.png` + `notes.md` |
 
@@ -269,9 +269,9 @@ Done khi: ảnh các trạng thái (đóng/mở/lỗi/thành công/rỗng) ở m
 | R04 | Audit + sửa lệch dấu tiếng Việt, fixture NFD | R01 | DONE |
 | R05 | Cover/hero/đếm ngược/album/lightbox/nhạc | R03 | DONE |
 | R06 | Redesign 5 section nội dung | R03 | DONE |
-| R07 | Redesign lịch tháng | R03 | TODO |
-| R08 | Hệ hiệu ứng toàn thiệp | R05, R06, R07 | TODO |
-| R09 | RSVP / lời chúc / hộp quà polish | R03, R08 | TODO |
+| R07 | Redesign lịch tháng | R03 | DONE |
+| R08 | Hệ hiệu ứng toàn thiệp | R05, R06, R07 | DONE |
+| R09 | RSVP / lời chúc / hộp quà polish | R03, R08 | DONE |
 | R10 | Editor quản trị: nhóm form, segmented preview, panel công khai | R02, R03 | TODO |
 | R11 | QA tổng: ma trận ảnh, contrast, keyboard, reduced-motion, E2E browser→DB | R02–R10 | TODO |
 | R12 | Dọn log/artifacts, cập nhật docs, handoff cuối | R11 | TODO |
@@ -407,6 +407,29 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 
 ### Task Log — nhật ký thực thi (mới nhất trên cùng)
 
+### R09 — DONE — 2026-10-21 20:30 +07:00
+- Đã làm: chip trạng thái RSVP trong summary disclosure (`.rsvp-chip.pending/.attending/.declined` — Chưa phản hồi / Sẽ tham dự n người / Không tham dự, màu token `--status-*`); khối thông báo RSVP theo tone (`.rsvp-message.success/.error` + icon ✓/⚠, giữ logic idempotency/retry); sổ lưu bút: phiếu giấy lệch nhẹ xen kẽ bằng thuộc tính `rotate` độc lập (không đụng transform motionFade, tắt reduced-motion) + caption ngày `wishStamp` + nhãn ghim thành pill; hộp quà: nút "Sao chép ảnh QR" (ClipboardItem + fallback thông báo). Chế độ bằng chứng mới `REWORK_PAGE=r09` (mock 503 giữ nháp + wish rỗng + asset QR qua Fetch interception).
+- Đã chạy: `npm test` 166/166 fail 0; typecheck exit 0; build exit 0; `invitation-review-qa.mjs` lượt 1 fail đúng luật contrast chip (4.16<4.5) → đổi sang token `--status-*` → PASS exit 0; `gift-dialog-review-qa.mjs` fail do StrictMode double-effect nuốt cờ one-shot → sửa script (cờ persistent + clear trước retry + `giftReads>=1`) → `GIFT_DIALOG_QA=PASS` exit 0; r09 before/after exit 0 — `chip=""` → `chip="Chưa phản hồi"`, 32 ảnh hash khác nhau, assert giữ nháp khi 503 pass cả 2 lượt.
+- Fix trong phiên: 2 lỗi trên (contrast + StrictMode); thêm `scripts/rework-r09-probe.mjs` (chẩn đoán, giữ làm bằng chứng).
+- Chưa kiểm chứng: clipboard trong headless (quyền) — fallback có thông báo, thử tay ở R11; Safari/Zalo thật.
+- Ghi chú git: 10 file sửa chưa commit (`PLAN_TASK_REWORK.md`, `globals.css`, `page.tsx`, `design.css`, `gift-box.tsx`, `guest-disclosure.tsx`, `wedding-month-calendar.tsx`, `wish-feed.tsx`, `scripts/rework-theme-shots-qa.mjs`, `scripts/gift-dialog-review-qa.mjs`) + `scripts/rework-r09-probe.mjs` (mới); `next-env.d.ts` sạch; dev server tắt cuối phiên.
+- Tiếp theo: R10 — Editor quản trị: nhóm form theo card con, segmented preview, panel công khai (giữ `useUnsavedChanges` + API).
+
+### R08 — DONE — 2026-10-21 16:50 +07:00
+- Đã làm: token `--dur-fast/med/slow` (globals.css) + helper `.motion-rise`/`.motion-fade` + keyframes (design.css, stagger `--i` nhịp 40ms theo lock); disclosure mở bằng motionFade trên body (không animate height JS); feed item `motion-fade` + nhãn nút busy `Đang tải…` (wish-feed.tsx); nút hover nâng 1px+bóng `--inv-shadow-lift`/active nén/focus viền accent (guard reduced-motion, loại trừ ô ngày lịch); envelope timing theo token; stagger nội dung cover mở rộng nth-child(5)-(8) tại 120-240ms. Fix: rule transition cũ dòng 253 (background-only 400ms) trùng specificity đứng sau đè transition mới — đã sửa tại rule cũ sang token + transform. `motion.ts` không đổi (MOTION-001 khóa hành vi).
+- Đã chạy: `npm test` 166/166 fail 0; typecheck exit 0; build exit 0 (chạy lại sau fix dòng 253); `invitation-review-qa.mjs` exit 0 (`review-regression.log`); chế độ mới `REWORK_PAGE=motion`: before-r08 + after-r08 exit 0 — `[anim]` body/wish none→motionFade + buttonTransition thêm transform; `[hover]` matrix(1,0,0,1,0,-1); `[reduced]` none qua Emulation; `[layout]` mid==rest cả 2 bề rộng; 20 ảnh trong `.qa-artifacts/rework/R08/` — `cover-rest` hash TRÙNG before/after (không layout shift).
+- Chưa kiểm chứng: độ mượt thực tế chỉ qua computed + frame tĩnh (không video); đóng disclosure tức thời (chủ ý theo spec); nút album-lightbox giữ transition background-only (ngoài phạm vi tối thiểu); Safari/Zalo thật.
+- Ghi chú git: thay đổi R07+R08 chưa commit (`globals.css`, `design.css`, `wedding-month-calendar.tsx`, `wish-feed.tsx`, `scripts/rework-theme-shots-qa.mjs`); dev server tắt cuối phiên.
+- Tiếp theo: R09 — RSVP/lời chúc/hộp quà polish (giữ logic idempotency/retry, server-filter lời chúc, guard quà, chuỗi lock guest-disclosure + nhãn nút feed lúc nghỉ; ảnh trạng thái đóng/mở/lỗi/thành công/rỗng 390+1440).
+
+### R07 — DONE — 2026-10-21 16:25 +07:00
+- Đã làm: lịch tháng thành thẻ giấy token; ô ngày bo 10px viền champagne-soft + chấm mốc `::before` (GIỮ text 'N mốc' theo lock QA); hôm nay → viền nhẫn inset `--inv-muted` thay gạch chân + sửa câu hint; nút tháng bo tròn 42px; chuyển tháng fade+translateX theo hướng (`dir` + `key={month}`, keyframes `calendarIn/calendarInBack`); chi tiết ngày thành tờ giấy (h3 serif token, li hairline); "Về ngày sự kiện" thành text-link accent; `@container ≤400px` chỉ hiện chấm mốc — fix tràn ngang 320px mà regression bắt được (nút 29px/scroll 33px).
+- Đã chạy: `npm test` exit 0 (166/166, fail 0); typecheck exit 0; build exit 0; `invitation-review-qa.mjs` lượt 1 fail đúng luật overflow 320px → fix → lượt 2 PASS exit 0 (`review-regression.log`); `rework-theme-shots-qa.mjs` chế độ mới `REWORK_PAGE=calendar`: before-r07 + after-r07 exit 0, 12 ảnh `{before,after}-r07-calendar-{grid,next,details}-{390,1440}.png`, hash khác nhau, xác nhận trực quan 5 ảnh AFTER.
+- Fix tooling trong phiên: mock guest thiếu `}` khi nội suy `events:${JSON.stringify(calendarEvents)}` → inject lỗi cú pháp → timeout `.wedding-canvas` + dev log ECONNREFUSED 8080 (fetch thật bị proxy) — đã sửa; fixture sự kiện sinh động theo giờ VN.
+- Chưa kiểm chứng: animation chuyển tháng không bắt được qua ảnh tĩnh (xem CSS + reduced-motion toàn cục); Safari/Zalo thật NOT VERIFIED.
+- Ghi chú git: người dùng đã tự commit R02–R06 (`c464d51`); thay đổi R07 chưa commit; dev server tắt cuối phiên; không commit/push/deploy.
+- Tiếp theo: R08 — hệ hiệu ứng toàn thiệp (giữ các animation hiện có + guard reduced-motion toàn cục, không layout shift; ảnh 390+1440).
+
 ### R06 — DONE — 2026-10-21 16:05 +07:00
 - Đã làm: ornament ❧ giữa hai tên INTRO (desktop, ẩn trong `@container ≤600px`); `.dress-avoid` thành panel nền giấy + viền champagne-soft + icon ✕ tròn qua `strong::before`; mở rộng `rework-theme-shots-qa.mjs` chế độ `REWORK_PAGE=sections` + `REWORK_SPARSE=1` (slice dữ liệu ở Node) + retry 3 lần cho ảnh section; `notes.md` ghi bối cảnh 5 bố cục có sẵn từ T05–T09.
 - Đã chạy: `npm test` exit 0 (166/166); typecheck exit 0; build exit 0; `invitation-review-qa.mjs` exit 0; sections shots before/after (full + sparse) exit 0 sau retry — đủ 4 bộ × 10 ảnh trong `.qa-artifacts/rework/R06/`; xác nhận trực quan `after-r06-section-intro-1440.png` (ornament) và `dress-1440.png` (panel Nên tránh).
@@ -466,6 +489,12 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 | RD15 | Ghi giới hạn tooling cho R11: không dùng full-page screenshot (`captureBeyondViewport`) với đơn vị vh; clip dưới fold không đáng tin; `REWORK_SHOTS_DIR` phải đặt trong cùng lệnh chạy; ảnh photo-mode TRADITIONAL/MODERN của R05 không đáng tin (trùng hash) — chụp lại ở R11 | Tránh lặp lại lỗi đã gặp; R05 chỉ tin ảnh no-photo 3 theme + elegant photo + guest 390 + album/lightbox elegant | R05, R11 |
 | RD16 | R06 chỉ lấp phần thiếu (ornament INTRO giữa hai tên, panel "Nên tránh" + icon ✕), KHÔNG viết lại 5 bố cục; CEREMONY giữ dạng card thay vì "timeline dọc" như câu chữ mục 5 R-F | 5 bố cục đã tồn tại từ T05–T09 và bị test khóa chuỗi (`sections-payload.test.mjs` dòng 15, 40 — kể cả swatch tròn 44px); viết lại sẽ phá lock và vượt phạm vi | R06 |
 | RD17 | Bằng chứng section dùng chế độ `REWORK_PAGE=sections` + `REWORK_SPARSE=1` (slice dữ liệu trong Node) và retry 3 lần cho từng ảnh | `Page.captureScreenshot` timeout CDP lặp lại ở dress-1440; retry giải quyết; 390 intro/family full vs sparse có thể trùng pixel vì viewport chỉ bắt phần đầu section | R06, R11 |
+| RD18 | Lịch R07: GIỮ NGUYÊN text `<small>{n} mốc</small>` (chấm mốc thêm bằng `::before`), aria-label và toàn bộ keyboard/touch-target; hôm nay đổi từ gạch chân sang viền nhẫn inset kèm sửa câu hint; `@container ≤400px` ẩn chữ "mốc" chỉ còn chấm để hết tràn ngang tại 320px; chuyển tháng fade+translateX theo hướng qua `data-dir` + `key={month}` | `invitation-review-qa.mjs` khóa `textContent === '2 mốc'` (dòng 135) và vòng clipped phát hiện nút 29px/scroll 33px tại 320 khi thêm chấm+chữ; reduced-motion toàn cục của `globals.css` đã tắt animation nên không cần guard riêng | R07 |
+| RD19 | Bằng chứng lịch dùng chế độ mới `REWORK_PAGE=calendar` với fixture sự kiện động (hôm nay theo giờ VN; ngày 15 tháng sau có 1 PUBLISHED + 1 CANCELLED) + retry ảnh; chụp 3 trạng thái grid/next/details × 390/1440 | Tái hiện đủ trạng thái ô ngày (hôm nay, 2 mốc, hủy, có/không ICS) không cần backend; cùng khuôn chứng cứ R06; sự kiện sinh động theo `Date.now()` để không phụ thuộc ngày chạy | R07, R11 |
+| RD20 | Motion R08: giữ nhịp stagger 40ms hiện có (40/80ms bị test khóa) và mở rộng cover thêm 120-240ms; helper `.motion-rise`/`.motion-fade` (trần 16px, `--i` chỉ ≤8 khối); disclosure mở bằng motionFade trên body (đóng tức thời, không animate height JS); nút busy đổi nhãn nhưng giữ nhãn lúc nghỉ; phát hiện + sửa rule transition cũ dòng 253 (`background-color 400ms ease,box-shadow 400ms ease`) trùng specificity đứng sau đè transition mới — chuyển sang token + `transform`; `motion.ts` không đổi | Giữ mọi chuỗi bị `invitation-motion.test.mjs` khóa (cardIn/heroReveal/40ms/80ms/`translateY(20px)`); computed style chứng minh transition bị đè; nhịp 60-90ms ở mục 4 chấp nhận lệch 40ms do lock đã xác thực | R08 |
+| RD21 | Bằng chứng motion bằng chế độ `REWORK_PAGE=motion`: đo computed (`animationName`, `transitionProperty`, `transform` khi hover), ảnh mid/rest cho cover + disclosure, layout `scrollHeight`/cover height mid==rest, và emulate `prefers-reduced-motion` qua `Emulation.setEmulatedMedia` để xác nhận kill-switch toàn cục cho `animationName:none` | Ảnh tĩnh không bắt được chuyển động → cần số đo computed + frame giữa chừng; `cover-rest` hash trùng before/after chứng minh không layout shift | R08, R11 |
+| RD22 | Chip RSVP dùng token trạng thái `--status-*` thay vì compat của `.wish-state`; phiếu giấy sổ lưu bút dùng thuộc tính `rotate` độc lập (không đụng `transform` của motionFade) và tắt khi reduced-motion; nút sao chép QR kèm fallback thông báo khi thiếu quyền clipboard | Lượt review đầu fail đúng luật: chip compat 4.16 < 4.5 contrast; `rotate` độc lập cần thiết vì motionFade fill `transform:none` sẽ ghi đè nếu khai báo rotate qua transform | R09 |
+| RD23 | Bằng chứng R09 dùng chế độ `REWORK_PAGE=r09` (mock RSVP 503 giữ bản nháp + assert, wish rỗng qua cờ, asset QR qua Fetch interception) + probe `rework-r09-probe.mjs`; `gift-dialog-review-qa.mjs` sửa để chịu được StrictMode double-effect của dev (cờ lỗi persistent, clear trước retry, `giftReads>=1`) | StrictMode dev gọi effect 2 lần: cờ one-shot bị lượt 1 nuốt (response về sau cleanup → `active=false` → bỏ setError) → không alert; probe xác nhận reads=6 thay vì 3 — lỗi độc lập với thay đổi R09 | R09, R11 |
 
 ## 10. Blockers và điều cần xác nhận
 
@@ -475,6 +504,35 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 - **Dữ liệu thật:** không dùng thiệp thật của người dùng cho ảnh QA; chỉ fixture DEMO.
 
 ## 11. Handoff — cập nhật trước khi dừng mỗi phiên (mới nhất trên cùng)
+
+### Handoff R09 — DONE — 2026-10-21 20:30 +07:00
+
+- R09 DONE: chip trạng thái RSVP + tone thông báo (icon ✓/⚠, token `--status-*`), sổ lưu bút phiếu giấy lệch nhẹ + caption ngày + nhãn ghim pill, nút "Sao chép ảnh QR" (fallback rõ khi thiếu quyền). FE 166/166, typecheck/build exit 0, invitation-review + gift-dialog regression đều PASS.
+- Bằng chứng `.qa-artifacts/rework/R09/` (xem `notes.md`): 32 ảnh `{before,after}-r09-r09-{rsvp-closed,rsvp-open,rsvp-error,rsvp-success,wish-feed,wish-empty,gift-error,gift-open}-{390,1440}.png` (hash khác nhau toàn bộ), log before/after/review/gift; `chip=""` → `chip="Chưa phản hồi"`.
+- Fix đáng nhớ: (1) contrast chip — dùng token `--status-*`; (2) gift QA StrictMode double-effect nuốt cờ one-shot → sửa `gift-dialog-review-qa.mjs`. Probe `scripts/rework-r09-probe.mjs` giữ làm bằng chứng (RD22/RD23).
+- Git: 10 file sửa + `scripts/rework-r09-probe.mjs` (mới) chưa commit; `next-env.d.ts` sạch. Dev server đã tắt cuối phiên; không commit/push/deploy.
+- Task tiếp theo: **R10** (Editor quản trị). Locks: giữ `useUnsavedChanges`, luồng lưu/hủy, API không đổi; panel "Nội dung sẽ công khai" từ R02 giữ nguyên hành vi; `editor-review-qa.mjs` phải tiếp tục pass; ảnh editor 390/1440.
+- Kiểm tra nhanh điểm dừng: `npm test --prefix frontend` (166/166).
+
+### Handoff R08 — DONE — 2026-10-21 16:50 +07:00
+
+- R08 DONE: hệ hiệu ứng theo danh sách đóng mục 4 — token `--dur-fast/med/slow`, helper `.motion-rise`/`.motion-fade`, disclosure mở motionFade, feed item motion-fade + nút busy rõ, nút hover/press/focus accent (guard reduced-motion), envelope timing token, cover stagger mở rộng; không thêm hiệu ứng ngoài danh sách. FE 166/166, typecheck/build exit 0, invitation-review regression exit 0.
+- Bằng chứng `.qa-artifacts/rework/R08/` (xem `notes.md`): 20 ảnh `{before,after}-r08-{cover-mid,cover-rest,disclosure-mid,disclosure-rest,reduced}-{390,1440}.png` + log `before-shots.log`/`after-shots.log`/`review-regression.log`; `cover-rest` hash trùng before/after (không layout shift); `[anim]` none→motionFade; `[hover]` matrix(1,0,0,1,0,-1); `[reduced]` none.
+- Fix đáng nhớ: rule transition cũ design.css dòng 253 bị trùng specificity đứng sau đè transition mới — phải sửa tại rule cũ (ghi ở RD20).
+- Git: thay đổi R07+R08 chưa commit: `frontend/src/app/globals.css`, `frontend/src/features/invitation/design.css`, `frontend/src/features/invitation/wedding-month-calendar.tsx`, `frontend/src/features/invitation/wish-feed.tsx`, `scripts/rework-theme-shots-qa.mjs` (+ artifact R07/R08 mới); `motion.ts` không đổi. Dev server đã tắt cuối phiên; không commit/push/deploy.
+- Task tiếp theo: **R09** (RSVP/lời chúc/hộp quà polish). Locks: giữ logic idempotency/retry RSVP, server-filter lời chúc, guard quà; giữ chuỗi bị khóa ở `guest-disclosure.test.mjs` + nhãn nút feed lúc nghỉ + câu hint/thành phần `.rsvp-summary` bị `invitation-review-qa.mjs` khẳng định; ảnh trạng thái đóng/mở/lỗi/thành công/rỗng 390+1440.
+- Kiểm tra nhanh điểm dừng: `npm test --prefix frontend` (166/166).
+
+### Handoff R07 — DONE — 2026-10-21 16:25 +07:00
+
+- R07 DONE: redesign lịch tháng trong `design.css` + `wedding-month-calendar.tsx` (thẻ giấy, ô ngày bo tròn + chấm mốc, hôm nay viền nhẫn, nút tháng tròn, chuyển tháng fade+translateX theo hướng, chi tiết dạng tờ giấy, "Về ngày sự kiện" text-link). FE 166/166, typecheck/build exit 0, invitation-review regression exit 0.
+- Bằng chứng `.qa-artifacts/rework/R07/` (xem `notes.md`): `before-r07-calendar-{grid,next,details}-{390,1440}.png` + `after-r07-calendar-{grid,next,details}-{390,1440}.png` (6+6 ảnh, hash khác nhau), `review-regression.log`, `after-shots.log`, `fe-dev.log/pid`.
+- Locks đã giữ: `.calendar-day small` text '2 mốc' (test), aria-label/keyboard Enter-Space-Tab/focus/aria-pressed, touch ≥24×44 tại 320px (≤400px container chỉ hiện chấm), không ICS cho hủy, `wedding-calendar.test.mjs` không đổi.
+- RD18/RD19: quy tắc giữ lock + chế độ bằng chứng `REWORK_PAGE=calendar` (fixture động) đã ghi vào Decision Log.
+- Git: người dùng tự commit R02–R06 thành `c464d51` (tree sạch đầu phiên); thay đổi R07 chưa commit: `frontend/src/features/invitation/design.css`, `frontend/src/features/invitation/wedding-month-calendar.tsx`, `scripts/rework-theme-shots-qa.mjs` (+ artifact R07 mới).
+- Dev server đã tắt cuối phiên; không commit/push/deploy/migration.
+- Task tiếp theo: **R08** (hệ hiệu ứng toàn thiệp). Locks: giữ các animation hiện có (cardIn/sectionReveal/lightboxIn/calendarIn…), motion mới không gây layout shift, cần guard reduced-motion (globals đã tắt toàn cục sẵn); chứng cứ ảnh 390+1440.
+- Kiểm tra nhanh điểm dừng: `npm test --prefix frontend` (166/166).
 
 ### Handoff R06 — DONE — 2026-10-21 16:05 +07:00
 
