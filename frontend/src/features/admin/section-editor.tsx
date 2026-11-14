@@ -103,6 +103,12 @@ function firstProblem(sections:ContentSection[]):string|null{
  * và link không hợp lệ (sai/đã thu hồi/hết hạn) — ngữ cảnh cuối không nhận nội dung nào.
  */
 type PreviewContext='guest'|'public'|'invalid';
+/** Nhãn + mô tả một dòng cho segmented control ngữ cảnh xem trước (R-I). */
+const previewContexts:{id:PreviewContext;label:string;note:string}[]=[
+ {id:'guest',label:'Khách được mời',note:'Lời mời riêng đã mở thiệp — hiển thị cả mốc chỉ dành cho khách.'},
+ {id:'public',label:'Thiệp chung',note:'Bản công khai — máy chủ luôn ẩn mục và mốc riêng tư.'},
+ {id:'invalid',label:'Link hỏng',note:'Link sai, đã thu hồi hoặc hết hạn — không trả về phần nội dung nào.'}
+];
 
 export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:boolean)=>void;save:(sections:ContentSection[])=>Promise<boolean>}){
   const [rows,setRows]=useState<ContentSection[]|null>(null),[original,setOriginal]=useState(''),[error,setError]=useState(''),[context,setContext]=useState<PreviewContext>('guest');
@@ -120,8 +126,9 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
   function add(kind:ContentSection['kind']){setRows(old=>[...old!,{kind,audience:'PRIVATE',enabled:false,title:kinds[kind],body:'',startsAt:null,color:null,payload:kind==='TIMELINE'?{timeline:[{at:'',title:'',note:'',venue:'',audience:'PRIVATE',tentative:false}]}:defaultPayload(kind)}]);}
   /** Link không hợp lệ: máy chủ từ chối trước khi gửi dữ liệu nên không có phần nào để hiển thị. */
   const previewSections=context==='invalid'?[]:(rows??[]).filter(row=>context==='guest'||row.audience==='PUBLIC').map(row=>context==='guest'?row:{...row,payload:publicPayload(row)});
-  return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}{rows!==null&&<PublicExposurePanel rows={rows}/>}
+  return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}
   {rows===null?<p>Đang tải cấu hình…</p>:<form onSubmit={async event=>{event.preventDefault();const problem=firstProblem(rows);if(problem){setError(problem);return;}setError('');if(await save(rows.map(forSave)))setOriginal(JSON.stringify(rows));}}>
+  <div className="editor-group"><h3 className="editor-group-title">Nội dung &amp; thứ tự</h3>
   <fieldset disabled={busy}>{rows.map((row,index)=><div className="section-editor-item" key={index}>
     <h3>{index+1}. {kinds[row.kind]}</h3>
     <label><input type="checkbox" checked={row.enabled} onChange={e=>update(index,{enabled:e.target.checked})}/>Hiển thị mục này</label>
@@ -131,14 +138,16 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
     <label>Quyền xem<select value={row.audience} onChange={e=>update(index,{audience:e.target.value as ContentSection['audience']})}><option value="PRIVATE">Chỉ lời mời riêng đã mở</option><option value="PUBLIC">Công khai trên thiệp chung</option></select></label>
     <KindFields row={row} index={index} updatePayload={updatePayload} updateRow={update}/>
     <div className="row"><button type="button" className="secondary" disabled={index===0} onClick={()=>move(index,-1)}>Lên</button><button type="button" className="secondary" disabled={index===rows.length-1} onClick={()=>move(index,1)}>Xuống</button></div>
-  </div>)}<label>Thêm nội dung<select value="" disabled={rows.length>=20} onChange={e=>{if(!e.target.value)return;add(e.target.value as ContentSection['kind']);}}><option value="">Chọn loại nội dung</option>{Object.entries(kinds).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p>Tắt mục không xóa nội dung. Thông tin buổi tiệc và RSVP không thể tắt hoặc đổi thứ tự tại đây.</p><button disabled={!dirty}>Lưu nháp nội dung tùy chọn</button></fieldset></form>}
-  {rows&&<details><summary>Xem trước theo ngữ cảnh</summary><p className="field-hint">Xem trước chỉ mô phỏng hiển thị; máy chủ quyết định quyền thật và luôn lọc mục riêng tư khỏi thiệp chung.</p><label>Ngữ cảnh<select value={context} onChange={e=>setContext(e.target.value as PreviewContext)}><option value="guest">Lời mời riêng (khách đã mở thiệp)</option><option value="public">Thiệp chung (công khai)</option><option value="invalid">Link sai, đã thu hồi hoặc hết hạn</option></select></label>
+  </div>)}<label>Thêm nội dung<select value="" disabled={rows.length>=20} onChange={e=>{if(!e.target.value)return;add(e.target.value as ContentSection['kind']);}}><option value="">Chọn loại nội dung</option>{Object.entries(kinds).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p>Tắt mục không xóa nội dung. Thông tin buổi tiệc và RSVP không thể tắt hoặc đổi thứ tự tại đây.</p></fieldset></div>
+  <div className="editor-group"><h3 className="editor-group-title">Quyền hiển thị</h3><p className="field-hint">Mục “Chỉ lời mời riêng” không xuất hiện trên thiệp chung; bảng dưới đọc trực tiếp từ bản đang chỉnh.</p>{rows!==null&&<PublicExposurePanel rows={rows}/>}</div>
+  <div className="editor-savebar"><p className={dirty?'design-warning':'field-hint'}>{dirty?'Bạn có thay đổi chưa lưu.':'Nội dung đã đồng bộ với dữ liệu tải từ máy chủ.'}</p><div className="row"><button disabled={!dirty||busy}>{busy?'Đang xử lý…':'Lưu nháp nội dung tùy chọn'}</button></div></div></form>}
+  {rows&&<div className="editor-group"><h3 className="editor-group-title">Xem trước</h3><details><summary>Xem trước theo ngữ cảnh</summary><p className="field-hint">Xem trước chỉ mô phỏng hiển thị; máy chủ quyết định quyền thật và luôn lọc mục riêng tư khỏi thiệp chung.</p><div className="preview-segmented" role="group" aria-label="Ngữ cảnh xem trước">{previewContexts.map(item=><button type="button" key={item.id} data-context={item.id} aria-pressed={context===item.id} onClick={()=>setContext(item.id)}>{item.label}</button>)}</div><p className="field-hint">{previewContexts.find(item=>item.id===context)?.note}</p>
   {context==='public'&&rows&&rows.some(row=>row.enabled&&row.audience==='PRIVATE')&&<p className="field-hint">Đang ẩn khỏi thiệp chung vì quyền riêng tư: {rows.filter(row=>row.enabled&&row.audience==='PRIVATE').map(row=>kinds[row.kind]).join(', ')}.</p>}
   {context==='invalid'?<div className="preview-denied" role="note">
     <p><strong>Khách mở link không hợp lệ sẽ không thấy phần nội dung nào.</strong> Không có mục công khai, lời mời riêng, tên khách hay lịch trình nào được gửi về máy khách.</p>
     <p>{INVITATION_UNAVAILABLE}</p>
     <p className="field-hint">Máy chủ từ chối trước khi trả dữ liệu, nên đây chỉ là câu chữ mô phỏng — không phải lớp bảo vệ. Link đã thu hồi cũng dùng chung thông báo này.</p>
-  </div>:<ContentSections sections={previewSections}/>}</details>}
+  </div>:<ContentSections sections={previewSections}/>}</details></div>}
   </section>;
 }
 

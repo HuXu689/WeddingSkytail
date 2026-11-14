@@ -18,7 +18,7 @@ try{
  socket=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl);
  await new Promise((res,rej)=>{socket.onopen=res;socket.onerror=rej;});
  let serial=0;const pending=new Map();
- socket.onmessage=event=>{const m=JSON.parse(event.data);if(m.id){const t=pending.get(m.id);pending.delete(m.id);m.error?t.reject(m.error):t.resolve(m.result);}};
+ socket.onmessage=event=>{const m=JSON.parse(event.data);if(m.method==='Page.javascriptDialogOpening'){void command('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{});}if(m.id){const t=pending.get(m.id);pending.delete(m.id);m.error?t.reject(m.error):t.resolve(m.result);}};
  const command=(method,params={})=>new Promise((res,rej)=>{const id=++serial;const timeout=setTimeout(()=>{pending.delete(id);rej(Error('CDP timeout: '+method));},30000);pending.set(id,{resolve:v=>{clearTimeout(timeout);res(v);},reject:e=>{clearTimeout(timeout);rej(e);}});socket.send(JSON.stringify({id,method,params}));});
  const evaluate=async expression=>{const r=await command('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,userGesture:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
  const until=async expression=>{for(let i=0;i<200;i++){if(await evaluate(`Boolean(${expression})`))return;await wait(100);}throw Error('Timeout: '+expression);};
@@ -50,6 +50,18 @@ try{
  ],nextCursor:null}:{items:[],nextCursor:null};
  const r09Events=r09Mode?[baseEvent('ev1','Tiệc DEMO',`${nextMonthDate.toISOString().slice(0,10)}T03:00:00Z`,'PUBLISHED')]:null;
  const r09GiftView=r09Mode?{enabled:true,mode:'SINGLE',recipients:[{label:'Người nhận DEMO',description:'Quét mã QR để gửi quà mừng.',assetId:'qa-first'}]}:{enabled:false};
+ const editorMode=process.env.REWORK_PAGE==='editor';
+ const editorLayout=[{section:'MUSIC',enabled:false},{section:'COUNTDOWN',enabled:false},{section:'STORY',enabled:false},{section:'CONTENT',enabled:true},{section:'ALBUM',enabled:false},{section:'THANKS',enabled:false}];
+ const editorWedding={version:7,published:true,names:'An & Bình',draft_names:'An & Bình',message:'Lời mời kiểm thử.',draft_message:'Lời mời kiểm thử.',theme:'ELEGANT',draft_theme:'ELEGANT',accent:'OLIVE',draft_accent:'OLIVE',story:'',draft_story:'',footer:'Cảm ơn bạn.',draft_footer:'Cảm ơn bạn.',show_story:false,draft_show_story:false,show_countdown:false,draft_show_countdown:false,music_autoplay:false,draft_music_autoplay:false,draft_music_id:null,musicUrl:null,heroUrl:null,heroPosition:null,albumUrls:[],tracking:false,mode:'MANUAL_OPEN',open_at:null,close_at:null,layout:editorLayout};
+ const editorSections=[
+  {kind:'INTRO',audience:'PUBLIC',enabled:true,title:'Giới thiệu hai bạn',body:'',startsAt:null,color:null,payload:{people:[{name:'Người A',role:'Vai trò A',note:''},{name:'Người B',role:'Vai trò B',note:''}]}},
+  {kind:'FAMILY',audience:'PUBLIC',enabled:true,title:'Gia đình',body:'',startsAt:null,color:null,payload:{groups:[{label:'Nhóm Một',members:[{name:'Thành viên 1',note:''}]},{label:'Nhóm Hai',members:[{name:'Thành viên 2',note:''}]}]}},
+  {kind:'CEREMONY',audience:'PUBLIC',enabled:true,title:'Nghi lễ riêng',body:'',startsAt:null,color:null,payload:{items:[{title:'Nghi lễ A',lead:'',time:null,venue:'',address:'',directions:''}]}},
+  {kind:'TIMELINE',audience:'PUBLIC',enabled:true,title:'Mốc lịch trình',body:'',startsAt:null,color:null,payload:{timeline:[{at:'2027-12-20T09:00:00Z',title:'Mốc công khai',note:'',venue:'',audience:'PUBLIC',tentative:false},{at:'2027-12-20T01:23:00Z',title:'Lễ gia tiên',note:'',venue:'',audience:'PRIVATE',tentative:true}]}},
+  {kind:'DRESS_CODE',audience:'PUBLIC',enabled:true,title:'Trang phục',body:'Tông sáng.',startsAt:null,color:null,payload:{palette:[{name:'Trắng ngà',color:'#fffdf9'}],avoid:''}},
+  {kind:'CEREMONY',audience:'PRIVATE',enabled:true,title:'Mục rỗng (thử cảnh báo)',body:'',startsAt:null,color:null,payload:{items:[{title:'',lead:'',time:null,venue:'',address:'',directions:''}]}},
+  {kind:'TIMELINE',audience:'PUBLIC',enabled:true,title:'Mốc hàng cũ',body:'',startsAt:'2027-12-21T04:00:00Z',color:null,payload:null}
+ ];
  const design={names:'Trần Thanh Bình & Lê Hải Đăng',message:'Trân trọng mời bạn chung vui trong ngày hạnh phúc của chúng mình.',theme:'ELEGANT',accent:'OLIVE',story:'Chúng mình gặp nhau ở một quán cà phê nhỏ.',footer:'Cảm ơn bạn đã đến.',show_story:true,heroUrl:heroNone?null:picture,albumUrls:heroNone?[]:[picture,picture,picture,picture],show_countdown:true,musicUrl:silentWav,layout:[{section:'MUSIC',enabled:true},{section:'COUNTDOWN',enabled:true},{section:'STORY',enabled:true},{section:'CONTENT',enabled:true},{section:'ALBUM',enabled:!heroNone},{section:'THANKS',enabled:true}],sections:[
   {kind:'INTRO',audience:'PUBLIC',enabled:true,title:'Giới thiệu hai bạn',body:'Giữa hàng triệu người trên thế gian, thật may mắn vì chúng mình đã tìm thấy nhau.',startsAt:null,color:null,payload:{people:[{name:'Trần Thanh Bình',role:'Cô dâu',note:'Thích hoa dại.'},{name:'Lê Hải Đăng',role:'Chú rể',note:'Mê cà phê.'}]}},
   {kind:'FAMILY',audience:'PUBLIC',enabled:true,title:'Gia đình',body:'Nơi khởi nguồn của yêu thương, tổ ấm nhỏ.',startsAt:null,color:null,payload:{groups:[{label:'Nhà gái',members:[{name:'Ông Trần Quốc Tuấn',note:'Mẹ'}]},{label:'Nhà trai',members:[{name:'Ông Lê Văn An',note:'Bố'}]}]}},
@@ -64,6 +76,12 @@ try{
   const nativeFetch=window.fetch;
   window.fetch=async function(input,init){
    const url=String(input);if(!url.startsWith('/api/v1/'))return nativeFetch(input,init);
+   if(url.endsWith('/csrf'))return new Response(JSON.stringify({headerName:'X-CSRF',token:'test'}),{status:200,headers:{'Content-Type':'application/json'}});
+   if(url.endsWith('/auth/me'))return new Response(JSON.stringify({username:'owner',role:'OWNER'}),{status:200,headers:{'Content-Type':'application/json'}});
+   if(url.endsWith('/admin/media'))return new Response(JSON.stringify([]),{status:200,headers:{'Content-Type':'application/json'}});
+   if(url.endsWith('/admin/wedding/sections')){if(typeof init?.method==='string'&&init.method==='PUT'){window.__savedSections=JSON.parse(init.body).sections;return new Response('',{status:200});}return new Response(JSON.stringify(window.__savedSections??${JSON.stringify(editorSections)}),{status:200,headers:{'Content-Type':'application/json'}});}
+   if(url.endsWith('/admin/wedding/layout'))return new Response(JSON.stringify(${JSON.stringify(editorLayout)}),{status:200,headers:{'Content-Type':'application/json'}});
+   if(url.endsWith('/admin/wedding'))return new Response(JSON.stringify(${JSON.stringify(editorWedding)}),{status:200,headers:{'Content-Type':'application/json'}});
    if(url.includes('/gifts/assets/')){if(window.assetFailure||window.downloadFailure)return new Response('{}',{status:403,headers:{'Content-Type':'application/json'}});return new Response(new Uint8Array([137,80,78,71]),{status:200,headers:{'Content-Type':'image/png'}});}
    if(url.includes('/wishes')||url.includes('/approved-wishes'))return new Response(JSON.stringify(window.r09EmptyWishes?{items:[],nextCursor:null}:${JSON.stringify(wishFeed)}),{status:200,headers:{'Content-Type':'application/json'}});
    if(url.includes('/gift'))return new Response(JSON.stringify(${JSON.stringify(r09GiftView)}),{status:200,headers:{'Content-Type':'application/json'}});
@@ -78,7 +96,7 @@ try{
   };
  `});
  const guestMode=process.env.REWORK_PAGE==='guest';
- console.error(`[cfg] prefix=${prefix} heroNone=${heroNone} guestMode=${guestMode} sectionsMode=${sectionsMode} calendarMode=${calendarMode} motionMode=${motionMode} r09Mode=${r09Mode} sparse=${sparse} dir=${directory}`);
+ console.error(`[cfg] prefix=${prefix} heroNone=${heroNone} guestMode=${guestMode} sectionsMode=${sectionsMode} calendarMode=${calendarMode} motionMode=${motionMode} r09Mode=${r09Mode} editorMode=${editorMode} sparse=${sparse} dir=${directory}`);
  if(guestMode){
   for(const [width,height] of [[390,844],[1440,900]]){
    await metrics(width,height);
@@ -117,11 +135,22 @@ try{
    await evaluate(`document.querySelector('.wedding-month-calendar').scrollIntoView({block:'start'});true`);
    await wait(250);
    await shot(`${prefix}-calendar-grid-${width}`);
-   await evaluate(`document.querySelector('[aria-label="Tháng sau"]').click();true`);
+   // Tháng mới có animation fade/translateX (RD18): chờ/ bấm lại nút "Tháng sau" cho tới khi tháng đích render.
+   const [nextDay,nextMonth,nextYear]=nextDayLabel.split('/');
+   let dayFound=false;
+   for(let attempt=0;attempt<10&&!dayFound;attempt++){
+    const advanced=await evaluate(`[...document.querySelectorAll('.calendar-day')].some(el=>(el.getAttribute('aria-label')||'').includes(${JSON.stringify('/'+nextMonth+'/'+nextYear)}))`);
+    if(advanced){
+     dayFound=await evaluate(`(()=>{const b=[...document.querySelectorAll('.calendar-day')].find(el=>(el.getAttribute('aria-label')||'').startsWith(${JSON.stringify(nextDayLabel)}));if(!b)return false;b.click();return true;})()`);
+     if(!dayFound)await wait(400);
+    }else{
+     await evaluate(`(()=>{const b=document.querySelector('[aria-label="Tháng sau"]');if(b&&!b.disabled)b.click();return true;})()`);
+     await wait(500);
+    }
+   }
+   if(!dayFound)throw Error('Không tìm thấy ngày '+nextDayLabel+' sau nhiều lần thử');
    await wait(350);
    await shot(`${prefix}-calendar-next-${width}`);
-   const dayFound=await evaluate(`(()=>{const b=[...document.querySelectorAll('.calendar-day')].find(el=>(el.getAttribute('aria-label')||'').startsWith(${JSON.stringify(nextDayLabel)}));if(!b)return false;b.click();return true;})()`);
-   if(!dayFound)throw Error('Không tìm thấy ngày '+nextDayLabel);
    await wait(250);
    await evaluate(`document.querySelector('.calendar-details').scrollIntoView({block:'center'});true`);
    await wait(150);
@@ -225,6 +254,32 @@ try{
    await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
    await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
    await until(`!document.querySelector('.gift-dialog')`);
+  }
+ }else if(editorMode){
+  for(const [width,height] of [[390,844],[1440,900]]){
+   await metrics(width,height);
+   await command('Page.navigate',{url:`${origin}/admin/wedding`});
+   await until(`document.querySelectorAll('.section-editor-item').length>=7`);
+   await wait(400);
+   assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth'),'Tràn ngang editor '+width);
+   const shot=async(name)=>{let saved=false;for(let attempt=0;attempt<3&&!saved;attempt++){try{await screenshot(name);saved=true;}catch(error){console.error(`[retry] ${name} lần ${attempt+1}: ${error.message}`);await wait(800);}}if(!saved)throw Error(`Không chụp được ${name}`);};
+   await evaluate(`document.querySelector('.section-editor').scrollIntoView({block:'start'});true`);
+   await wait(250);
+   await shot(`${prefix}-editor-top-${width}`);
+   await evaluate(`(()=>{const details=document.querySelector('.section-editor details');if(details)details.open=true;return true;})()`);
+   await evaluate(`document.querySelector('.section-editor details')?.scrollIntoView({block:'start'});true`);
+   await wait(300);
+   await shot(`${prefix}-editor-preview-${width}`);
+   console.error(`[editor ${width}] ${await evaluate(`JSON.stringify({segmented:document.querySelectorAll('.section-editor .preview-segmented button').length,select:!!document.querySelector('.section-editor details select'),savebar:!!document.querySelector('.section-editor .editor-savebar')})`)}`);
+   await evaluate(`(()=>{const input=[...document.querySelectorAll('.section-editor-item input')].find(item=>item.type!=='checkbox'&&item.type!=='color');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;window.__editorOriginal=input.value;setter.call(input,input.value+' (nháp)');input.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);
+   await wait(300);
+   await evaluate(`(()=>{document.querySelector('.section-editor form')?.scrollIntoView({block:'end'});document.querySelector('.section-editor .editor-savebar')?.scrollIntoView({block:'center'});return true;})()`);
+   await wait(250);
+   await shot(`${prefix}-editor-savebar-${width}`);
+   console.error(`[editor-bar ${width}] ${await evaluate(`JSON.stringify({note:document.querySelector('.section-editor .editor-savebar p')?.textContent??'',saveDisabled:document.querySelector('.section-editor .editor-savebar button')?.disabled??null,formSaveDisabled:[...document.querySelector('.section-editor form').querySelectorAll('button')].find(b=>b.textContent.includes('Lưu nháp'))?.disabled??null})`)}`);
+   // Hoàn tác thay đổi để tắt beforeunload trước khi chuyển bề rộng kế tiếp (nếu không Page.navigate bị treo).
+   await evaluate(`(()=>{const input=[...document.querySelectorAll('.section-editor-item input')].find(item=>item.type!=='checkbox'&&item.type!=='color');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(input,window.__editorOriginal??input.value);input.dispatchEvent(new Event('input',{bubbles:true}));window.__editorOriginal=null;return true;})()`);
+   await wait(250);
   }
  }else if(sectionsMode){
   for(const [width,height] of [[390,844],[1440,900]]){

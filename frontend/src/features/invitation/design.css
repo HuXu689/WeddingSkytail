@@ -515,3 +515,54 @@ dialog.album-lightbox[open],dialog.album-lightbox[open]::backdrop{animation:ligh
 .invitation-music-button[aria-pressed="true"] svg{animation:musicPulse 2.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.wedding-canvas .album-main img,.wedding-canvas .album-side img{transition:none}.invitation-music-button svg{animation:none}}
 @media(max-width:400px){.gift-dialog-content{padding:16px}.gift-dialog .row>*{width:100%}}
+
+/* Invitation stationery: shared by the guest page, public page and editor preview. */
+.wedding-canvas{--inv-shadow-paper:0 8px 28px rgba(37,51,41,.04);--inv-radius-paper:8px}
+.wedding-cover .cover-content{position:relative}
+.wedding-cover:has(.cover-photo):not(.hero-split) .cover-content{--inv-cover-scrim:rgba(23,32,24,.82);background:var(--inv-cover-scrim);text-shadow:none}
+.wedding-cover:has(.cover-photo):not(.hero-split) .cover-content::before{display:none}
+.wedding-cover:has(.cover-photo):not(.hero-split) .couple-join,.wedding-cover:has(.cover-photo):not(.hero-split) .cover-caption{opacity:1}
+.wedding-cover .cover-content>.eyebrow{margin:20px 0 16px;letter-spacing:.2em;font-size:12px}
+.wedding-cover .couple-names{row-gap:.12em;line-height:1.2}
+.cover-recipient{margin:0 0 24px;padding-block:18px;border-block:1px solid currentColor}
+.cover-recipient .eyebrow{margin:0 0 8px;font-size:12px;letter-spacing:.14em}
+.cover-recipient .recipient-name{margin:0;font-family:var(--inv-serif);font-size:clamp(23px,2.8cqw,32px);line-height:1.4}
+.wedding-cover .wedding-message{max-width:48ch;line-height:1.85}
+.wedding-cover .cover-caption{font-size:12px;line-height:1.8;letter-spacing:.12em;margin-top:32px}
+.theme-elegant .wedding-cover.hero-split{padding:clamp(16px,2.8cqw,40px);gap:clamp(24px,4cqw,64px);background:var(--inv-paper)}
+.theme-elegant .hero-split .cover-photo{min-height:520px;aspect-ratio:4/5;border-radius:48% 48% 2px 2px;align-self:center}
+.theme-elegant .hero-split .cover-content{padding:32px 12px;text-align:center}
+.theme-elegant .hero-split .couple-names{flex-direction:column;align-items:center;justify-content:center;font-size:clamp(38px,4.6cqw,72px)}
+.theme-elegant .hero-split .couple-join{font-style:italic;font-size:.45em;margin:.08em 0;color:var(--wedding-accent)}
+.theme-elegant .hero-split .wedding-rule{margin:24px auto;background:var(--inv-champagne)}
+.theme-elegant .hero-split .wedding-message{margin-inline:auto}
+.theme-elegant .cover-recipient{border-color:var(--inv-champagne-soft)}
+.theme-elegant .hero-split .cover-caption{letter-spacing:.12em;color:var(--inv-muted)}
+.wedding-cover:not(:has(.cover-photo)){min-height:600px;padding:clamp(16px,3cqw,40px)}
+.wedding-cover:not(:has(.cover-photo)) .cover-content{max-width:800px;padding:clamp(32px,6cqw,80px);border:1px solid var(--inv-champagne-soft)}
+.wedding-cover:not(:has(.cover-photo)) .wedding-rule{margin-inline:auto}
+.wedding-cover:not(:has(.cover-photo)) .wedding-message{margin-inline:auto}
+.wedding-cover:not(:has(.cover-photo)) .wedding-ornament{font-size:56px;opacity:1;color:var(--wedding-accent)}
+.theme-traditional .cover-content{margin-inline:auto;text-align:center}
+.theme-traditional .couple-names{justify-content:center}
+.theme-traditional .wedding-rule{margin-inline:auto}
+.theme-traditional .wedding-message{margin-inline:auto}
+.theme-modern .wedding-cover:not(:has(.cover-photo)) .cover-content{border:0;border-left:2px solid var(--wedding-accent)}
+.theme-modern .wedding-cover:not(:has(.cover-photo)) .couple-names{justify-content:flex-start}
+.theme-modern .wedding-cover:not(:has(.cover-photo)) .wedding-rule{margin-left:0}
+.theme-modern .wedding-cover:not(:has(.cover-photo)) .wedding-message{margin-left:0}
+.wedding-canvas .section-intro>.eyebrow{color:var(--wedding-accent);font-size:12px;letter-spacing:.16em}
+.wedding-canvas .event-date{font-variant-numeric:tabular-nums}
+.wedding-canvas .event-number{border:1px solid var(--inv-champagne-soft);background:var(--inv-paper);color:var(--wedding-accent);font-family:var(--inv-serif)}
+.wedding-canvas .wedding-thanks{max-width:760px;margin-inline:auto;border-top:1px solid var(--inv-champagne-soft)}
+.wedding-canvas .wedding-thanks>p{font-family:var(--inv-serif);font-size:clamp(24px,3cqw,34px);line-height:1.6}
+.wedding-canvas .month-navigation .secondary{width:44px;height:44px;min-height:44px}
+@container (max-width:760px){
+ .theme-elegant .wedding-cover.hero-split{gap:0;padding:20px}
+ .theme-elegant .hero-split .cover-photo{min-height:0;aspect-ratio:4/3;border-radius:46% 46% 2px 2px;max-width:480px;justify-self:center}
+ .theme-elegant .hero-split .cover-content{padding:32px 8px 20px}
+ .theme-elegant .hero-split .couple-names{font-size:clamp(36px,7cqw,54px)}
+ .wedding-cover:not(:has(.cover-photo)){min-height:0}
+ .wedding-cover:not(:has(.cover-photo)) .cover-content{padding:36px 20px}
+ .cover-recipient{margin-bottom:20px}
+}

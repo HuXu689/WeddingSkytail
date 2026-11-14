@@ -82,7 +82,9 @@ test('T17: xem trước có ngữ cảnh link không hợp lệ và không rende
   // Mục 5: tối thiểu ba ngữ cảnh — công khai, khách đã mở thiệp, link không hợp lệ.
   assert.match(editor,/type PreviewContext='guest'\|'public'\|'invalid';/);
   assert.match(editor,/useState<PreviewContext>\('guest'\)/);
-  for(const value of ['guest','public','invalid'])assert.equal(editor.includes(`<option value="${value}">`),true,`Thiếu lựa chọn ngữ cảnh ${value}`);
+  assert.match(editor,/const previewContexts:\{id:PreviewContext;label:string;note:string\}\[\]=\[/);
+  assert.match(editor,/data-context=\{item\.id\}/);
+  for(const value of ['guest','public','invalid'])assert.equal(editor.includes(`{id:'${value}',label:`),true,`Thiếu lựa chọn ngữ cảnh ${value}`);
   // Ngữ cảnh link không hợp lệ không nhận phần nào: máy chủ từ chối trước khi trả dữ liệu.
   assert.match(editor,/context==='invalid'\?\[\]:\(rows\?\?\[\]\)/);
   assert.match(editor,/className="preview-denied" role="note"/);

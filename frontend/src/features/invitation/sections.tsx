@@ -1,5 +1,6 @@
 import {date} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
+import {WeddingIllustration} from './wedding-illustration';
 
 /**
  * Nội dung 5 phần tùy chọn của thiệp. `payload` là dữ liệu có cấu trúc (content schema 2);
@@ -42,7 +43,7 @@ export function ContentSections({sections}:{sections:ContentSection[]}){
 }
 
 function SectionHeading({title,mark}:{title:string;mark:string}){
-  return <header className="invitation-section-heading"><span className="invitation-section-mark" aria-hidden="true">{mark}</span><h2>{oneLine(title)}</h2></header>;
+  return <header className="invitation-section-heading"><span className="invitation-section-mark" aria-hidden="true"><WeddingIllustration kind={mark==='❧'?'flower':mark==='✧'?'rings':mark==='✦'?'heart':'spark'}/></span><h2>{oneLine(title)}</h2></header>;
 }
 
 /** Giới thiệu hai bạn: chân dung bằng typography, nhịp lệch nhẹ trên desktop. */

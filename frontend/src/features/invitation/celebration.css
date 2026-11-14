@@ -1,0 +1,52 @@
+.wedding-canvas{--celebration-paint-1:rgba(195,162,107,.07);--celebration-paint-2:rgba(195,162,107,.04);--celebration-paint-3:rgba(195,162,107,.6);--celebration-paint-4:rgba(43,42,38,.12);--celebration-paint-5:rgba(195,162,107,.08);--celebration-paint-6:transparent;--celebration-paint-7:rgba(43,42,38,.04);--celebration-paint-8:rgba(195,162,107,.12);--celebration-paint-9:rgba(195,162,107,.1);--celebration-paint-10:rgba(255,255,255,.3);--celebration-paint-11:rgba(43,42,38,.16);}
+/* Finite, compositor-friendly flourishes: the invitation remains readable at every frame. */
+.wedding-canvas .celebration-ornaments{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;color:var(--inv-champagne);contain:paint}
+.celebration-corner{position:absolute;width:clamp(72px,15%,180px);height:auto;stroke:currentColor;stroke-width:1;opacity:.8}
+.celebration-corner.corner-start{left:8px;top:8px}
+.celebration-corner.corner-end{right:8px;bottom:8px;transform:rotate(180deg)}
+.celebration-halo{position:absolute;width:300px;height:300px;right:-160px;top:-160px;border:1px solid currentColor;border-radius:50%;box-shadow:0 0 0 16px var(--celebration-paint-1),0 0 0 38px var(--celebration-paint-2);opacity:.6}
+.celebration-sparks{position:absolute;inset:0}
+.celebration-sparks span{position:absolute;left:8%;top:22%;width:5px;height:5px;background:var(--inv-champagne);border-radius:50%;box-shadow:0 0 12px var(--celebration-paint-3);opacity:.45}
+.celebration-sparks span:nth-child(2){left:92%;top:18%;width:3px;height:3px}
+.celebration-sparks span:nth-child(3){left:4%;top:64%;width:4px;height:4px}
+.celebration-sparks span:nth-child(4){left:96%;top:72%;width:3px;height:3px}
+.celebration-sparks span:nth-child(5){left:15%;top:6%;width:3px;height:3px}
+.celebration-sparks span:nth-child(6){left:84%;top:94%;width:4px;height:4px}
+.celebration-sparks span:nth-child(7){left:7%;top:90%;width:3px;height:3px}
+.celebration-sparks span:nth-child(8){left:95%;top:43%;width:4px;height:4px}
+.wedding-canvas .wedding-cover .wedding-rule{position:relative;background:var(--inv-champagne);opacity:1}
+.wedding-canvas .wedding-rule::after{content:'';position:absolute;width:7px;height:7px;left:calc(50% - 4px);top:-3px;transform:rotate(45deg);background:var(--inv-champagne);box-shadow:0 0 0 4px var(--inv-paper)}
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .wedding-rule::after{box-shadow:none}
+.wedding-canvas .hero-split .cover-photo{box-shadow:0 0 0 5px var(--inv-paper),0 0 0 6px var(--inv-champagne-soft),0 18px 42px var(--celebration-paint-4)}
+.wedding-canvas .wedding-body{background-image:radial-gradient(ellipse at 0 25%,var(--celebration-paint-5),var(--celebration-paint-6) 45%),radial-gradient(ellipse at 100% 75%,var(--celebration-paint-1),var(--celebration-paint-6) 40%)}
+.wedding-canvas .content-section,.wedding-canvas .wedding-countdown,.wedding-canvas .wedding-month-calendar{border-color:var(--inv-champagne-soft);box-shadow:0 10px 32px var(--celebration-paint-7),inset 0 0 0 5px var(--inv-paper),inset 0 0 0 6px var(--celebration-paint-8)}
+.wedding-canvas .wedding-thanks{position:relative;background:radial-gradient(ellipse at center,var(--celebration-paint-9),var(--celebration-paint-6) 70%)}
+.wedding-canvas .wedding-thanks>span{display:inline-block;color:var(--inv-champagne);font-size:32px}
+.wedding-canvas.theme-modern .celebration-corner{opacity:.45;width:80px}
+.wedding-canvas.theme-modern .content-section{box-shadow:none;border-left-color:var(--wedding-accent)}
+@keyframes invitationSpark{0%,100%{opacity:.2;transform:translateY(0) scale(.7)}50%{opacity:.8;transform:translateY(-14px) scale(1.15)}}
+@keyframes invitationOrnament{from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes invitationLight{from{opacity:0;transform:translateX(-140%) skewX(-20deg)}35%{opacity:.4}to{opacity:0;transform:translateX(240%) skewX(-20deg)}}
+@media(prefers-reduced-motion:no-preference){
+ .wedding-canvas .celebration-sparks span{animation:invitationSpark 4s ease-in-out 1 both}
+ .wedding-canvas .celebration-sparks span:nth-child(even){animation-delay:.6s}
+ .wedding-canvas .wedding-ornament{animation:invitationOrnament 900ms var(--motion-ease) both}
+ .wedding-canvas .cover-content>.eyebrow.is-visible{animation-delay:80ms}
+ .wedding-canvas .cover-content>.couple-names.is-visible{animation-delay:160ms}
+ .wedding-canvas .cover-recipient.is-visible{animation-delay:240ms}
+ .wedding-canvas .cover-content>.wedding-message.is-visible{animation-delay:320ms}
+ .wedding-canvas .cover-caption.is-visible{animation-delay:400ms}
+ .wedding-canvas .hero-split .cover-photo::after{display:block;inset:0 auto 0 0;width:50%;background:linear-gradient(90deg,var(--celebration-paint-6),var(--celebration-paint-10),var(--celebration-paint-6));animation:invitationLight 1600ms ease-out 250ms both;pointer-events:none}
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .wedding-canvas .open-invitation,.wedding-canvas .gift-trigger{transition:transform 220ms ease,box-shadow 220ms ease}
+ .wedding-canvas .open-invitation:hover,.wedding-canvas .gift-trigger:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--celebration-paint-11)}
+}
+@container (max-width:760px){
+ .wedding-canvas .celebration-corner{width:72px;opacity:.65}
+ .wedding-canvas .celebration-sparks span:nth-child(n+5){display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .wedding-canvas .celebration-sparks{display:none}
+ .wedding-canvas .celebration-ornaments *,.wedding-canvas .wedding-ornament{animation:none!important;transition:none!important}
+}

@@ -126,7 +126,7 @@ try{
  const guestPreviewSections=await evaluate(`document.querySelector('.section-editor details').querySelectorAll('.content-section').length`);
  report.guestPreviewSections=guestPreviewSections;
  assert.ok(guestPreviewSections>0,'Đối chứng: ngữ cảnh lời mời riêng phải render phần nội dung');
- await evaluate(`(()=>{const details=document.querySelector('.section-editor details');const select=details.querySelector('select');const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set;setter.call(select,'public');select.dispatchEvent(new Event('change',{bubbles:true}));return true;})()`);
+ await evaluate(`(()=>{const button=document.querySelector('.section-editor details .preview-segmented button[data-context="public"]');button.click();return true;})()`);
  await wait(250);
  const publicPreview=await evaluate(`document.querySelector('.section-editor details').textContent.includes('Lễ gia tiên')`);
  report.publicPreviewHasPrivate=publicPreview;
@@ -134,10 +134,10 @@ try{
  await screenshot('editor-preview-public');
 
  // 5b. Ngữ cảnh thứ ba "link không hợp lệ": không render phần nào và dùng câu chữ chung của trang thiệp.
- const contextOptions=await evaluate(`[...document.querySelector('.section-editor details select').options].map(option=>option.value)`);
+ const contextOptions=await evaluate(`[...document.querySelectorAll('.section-editor details .preview-segmented button')].map(button=>button.dataset.context)`);
  report.previewContextOptions=contextOptions;
  assert.deepEqual(contextOptions,['guest','public','invalid'],'Xem trước phải có đủ ba ngữ cảnh');
- await evaluate(`(()=>{const details=document.querySelector('.section-editor details');const select=details.querySelector('select');const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set;setter.call(select,'invalid');select.dispatchEvent(new Event('change',{bubbles:true}));return true;})()`);
+ await evaluate(`(()=>{const button=document.querySelector('.section-editor details .preview-segmented button[data-context="invalid"]');button.click();return true;})()`);
  await wait(250);
  const deniedPreview=await evaluate(`(()=>{const details=document.querySelector('.section-editor details');const panel=details.querySelector('.preview-denied');return {panel:Boolean(panel),sections:details.querySelectorAll('.content-section').length,text:panel?panel.textContent:''};})()`);
  report.invalidPreview={panel:deniedPreview.panel,sections:deniedPreview.sections,sharesEntryCopy:deniedPreview.text.includes('Thiệp hiện không khả dụng hoặc phiên đã hết hạn')};

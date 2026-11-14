@@ -88,6 +88,13 @@
 .layout-editor-row label{flex:1;min-width:0}
 .layout-editor-row button{min-width:44px;padding:8px}
 .section-editor-item{padding:18px;margin-block:16px;border:1px solid var(--line);border-radius:var(--radius-md)}
+.editor-group{margin-block:18px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--compat-color-fffdf8)}
+.editor-group-title{margin:0 0 8px;font-size:17px}
+.preview-segmented{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
+.preview-segmented button{background:var(--compat-color-fffdf7);color:var(--ink);border:1px solid var(--line);border-radius:30px;min-height:44px;padding:9px 16px;font-weight:600}
+.preview-segmented button:hover{background:var(--compat-color-f4f7ee)}
+.preview-segmented button[aria-pressed="true"]{border-color:var(--olive);box-shadow:inset 0 0 0 2px var(--olive);background:var(--compat-color-f2f6ec)}
+@media(max-width:760px){.preview-segmented button{flex:1 1 auto}}
 .section-payload{display:grid;gap:12px;margin-block:12px}
 .section-payload-item{border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 16px;background:var(--bg-surface-soft);margin:0}
 .section-payload-item legend{padding:0 8px;font-size:13px}

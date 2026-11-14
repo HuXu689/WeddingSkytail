@@ -272,7 +272,7 @@ Done khi: ảnh các trạng thái (đóng/mở/lỗi/thành công/rỗng) ở m
 | R07 | Redesign lịch tháng | R03 | DONE |
 | R08 | Hệ hiệu ứng toàn thiệp | R05, R06, R07 | DONE |
 | R09 | RSVP / lời chúc / hộp quà polish | R03, R08 | DONE |
-| R10 | Editor quản trị: nhóm form, segmented preview, panel công khai | R02, R03 | TODO |
+| R10 | Editor quản trị: nhóm form, segmented preview, panel công khai | R02, R03 | DONE |
 | R11 | QA tổng: ma trận ảnh, contrast, keyboard, reduced-motion, E2E browser→DB | R02–R10 | TODO |
 | R12 | Dọn log/artifacts, cập nhật docs, handoff cuối | R11 | TODO |
 
@@ -385,7 +385,7 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 
 1. Đổi trạng thái trong bảng Ledger.
 2. Thêm mục Task Log (mẫu dưới) vào nhật ký trong mục 8 này.
-3. Cập nhật Handoff mục 13: task tiếp theo là gì, file đang mở, lệnh đang chạy dở, điều cấm lặp lại.
+3. Cập nhật Handoff mục 11: task tiếp theo là gì, file đang mở, lệnh đang chạy dở, điều cấm lặp lại.
 4. Lưu bằng chứng vào `.qa-artifacts/rework/<task>/`.
 
 ### Khi bị ngắt bất ngờ
@@ -406,6 +406,13 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 ```
 
 ### Task Log — nhật ký thực thi (mới nhất trên cùng)
+
+### R10 — DONE — 2026-10-21 23:25 +07:00
+- Đã làm: `section-editor.tsx` nhóm form thành 3 card `.editor-group` (Nội dung & thứ tự / Quyền hiển thị / Xem trước); `PublicExposurePanel` (R02) dời vào nhóm "Quyền hiển thị", hành vi giữ nguyên; thanh `.editor-savebar` (tái dùng style sticky có sẵn trong `admin.css`) hiện "Bạn có thay đổi chưa lưu." + nút lưu `disabled={!dirty||busy}`; ngữ cảnh xem trước đổi `<select>` → segmented 3 nút có nhãn + mô tả 1 dòng (`previewContexts`, `aria-pressed`, `data-context`). `admin.css` +7 dòng (`.editor-group*`, `.preview-segmented*`, token compat, min-height 44px); không đụng `color-tokens.css`. Giữ `useUnsavedChanges`, luồng `firstProblem → save(rows.map(forSave))`, API không đổi. Test T17 (`sections-payload.test.mjs`) + `editor-review-qa.mjs` cập nhật theo segmented; `rework-theme-shots-qa.mjs` thêm `REWORK_PAGE=editor` (bắt `Page.javascriptDialogOpening` để không treo beforeunload khi đổi breakpoint).
+- Đã chạy (phiên trước chạy, phiên khôi phục này xác minh lại toàn bộ): `npm test` 166/166 fail 0 exit 0 (`fe-test.log`); `npm run typecheck` exit 0 (`fe-typecheck.log`); `npm run build` exit 0 — Next 16.4.2, `next-env.d.ts` sạch (`fe-build.log`); `editor-review-qa.mjs` PASS exit 0 (2 lượt, `editor-regression.log` + `editor-regression-rerun.log`); shots before/after exit 0 — `{segmented:0,select:true,savebar:false}` → `{segmented:3,select:false,savebar:true}`, note="Bạn có thay đổi chưa lưu.", không tràn ngang 390/1440. Bằng chứng `.qa-artifacts/rework/R10/`: 12 PNG + 7 log + `notes.md`.
+- Bối cảnh phiên: phiên 22:50–23:02 đã viết code + chụp ảnh + chạy regression nhưng chết trước khi cập nhật file này (Ledger còn TODO, thiếu `notes.md`); phiên khôi phục đối chiếu mtime (code ≤ 23:00 < ảnh after 23:02) xác nhận ảnh khớp code rồi chạy lại test; KHÔNG chạy lại seed/migration.
+- Chưa kiểm chứng: đánh giá thị giác sâu / keyboard thực trong browser thật (thuộc R11); ảnh editor dùng fetch mock trong trang (đúng quy ước QA hiện có).
+- Tiếp theo: R11 — ma trận ảnh 390/768/1440 + 3 theme, contrast-audit/pixels, keyboard, reduced-motion, privacy grep nguyên văn, E2E disposable DB.
 
 ### R09 — DONE — 2026-10-21 20:30 +07:00
 - Đã làm: chip trạng thái RSVP trong summary disclosure (`.rsvp-chip.pending/.attending/.declined` — Chưa phản hồi / Sẽ tham dự n người / Không tham dự, màu token `--status-*`); khối thông báo RSVP theo tone (`.rsvp-message.success/.error` + icon ✓/⚠, giữ logic idempotency/retry); sổ lưu bút: phiếu giấy lệch nhẹ xen kẽ bằng thuộc tính `rotate` độc lập (không đụng transform motionFade, tắt reduced-motion) + caption ngày `wishStamp` + nhãn ghim thành pill; hộp quà: nút "Sao chép ảnh QR" (ClipboardItem + fallback thông báo). Chế độ bằng chứng mới `REWORK_PAGE=r09` (mock 503 giữ nháp + wish rỗng + asset QR qua Fetch interception).
@@ -495,6 +502,7 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 | RD21 | Bằng chứng motion bằng chế độ `REWORK_PAGE=motion`: đo computed (`animationName`, `transitionProperty`, `transform` khi hover), ảnh mid/rest cho cover + disclosure, layout `scrollHeight`/cover height mid==rest, và emulate `prefers-reduced-motion` qua `Emulation.setEmulatedMedia` để xác nhận kill-switch toàn cục cho `animationName:none` | Ảnh tĩnh không bắt được chuyển động → cần số đo computed + frame giữa chừng; `cover-rest` hash trùng before/after chứng minh không layout shift | R08, R11 |
 | RD22 | Chip RSVP dùng token trạng thái `--status-*` thay vì compat của `.wish-state`; phiếu giấy sổ lưu bút dùng thuộc tính `rotate` độc lập (không đụng `transform` của motionFade) và tắt khi reduced-motion; nút sao chép QR kèm fallback thông báo khi thiếu quyền clipboard | Lượt review đầu fail đúng luật: chip compat 4.16 < 4.5 contrast; `rotate` độc lập cần thiết vì motionFade fill `transform:none` sẽ ghi đè nếu khai báo rotate qua transform | R09 |
 | RD23 | Bằng chứng R09 dùng chế độ `REWORK_PAGE=r09` (mock RSVP 503 giữ bản nháp + assert, wish rỗng qua cờ, asset QR qua Fetch interception) + probe `rework-r09-probe.mjs`; `gift-dialog-review-qa.mjs` sửa để chịu được StrictMode double-effect của dev (cờ lỗi persistent, clear trước retry, `giftReads>=1`) | StrictMode dev gọi effect 2 lần: cờ one-shot bị lượt 1 nuốt (response về sau cleanup → `active=false` → bỏ setError) → không alert; probe xác nhận reads=6 thay vì 3 — lỗi độc lập với thay đổi R09 | R09, R11 |
+| RD24 | Editor R10: form chia 3 nhóm card `.editor-group`; ngữ cảnh xem trước là segmented control 3 nút (`aria-pressed`, `data-context`, nhãn + mô tả 1 dòng); savebar tái dùng class `.editor-savebar`/`.design-warning` có sẵn trong `admin.css` (không tạo class mới); nút lưu ra ngoài fieldset với `disabled={!dirty||busy}` | Giữ hành vi lưu/unsaved/API; test T17 + `editor-review-qa.mjs` cập nhật theo segmented; script shots cần bắt `Page.javascriptDialogOpening` vì guard `useUnsavedChanges` (beforeunload) treo `Page.navigate` khi form đang dirty lúc đổi breakpoint | R10 |
 
 ## 10. Blockers và điều cần xác nhận
 
@@ -504,6 +512,15 @@ Ghi nguyên văn output vào Task Log. Không dùng dữ liệu thật cho kiể
 - **Dữ liệu thật:** không dùng thiệp thật của người dùng cho ảnh QA; chỉ fixture DEMO.
 
 ## 11. Handoff — cập nhật trước khi dừng mỗi phiên (mới nhất trên cùng)
+
+### Handoff R10 — DONE — 2026-10-21 23:25 +07:00
+
+- R10 DONE: editor nhóm 3 card, segmented preview 3 ngữ cảnh có mô tả, savebar sticky + cảnh báo chưa lưu, panel công khai trong nhóm Quyền hiển thị. FE 166/166, typecheck/build exit 0, editor-review-qa PASS 2 lượt.
+- Bằng chứng `.qa-artifacts/rework/R10/` (xem `notes.md`): 12 ảnh `{before,after}-r10-editor-{top,preview,savebar}-{390,1440}.png`; logs `before-shots`/`after-shots`/`editor-regression`(+`-rerun`)/`fe-test`/`fe-typecheck`/`fe-build`.
+- Bối cảnh: code + ảnh do phiên 22:50–23:02 làm rồi chết trước khi ghi sổ; phiên 23:25 khôi phục bằng đối chiếu mtime + chạy lại test liên quan, KHÔNG đụng seed/migration. Quyết định mới ghi ở RD24.
+- Git: 5 file sửa chưa commit (`admin.css`, `section-editor.tsx`, `sections-payload.test.mjs`, `editor-review-qa.mjs`, `rework-theme-shots-qa.mjs`); `next-env.d.ts` sạch; **dev server local:3000 ĐANG BẬT từ phiên trước** (giữ cho R11); không commit/push/deploy.
+- Task tiếp theo: **R11** — QA tổng theo mục 7 (ma trận ảnh + contrast + keyboard + reduced-motion + privacy grep nguyên văn + E2E disposable DB), đóng các NOT VERIFIED trong phạm vi (RD10 grep thật, RD15 ảnh photo-mode 2 theme chụp lại, RD19/RD21/RD23 mở rộng). Locks: không đổi thêm UI/luồng khi chưa có test đỏ; giữ quy ước mock fetch in-page cho ảnh QA.
+- Kiểm tra nhanh điểm dừng: `npm test --prefix frontend` (166/166) + `node scripts/editor-review-qa.mjs` (PASS).
 
 ### Handoff R09 — DONE — 2026-10-21 20:30 +07:00
 
