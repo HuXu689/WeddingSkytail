@@ -1,4 +1,5 @@
-import type {ReactNode} from 'react';
+'use client';
+import type {ReactNode,SyntheticEvent} from 'react';
 
 export type StickerKind =
   | 'floral-corner'
@@ -14,8 +15,13 @@ export type StickerKind =
   | 'lantern-wish'
   | 'floral-arch';
 
+function hideOnBroken(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.style.display = 'none';
+}
+
 /**
  * Hệ thống nhãn dán (Stickers), hoa góc và dải phân cách hoa văn tinh tế cho thiệp mời cưới.
+ * Mọi thẻ <img> đều tự ẩn an toàn nếu lỗi mạng để không bao giờ lộ biểu tượng vỡ ảnh.
  */
 export function WeddingSticker({
   kind,
@@ -32,28 +38,22 @@ export function WeddingSticker({
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      <img src={`/stickers/${kind}.svg`} alt="" loading="lazy" decoding="async" />
+      <img src={`/stickers/${kind}.svg`} alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
     </span>
   );
 }
 
-/**
- * Hoa góc tinh tế, độ mờ dịu để tôn nội dung mà không che chữ.
- */
 export function SectionCornerStickers({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`section-corner-stickers${compact ? ' is-compact' : ''}`} aria-hidden="true">
-      <img className="corner-bouquet bouquet-tl" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" />
-      <img className="corner-bouquet bouquet-tr" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" />
-      {!compact && <img className="corner-bouquet bouquet-bl" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" />}
-      {!compact && <img className="corner-bouquet bouquet-br" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" />}
+      <img className="corner-bouquet bouquet-tl" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
+      <img className="corner-bouquet bouquet-tr" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
+      {!compact && <img className="corner-bouquet bouquet-bl" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" onError={hideOnBroken} />}
+      {!compact && <img className="corner-bouquet bouquet-br" src="/stickers/floral-corner.svg" alt="" loading="lazy" decoding="async" onError={hideOnBroken} />}
     </div>
   );
 }
 
-/**
- * Dải hoa văn kết nối giữa các phần lớn trên thiệp mời.
- */
 export function OrnateDivider({
   sticker = 'wedding-rings',
   caption,
@@ -64,9 +64,9 @@ export function OrnateDivider({
   return (
     <div className="ornate-section-divider" aria-hidden="true">
       <div className="ornate-divider-line">
-        <img className="ornate-divider-svg" src="/stickers/floral-divider.svg" alt="" loading="lazy" decoding="async" />
+        <img className="ornate-divider-svg" src="/stickers/floral-divider.svg" alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
         <div className="ornate-divider-badge">
-          <img src={`/stickers/${sticker}.svg`} alt="" loading="lazy" decoding="async" />
+          <img src={`/stickers/${sticker}.svg`} alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
         </div>
       </div>
       {caption && <span className="ornate-divider-caption">{caption}</span>}
@@ -74,9 +74,6 @@ export function OrnateDivider({
   );
 }
 
-/**
- * Huy hiệu nhãn dán đính ở đầu mỗi phần nội dung.
- */
 export function StickerBadge({
   sticker,
   label,
@@ -89,7 +86,7 @@ export function StickerBadge({
   return (
     <div className="invitation-sticker-badge" aria-hidden="true">
       <span className="sticker-badge-icon">
-        <img src={`/stickers/${sticker}.svg`} alt="" loading="lazy" decoding="async" />
+        <img src={`/stickers/${sticker}.svg`} alt="" loading="lazy" decoding="async" onError={hideOnBroken} />
       </span>
       <span className="sticker-badge-label">{label}</span>
       {children}

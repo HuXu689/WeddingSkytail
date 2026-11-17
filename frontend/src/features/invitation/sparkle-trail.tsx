@@ -1,8 +1,9 @@
 'use client';
-import {useEffect,useRef,useState,useCallback} from 'react';
+import {useEffect,useRef,useState} from 'react';
 
 /**
- * Hiệu ứng lấp lánh theo con trỏ chuột & bung hoa/trái tim khi chạm/click vào thiệp.
+ * Hiệu ứng lấp lánh theo con trỏ chuột & bung hoa/trái tim nhẹ khi chạm vào thiệp.
+ * Tự động ngủ đông hoàn toàn (dừng requestAnimationFrame) khi không có hạt đang hiển thị.
  */
 
 interface Sparkle {
@@ -20,12 +21,11 @@ interface Sparkle {
 }
 
 const SPARKLE_COLORS = [
-  'rgba(255,215,140,.88)',
-  'rgba(255,165,185,.85)',
-  'rgba(195,162,107,.82)',
-  'rgba(242,200,210,.85)',
-  'rgba(255,245,220,.92)',
-  'rgba(230,140,160,.8)',
+  'rgba(255,215,140,.82)',
+  'rgba(255,165,185,.78)',
+  'rgba(195,162,107,.78)',
+  'rgba(242,200,210,.8)',
+  'rgba(255,245,220,.86)',
 ];
 
 function drawSparkle(ctx: CanvasRenderingContext2D, s: Sparkle) {
@@ -79,7 +79,7 @@ function drawSparkle(ctx: CanvasRenderingContext2D, s: Sparkle) {
     default: {
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2);
       gradient.addColorStop(0, s.color);
-      gradient.addColorStop(0.5, s.color.replace(/[\d.]+\)$/, `${alpha * 0.45})`));
+      gradient.addColorStop(0.5, s.color.replace(/[\d.]+\)$/, `${alpha * 0.4})`));
       gradient.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -91,59 +91,24 @@ function drawSparkle(ctx: CanvasRenderingContext2D, s: Sparkle) {
   ctx.restore();
 }
 
-export function SparkleTrail() {
+export function SparkleTrail({ active = true }: { active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparklesRef = useRef<Sparkle[]>([]);
   const rafRef = useRef<number>(0);
-  const mouseRef = useRef({ x: 0, y: 0, active: false });
+  const runningRef = useRef(false);
   const lastEmit = useRef(0);
-  const [enabled, setEnabled] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const check = () => setEnabled(!motionMq.matches);
+    const check = () => setMotionOk(!motionMq.matches);
     check();
     motionMq.addEventListener('change', check);
     return () => motionMq.removeEventListener('change', check);
   }, []);
 
-  const handleMove = useCallback((e: MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, active: true };
-  }, []);
-
-  const handleLeave = useCallback(() => {
-    mouseRef.current.active = false;
-  }, []);
-
-  const handleClick = useCallback((e: MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-    const shapes: Sparkle['shape'][] = ['heart', 'star', 'diamond', 'circle'];
-    for (let i = 0; i < 16; i++) {
-      const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-      const speed = 1.2 + Math.random() * 2.8;
-      sparklesRef.current.push({
-        x: cx,
-        y: cy,
-        size: 4 + Math.random() * 6,
-        life: 0,
-        maxLife: 700 + Math.random() * 500,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 0.8,
-        color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.1,
-        shape: shapes[i % shapes.length],
-      });
-    }
-  }, []);
+  const enabled = motionOk && active;
 
   useEffect(() => {
     if (!enabled) return;
@@ -151,16 +116,12 @@ export function SparkleTrail() {
     if (!canvas) return;
     const weddingRoot = canvas.closest('.wedding-canvas') as HTMLElement | null;
     if (!weddingRoot) return;
-
-    weddingRoot.addEventListener('mousemove', handleMove);
-    weddingRoot.addEventListener('mouseleave', handleLeave);
-    weddingRoot.addEventListener('click', handleClick);
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let width = 0;
     let height = 0;
+    let lastTime = 0;
 
     function resize() {
       if (!canvas || !ctx) return;
@@ -180,56 +141,113 @@ export function SparkleTrail() {
 
     function frame(time: number) {
       if (!canvas || !ctx) return;
+      const dt = lastTime ? Math.min(time - lastTime, 40) : 16;
+      lastTime = time;
       ctx.clearRect(0, 0, width, height);
 
-      if (mouseRef.current.active && time - lastEmit.current > 36) {
-        lastEmit.current = time;
-        const shapes: Sparkle['shape'][] = ['circle', 'star', 'diamond', 'heart'];
-        for (let i = 0; i < 3; i++) {
-          sparklesRef.current.push({
-            x: mouseRef.current.x + (Math.random() - 0.5) * 22,
-            y: mouseRef.current.y + (Math.random() - 0.5) * 22,
-            size: 2.5 + Math.random() * 5,
-            life: 0,
-            maxLife: 550 + Math.random() * 650,
-            vx: (Math.random() - 0.5) * 1.4,
-            vy: -0.4 - Math.random() * 1.3,
-            color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
-            rotation: Math.random() * Math.PI * 2,
-            rotSpeed: (Math.random() - 0.5) * 0.08,
-            shape: shapes[Math.floor(Math.random() * shapes.length)],
-          });
-        }
-        if (sparklesRef.current.length > 120) {
-          sparklesRef.current = sparklesRef.current.slice(-120);
-        }
-      }
-
       sparklesRef.current = sparklesRef.current.filter(s => {
-        s.life += 16;
-        s.x += s.vx;
-        s.y += s.vy;
-        s.vy += 0.02;
-        s.rotation += s.rotSpeed;
+        s.life += dt;
+        s.x += s.vx * (dt / 16);
+        s.y += s.vy * (dt / 16);
+        s.vy += 0.02 * (dt / 16);
+        s.rotation += s.rotSpeed * (dt / 16);
         if (s.life >= s.maxLife) return false;
         drawSparkle(ctx, s);
         return true;
       });
 
+      if (sparklesRef.current.length === 0) {
+        runningRef.current = false;
+        return;
+      }
       rafRef.current = requestAnimationFrame(frame);
     }
 
-    rafRef.current = requestAnimationFrame(frame);
+    function wakeUp() {
+      if (runningRef.current || document.hidden) return;
+      runningRef.current = true;
+      lastTime = 0;
+      rafRef.current = requestAnimationFrame(frame);
+    }
+
+    function handleMove(e: MouseEvent) {
+      if (!canvas) return;
+      const now = performance.now();
+      if (now - lastEmit.current < 52) return;
+      lastEmit.current = now;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const shapes: Sparkle['shape'][] = ['circle', 'star', 'diamond', 'heart'];
+      for (let i = 0; i < 2; i++) {
+        sparklesRef.current.push({
+          x: mx + (Math.random() - 0.5) * 18,
+          y: my + (Math.random() - 0.5) * 18,
+          size: 2.2 + Math.random() * 4,
+          life: 0,
+          maxLife: 500 + Math.random() * 520,
+          vx: (Math.random() - 0.5) * 1.1,
+          vy: -0.35 - Math.random() * 1,
+          color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.08,
+          shape: shapes[Math.floor(Math.random() * shapes.length)],
+        });
+      }
+      if (sparklesRef.current.length > 80) {
+        sparklesRef.current = sparklesRef.current.slice(-80);
+      }
+      wakeUp();
+    }
+
+    function handleClick(e: MouseEvent) {
+      if (!canvas) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, dialog')) return;
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const shapes: Sparkle['shape'][] = ['heart', 'star', 'diamond', 'circle'];
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        const speed = 1 + Math.random() * 2.2;
+        sparklesRef.current.push({
+          x: cx,
+          y: cy,
+          size: 3.5 + Math.random() * 4.5,
+          life: 0,
+          maxLife: 620 + Math.random() * 420,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 0.6,
+          color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.1,
+          shape: shapes[i % shapes.length],
+        });
+      }
+      wakeUp();
+    }
+
+    function onVisibility() {
+      cancelAnimationFrame(rafRef.current);
+      runningRef.current = false;
+      if (!document.hidden && sparklesRef.current.length > 0) wakeUp();
+    }
+
+    weddingRoot.addEventListener('mousemove', handleMove, { passive: true });
+    weddingRoot.addEventListener('click', handleClick);
+    document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('resize', resize);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      runningRef.current = false;
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('resize', resize);
       weddingRoot.removeEventListener('mousemove', handleMove);
-      weddingRoot.removeEventListener('mouseleave', handleLeave);
       weddingRoot.removeEventListener('click', handleClick);
     };
-  }, [enabled, handleMove, handleLeave, handleClick]);
+  }, [enabled]);
 
   if (!enabled) return null;
 

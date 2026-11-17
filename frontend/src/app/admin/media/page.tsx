@@ -287,7 +287,7 @@ export default function MediaPage(){
       {selected.map((id,idx)=>{
        const asset=assetMap.get(id);
        return <div className="media-sorter-item" key={id}>
-        <img src={`/api/v1/admin/media/${id}/thumb`} alt={asset?.original_name||`Ảnh ${idx+1}`} loading="lazy" decoding="async"/>
+        <img src={`/api/v1/admin/media/${id}/thumb`} alt={asset?.original_name||`Ảnh ${idx+1}`} loading="lazy" decoding="async" onError={e=>{const img=e.currentTarget;const full=`/api/v1/admin/media/${id}/content`;if(!img.src.endsWith('/content')&&!img.src.endsWith('/fallback/detail.jpg'))img.src=full;else img.src='/fallback/detail.jpg';}}/>
         <span className="media-sorter-num">#{idx+1}</span>
         <div className="media-sorter-actions">
          <button type="button" className="secondary" disabled={idx===0} onClick={()=>moveInAlbum(idx,idx-1)} aria-label={`Đưa ảnh ${idx+1} lên`}>←</button>
@@ -324,7 +324,7 @@ export default function MediaPage(){
      const canFocal=surface==='DRAFT'&&(row.draft_hero||row.draft_album);
      return <article className={`media-card ${inDraftAlbum?'selected':''} ${row.draft_hero?'is-hero':''}`} key={row.id}>
       <button type="button" className="media-focal" onClick={event=>void setFocal(row,event)} disabled={state.busy||surface!=='DRAFT'} aria-label={canFocal?`Đặt điểm lấy nét cho ${row.original_name}`:`Xem ${row.original_name}`}>
-       <img src={imgSrc} alt={row.original_name} loading="lazy" decoding="async" style={{objectPosition:`${row.focal_x}% ${row.focal_y}%`}}/>
+       <img src={imgSrc} alt={row.original_name} loading="lazy" decoding="async" style={{objectPosition:`${row.focal_x}% ${row.focal_y}%`}} onError={e=>{const img=e.currentTarget;const full=surface==='DRAFT'?`/api/v1/admin/media/${row.id}/content`:`/media/${row.id}.jpg`;if(!img.src.endsWith(full)&&!img.src.endsWith('/fallback/detail.jpg'))img.src=full;else img.src='/fallback/detail.jpg';}}/>
        {canFocal&&<span className="focal-marker" style={{left:`${row.focal_x}%`,top:`${row.focal_y}%`}} aria-hidden="true"/>}
        {albumPos!==null&&surface==='DRAFT'&&<span className="media-album-order-pill">Album #{albumPos}</span>}
       </button>

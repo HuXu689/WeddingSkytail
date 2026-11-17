@@ -33,6 +33,8 @@ public class DesignController {
         if(input.musicId()!=null) media.requireAudio(input.musicId());
         db.update("UPDATE wedding SET draft_names=?,draft_message=?,draft_theme=?,draft_accent=?,draft_story=?,draft_footer=?,draft_show_story=?,draft_music_id=?,draft_music_autoplay=?,draft_show_countdown=?,version=version+1 WHERE id=1",
             Texts.oneLine(input.names()),Texts.text(input.message()),input.theme(),input.accent(),Texts.text(input.story()),Texts.text(input.footer()),input.showStory(),input.musicId(),Boolean.TRUE.equals(input.musicAutoplay()),Boolean.TRUE.equals(input.showCountdown()));
-        db.update("INSERT INTO audit(action,target) VALUES('WEDDING_DESIGN','1')");
+        var auth=org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String actor=auth==null||auth.getName()==null?"owner":auth.getName();
+        db.update("INSERT INTO audit(action,target,actor) VALUES('WEDDING_DESIGN','1',?)",actor);
     }
 }

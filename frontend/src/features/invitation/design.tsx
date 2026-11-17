@@ -16,14 +16,16 @@ import {FallingRibbons} from './falling-ribbons';
 import {CelebrationBar,type AtmosphereMode} from './celebration-bar';
 import {ButterflyFlight} from './butterfly-flight';
 import {OrnateDivider,SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
+import {FALLBACK_HERO_BY_THEME} from './media-fallback';
+import {InvitationQuickNav} from './invitation-nav';
 
 export type Theme='ELEGANT'|'TRADITIONAL'|'MODERN';
 export type Accent='OLIVE'|'BURGUNDY'|'NAVY';
 export interface WeddingDesign {layout?:LayoutItem[];sections?:ContentSection[];templateVersion?:number;contentSchemaVersion?:number;names:string;message:string;theme:Theme;accent:Accent;story:string;footer:string;show_story:boolean;heroUrl?:string|null;albumUrls?:string[];heroPosition?:string|null;musicUrl?:string|null;music_autoplay?:boolean;show_countdown?:boolean}
 export const themes:{id:Theme;name:string;description:string}[]=[
- {id:'ELEGANT',name:'Thanh lịch',description:'Nền kem, nét lá nhẹ và bố cục cân đối.'},
- {id:'TRADITIONAL',name:'Truyền thống',description:'Khung đôi trang trọng, họa tiết song hỷ.'},
- {id:'MODERN',name:'Hiện đại',description:'Chữ lớn, đường nét gọn và bố cục lệch trái.'}
+ {id:'ELEGANT',name:'Thanh lịch',description:'Giấy kem ngà, đường chỉ vàng champagne và bố cục biên tập tinh tế.'},
+ {id:'TRADITIONAL',name:'Truyền thống',description:'Phong vị Á Đông trang trọng, dấu ấn Song Hỷ ấm áp.'},
+ {id:'MODERN',name:'Hiện đại',description:'Tối giản đương đại, tương phản sắc nét và nhịp điệu khoáng đạt.'}
 ];
 export const accents:{id:Accent;name:string;color:string}[]=[{id:'OLIVE',name:'Xanh olive',color:'#52664c'},{id:'BURGUNDY',name:'Đỏ trầm',color:'#823b42'},{id:'NAVY',name:'Xanh đêm',color:'#354e6a'}];
 /* text/paragraphs chuyển sang @/shared/text để thiệp khách, editor và backend dùng cùng một quy tắc NFC. */
@@ -32,38 +34,42 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
  const color=accents.find(a=>a.id===design.accent)?.color??accents[0].color;
  const [opened,setOpened]=useState(initiallyOpen),[curtain,setCurtain]=useState(false);
  const [atmosphere,setAtmosphere]=useState<AtmosphereMode>(design.theme==='TRADITIONAL'?'crimson':'royal');
+ const [effectsEnabled,setEffectsEnabled]=useState(true);
+ const [failedHeroUrl,setFailedHeroUrl]=useState<string|null>(null);
  const canvasRef=useRef<HTMLDivElement>(null);
  useEffect(()=>{if(!initiallyOpen)setCurtain(false);},[initiallyOpen]);
  useEffect(()=>{if(!opened||!canvasRef.current)return;return observeInvitation(canvasRef.current);},[opened,design.show_story,design.musicUrl,design.albumUrls?.length,design.show_countdown,design.layout,design.sections?.length]);
  const openCanvas=()=>{setCurtain(true);setOpened(true);};
  const heroPosition=design.heroPosition||'50% 50%';
+ const fallbackHero=FALLBACK_HERO_BY_THEME[design.theme]??FALLBACK_HERO_BY_THEME.ELEGANT;
+ const resolvedHeroSrc=design.heroUrl?(failedHeroUrl===design.heroUrl?fallbackHero:design.heroUrl):null;
  const optional:Record<LayoutKey,ReactNode>={
   MUSIC:null,
   COUNTDOWN:(design.show_countdown&&countdownTo&&<Countdown target={countdownTo}/>),
-  STORY:(design.show_story&&design.story.trim()&&<section className="wedding-story reveal">
+  STORY:(design.show_story&&design.story.trim()&&<section id="inv-story" className="wedding-story reveal">
    <SectionCornerStickers compact/>
    <div className="story-header-col">
     <StickerBadge sticker="love-letter" label="Chuyện tình đôi lứa"/>
     <p className="eyebrow">Hành trình yêu thương</p>
     <h2>Câu chuyện của chúng mình</h2>
     <div className="story-seal-ornament" aria-hidden="true">
-     <WeddingSticker kind="lovebirds" size={76}/>
+     <WeddingSticker kind="lovebirds" size={68}/>
     </div>
    </div>
    <div className="story-copy">
     {paragraphs(design.story).map((part,index)=><p key={`${index}-${part.slice(0,12)}`}>{part}</p>)}
     <div className="story-wax-stamp" aria-hidden="true">
-     <WeddingSticker kind="wax-seal-song-hy" size={44}/>
+     <WeddingSticker kind="wax-seal-song-hy" size={40}/>
      <span>Trọn vẹn yêu thương</span>
     </div>
    </div>
   </section>),
-  CONTENT:(<ContentSections sections={design.sections??[]}/>),
-  ALBUM:(<WeddingAlbum urls={design.albumUrls??[]}/>),
+  CONTENT:(<div id="inv-sections"><ContentSections sections={design.sections??[]}/></div>),
+  ALBUM:(<div id="inv-album"><WeddingAlbum urls={design.albumUrls??[]}/></div>),
   THANKS:(<section className="wedding-thanks reveal">
    <SectionCornerStickers compact/>
    <div className="thanks-crest-row" aria-hidden="true">
-    <WeddingSticker kind={design.theme==='TRADITIONAL'?'wax-seal-song-hy':'lovebirds'} size={64}/>
+    <WeddingSticker kind={design.theme==='TRADITIONAL'?'wax-seal-song-hy':'lovebirds'} size={58}/>
    </div>
    <span aria-hidden="true">✦</span>
    <p>{text(design.footer)}</p>
@@ -72,24 +78,24 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
   </section>)
  };
  return <div ref={canvasRef} className={`wedding-canvas theme-${design.theme.toLowerCase()} atmosphere-${atmosphere}${curtain?' cinematic-opening':''}`} style={{'--wedding-accent':color} as CSSProperties}>
-   {/* Sân khấu hiệu ứng sticky full viewport — dịu nhẹ, không che chữ */}
+   {/* Sân khấu hiệu ứng sticky full viewport — tiết chế sang trọng, tự ngủ đông khi nghỉ */}
    <div className="wedding-effects-viewport" aria-hidden="true">
     <CelebrationOrnaments/>
-    <FallingRibbons count={6}/>
-    <PetalShower intensity="light"/>
-    <GoldenDust count={32}/>
-    <ButterflyFlight count={4}/>
-    {opened && <FloatingHearts count={12}/>}
-    {opened && <Fireworks mode="continuous"/>}
-    <SparkleTrail/>
+    <FallingRibbons count={atmosphere==='royal'||atmosphere==='crimson'?3:0} active={effectsEnabled}/>
+    <PetalShower intensity={atmosphere==='sakura'||atmosphere==='crimson'?'light':'burst'} active={effectsEnabled}/>
+    <GoldenDust count={atmosphere==='starlight'?24:atmosphere==='royal'?18:atmosphere==='crimson'?12:0} active={effectsEnabled}/>
+    <ButterflyFlight count={atmosphere==='sakura'||atmosphere==='royal'?2:0} active={effectsEnabled}/>
+    {opened && <FloatingHearts count={0} active={effectsEnabled}/>}
+    {opened && <Fireworks mode="burst" active={effectsEnabled}/>}
+    {effectsEnabled && <SparkleTrail/>}
    </div>
    <div className={`wedding-inner ${opened?'is-open':''}`}>
     <header className={`wedding-cover ${design.theme==='ELEGANT'&&design.heroUrl?'hero-split':''}`}>
      <SectionCornerStickers compact={Boolean(design.heroUrl)}/>
      {!design.heroUrl&&<div className="cover-floating-stickers" aria-hidden="true">
-      <WeddingSticker kind="floral-arch" className="cover-arch-sticker" size={180}/>
+      <WeddingSticker kind="floral-arch" className="cover-arch-sticker" size={168}/>
      </div>}
-     {design.heroUrl&&<div className="cover-photo"><img src={design.heroUrl} alt={`Ảnh của ${oneLine(design.names)||'hai bạn'}`} style={{objectPosition:heroPosition}} fetchPriority="high" /></div>}
+     {design.heroUrl&&<div className="cover-photo"><img src={resolvedHeroSrc??fallbackHero} alt={`Ảnh của ${oneLine(design.names)||'hai bạn'}`} style={{objectPosition:heroPosition}} fetchPriority="high" onError={()=>{if(design.heroUrl&&failedHeroUrl!==design.heroUrl)setFailedHeroUrl(design.heroUrl);}} /></div>}
      <div className="cover-content">
       <span className="wedding-ornament" aria-hidden="true">{design.theme==='TRADITIONAL'?'囍':design.theme==='MODERN'?'—':'❧'}</span>
       <p className="eyebrow reveal">{recipient?(oneLine(salutation||'Trân trọng kính mời')):'Chúng mình kết hôn'}</p>
@@ -105,11 +111,11 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
      </div>
     </header>
     {opened&&<div className="wedding-body">
-     <CelebrationBar atmosphere={atmosphere} onAtmosphereChange={setAtmosphere}/>
-     {calendar}
+     {!preview&&<InvitationQuickNav rootRef={canvasRef}/>}
+     {calendar&&<div id="inv-calendar">{calendar}</div>}
      {children&&<>
       <OrnateDivider sticker="champagne-toast" caption="Hân hoan chào đón quý khách"/>
-      <section className="wedding-events reveal">
+      <section id="inv-events" className="wedding-events reveal">
        <SectionCornerStickers compact/>
        <div className="section-intro">
         <div>
@@ -117,14 +123,15 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
          <p className="eyebrow">{recipient?'Buổi tiệc được mời':'Ngày vui của chúng mình'}</p>
          <h2>{recipient?'Hẹn gặp bạn tại buổi tiệc':'Hẹn gặp bạn tại ngày chung đôi'}</h2>
         </div>
-        <WeddingSticker kind="lovebirds" size={68}/>
+        <WeddingSticker kind="lovebirds" size={62}/>
        </div>
        {children}
       </section>
      </>}
      {normalizedLayout(design.layout).filter(item=>item.enabled).map(item=><Fragment key={item.section}>{optional[item.section]}</Fragment>)}
-     {gift}
-     {wishes}
+     {gift&&<div id="inv-gift">{gift}</div>}
+     {wishes&&<div id="inv-wishes">{wishes}</div>}
+     <CelebrationBar atmosphere={atmosphere} onAtmosphereChange={setAtmosphere} effectsEnabled={effectsEnabled} onToggleEffects={()=>setEffectsEnabled(v=>!v)}/>
     </div>}
    </div>
    {opened&&design.musicUrl&&normalizedLayout(design.layout).some(item=>item.section==='MUSIC'&&item.enabled)&&<MusicControl key={design.musicUrl} src={design.musicUrl} autoplay={design.music_autoplay??false} preview={preview} color={color}/>}

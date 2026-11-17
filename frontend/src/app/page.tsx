@@ -5,16 +5,27 @@ export default function Home() {
   <section className="welcome-card">
    <SectionCornerStickers compact/>
    <div className="welcome-crest" aria-hidden="true">
-    <WeddingSticker kind="royal-crest" size={108}/>
+    <WeddingSticker kind="royal-crest" size={96}/>
    </div>
    <StickerBadge sticker="wedding-rings" label="Lễ thành hôn"/>
-   <div className="welcome-flower" aria-hidden="true">✦</div>
    <p className="eyebrow">Hẹn ngày chung đôi</p>
    <h1>Một lời mời,<br/><em>một câu chuyện.</em></h1>
-   <p className="welcome-lead">Hạnh phúc trọn vẹn hơn khi có bạn cùng sẻ chia khoảnh khắc đặc biệt này.</p>
-   <div className="welcome-divider"><span>♡</span></div>
-   <p className="muted">Hãy mở đường link hoặc quét mã QR trên lời mời của bạn để khám phá thông tin và xác nhận tham dự.</p>
-   <div className="row welcome-actions" style={{justifyContent:'center'}}><a className="button" href="/w/our-wedding">Mở thiệp cưới <span aria-hidden="true">→</span></a><a className="text-link" href="/admin">Khu vực quản trị</a></div>
+   <p className="welcome-lead">Hạnh phúc trọn vẹn hơn khi có bạn cùng sẻ chia khoảnh khắc thiêng liêng này.</p>
+   <div className="welcome-divider" aria-hidden="true"><span>♡</span></div>
+   <div className="welcome-guide-grid">
+    <div className="welcome-guide-item">
+     <strong>Khách có thiệp riêng</strong>
+     <p>Quét mã QR trên thiệp giấy hoặc mở liên kết cá nhân được gửi riêng để xem buổi tiệc và xác nhận tham dự.</p>
+    </div>
+    <div className="welcome-guide-item">
+     <strong>Khách ghé thăm chung vui</strong>
+     <p>Khám phá câu chuyện tình yêu, lịch trình ngày cưới, album kỷ niệm và sổ lưu bút chúc phúc.</p>
+    </div>
+   </div>
+   <div className="row welcome-actions" style={{justifyContent:'center'}}>
+    <a className="button" href="/w/our-wedding">Mở thiệp cưới chung <span aria-hidden="true">→</span></a>
+    <a className="button secondary welcome-admin-btn" href="/admin">Không gian quản trị</a>
+   </div>
   </section>
   <div className="welcome-note">Lưu giữ yêu thương · Chia sẻ hạnh phúc</div>
  </main>;

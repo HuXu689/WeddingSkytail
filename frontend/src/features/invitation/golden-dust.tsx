@@ -39,20 +39,22 @@ function createParticle(w: number, h: number): GoldParticle {
   };
 }
 
-export function GoldenDust({ count = 65 }: { count?: number }) {
+export function GoldenDust({ count = 24, active = true }: { count?: number; active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<GoldParticle[]>([]);
   const rafRef = useRef(0);
   const runningRef = useRef(false);
-  const [enabled, setEnabled] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setEnabled(!motion.matches);
-    const update = (event: MediaQueryListEvent) => setEnabled(!event.matches);
+    setMotionOk(!motion.matches);
+    const update = (event: MediaQueryListEvent) => setMotionOk(!event.matches);
     motion.addEventListener('change', update);
     return () => motion.removeEventListener('change', update);
   }, []);
+
+  const enabled = motionOk && active && count > 0;
 
   useEffect(() => {
     if (!enabled) return;

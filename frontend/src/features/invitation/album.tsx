@@ -1,10 +1,24 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type SyntheticEvent} from 'react';
 import {createPortal} from 'react-dom';
 import {albumPageCount,albumPageSlice,albumThumbUrl,imageIndex,lightboxFilmstrip,secondaryImages} from './album-window';
 import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
+import {fallbackAlbumUrl} from './media-fallback';
 
 const GRID_PAGE_SIZE=16;
+
+function handleAlbumImgError(event:SyntheticEvent<HTMLImageElement>,fullUrl:string,index:number){
+ const img=event.currentTarget;
+ const fallback=fallbackAlbumUrl(index);
+ const step=img.dataset.fallbackStep||'0';
+ if(step==='0'&&fullUrl&&!img.src.endsWith(fullUrl)){
+  img.dataset.fallbackStep='1';
+  img.src=fullUrl;
+ }else if(step!=='2'){
+  img.dataset.fallbackStep='2';
+  img.src=fallback;
+ }
+}
 
 export function WeddingAlbum({urls}:{urls:string[]}){
  const [active,setActive]=useState(0),[page,setPage]=useState(0),[lightbox,setLightbox]=useState<number|null>(null);
@@ -29,17 +43,17 @@ export function WeddingAlbum({urls}:{urls:string[]}){
     <h2>Album yêu thương</h2>
    </div>
    <div className="album-heading-meta">
-    <WeddingSticker kind="butterfly-gold" size={44}/>
+    <WeddingSticker kind="butterfly-gold" size={40}/>
     <span>{urls.length} khoảnh khắc</span>
    </div>
   </div>
   <div className={`album-editorial album-gallery count-${Math.min(urls.length,5)}`}>
    <button type="button" className="album-main" onClick={event=>open(selected,event.currentTarget)} aria-haspopup="dialog" aria-label={`Xem ảnh ${selected+1} kích thước lớn`}>
-    <img src={urls[selected]} alt={`Khoảnh khắc ${selected+1} trong album`} loading="lazy" decoding="async"/>
-    <span className="album-frame-badge" aria-hidden="true">Ảnh {selected+1} / {urls.length} · Phóng to</span>
+    <img key={urls[selected]} src={urls[selected]} alt={`Khoảnh khắc ${selected+1} trong album`} loading="lazy" decoding="async" onError={e=>handleAlbumImgError(e,urls[selected],selected)}/>
+    <span className="album-frame-badge" aria-hidden="true">Ảnh {selected+1} / {urls.length} · Chạm để phóng to</span>
    </button>
    {secondaryImages(selected,urls.length).map((index,slot)=><button type="button" key={`${slot}-${index}`} className={`album-side side-${slot}`} onClick={event=>open(index,event.currentTarget)} aria-haspopup="dialog" aria-label={`Mở ảnh ${index+1}`}>
-    <img src={albumThumbUrl(urls[index])} alt={`Khoảnh khắc ${index+1}`} loading="lazy" decoding="async"/>
+    <img key={urls[index]} src={albumThumbUrl(urls[index])} alt={`Khoảnh khắc ${index+1}`} loading="lazy" decoding="async" onError={e=>handleAlbumImgError(e,urls[index],index)}/>
     <span className="album-thumb-index" aria-hidden="true">#{index+1}</span>
    </button>)}
   </div>
@@ -55,7 +69,7 @@ export function WeddingAlbum({urls}:{urls:string[]}){
    </div>
    <div className="album-thumb-grid">
     {gridIndices.map(index=><button type="button" key={index} className={`album-thumb-btn${index===selected?' is-featured':''}`} onClick={event=>open(index,event.currentTarget)} aria-haspopup="dialog" aria-label={`Mở ảnh ${index+1} trong album`}>
-     <img src={albumThumbUrl(urls[index])} alt={`Ảnh ${index+1}`} loading="lazy" decoding="async"/>
+     <img key={urls[index]} src={albumThumbUrl(urls[index])} alt={`Ảnh ${index+1}`} loading="lazy" decoding="async" onError={e=>handleAlbumImgError(e,urls[index],index)}/>
      <span className="album-thumb-index" aria-hidden="true">{index+1}</span>
     </button>)}
    </div>
@@ -107,12 +121,20 @@ function AlbumLightbox({urls,initial,opener,onClose}:{urls:string[];initial:numb
   {urls.length>1&&<button type="button" className="lightbox-nav previous" onClick={()=>setActive(imageIndex(index-1,urls.length))} aria-label="Ảnh trước">←</button>}
   <figure>
    {failedIndex===index
-    ?<div className="lightbox-error" role="alert"><p>Chưa tải được ảnh này.</p><button type="button" className="secondary" onClick={()=>setFailedIndex(null)}>Thử tải lại</button></div>
-    :<img key={urls[index]} src={urls[index]} alt={`Khoảnh khắc ${index+1} trong album`} decoding="async" onError={()=>setFailedIndex(index)}/>}
+    ?<div className="lightbox-error" role="alert"><p>Chưa tải được ảnh gốc này.</p><button type="button" className="secondary" onClick={()=>setFailedIndex(null)}>Thử tải lại</button></div>
+    :<img key={urls[index]} src={urls[index]} alt={`Khoảnh khắc ${index+1} trong album`} decoding="async" onError={e=>{
+     const img=e.currentTarget;
+     if(img.dataset.fallbackApplied!=='1'){
+      img.dataset.fallbackApplied='1';
+      img.src=fallbackAlbumUrl(index);
+     }else{
+      setFailedIndex(index);
+     }
+    }}/>}
    <figcaption role="status" aria-live="polite">Ảnh {index+1} / {urls.length}</figcaption>
    {urls.length>1&&<div className="lightbox-filmstrip" aria-label="Chọn nhanh ảnh">
     {strip.map(i=><button type="button" key={i} className={i===index?'lightbox-strip-btn is-active':'lightbox-strip-btn'} onClick={()=>{setFailedIndex(null);setActive(i);}} aria-label={`Chuyển tới ảnh ${i+1}`}>
-     <img src={albumThumbUrl(urls[i])} alt="" loading="lazy" decoding="async"/>
+     <img src={albumThumbUrl(urls[i])} alt="" loading="lazy" decoding="async" onError={e=>handleAlbumImgError(e,urls[i],i)}/>
     </button>)}
    </div>}
   </figure>

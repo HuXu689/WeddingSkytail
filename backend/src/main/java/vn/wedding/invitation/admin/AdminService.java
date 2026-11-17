@@ -113,7 +113,22 @@ public class AdminService {
     private static String text(String value,int max,String label) { String trimmed=optional(value,max,label); return trimmed==null?"":trimmed; }
     /** Single-line fields (event title, venue, address): NFC + no stray newlines. */
     private static String line(String value,int max,String label) { return Texts.oneLine(text(value,max,label)); }
-    private static String maps(String url) { String value=optional(url,500,"Liên kết bản đồ"); ApiErrors.require(value==null||value.startsWith("https://"),"Liên kết bản đồ phải bắt đầu bằng https://."); return value; }
+    private static String maps(String url) { return cleanMapsUrl(url); }
+    public static String cleanMapsUrl(String url) {
+        String value=optional(url,500,"Liên kết bản đồ");
+        if(value==null) return null;
+        var md=java.util.regex.Pattern.compile("^\\[[^\\]]*]\\((https://[^)\\s]+)\\)$").matcher(value);
+        if(md.matches()) value=md.group(1);
+        else if(value.contains("](https://")) value=value.substring(0,value.indexOf("](https://")).strip();
+        ApiErrors.require(value.startsWith("https://") && !value.matches(".*[\\s\\[\\]<>\"].*"),"Liên kết bản đồ phải bắt đầu bằng https://.");
+        try {
+            var uri=java.net.URI.create(value);
+            ApiErrors.require("https".equalsIgnoreCase(uri.getScheme()) && uri.getHost()!=null && !uri.getHost().isBlank(),"Liên kết bản đồ phải bắt đầu bằng https://.");
+        } catch(IllegalArgumentException e) {
+            ApiErrors.require(false,"Liên kết bản đồ phải bắt đầu bằng https://.");
+        }
+        return value;
+    }
     /** Guests must be told why a published event was cancelled, so the reason is mandatory (docs/02 §10). */
     private static String requireReason(String value) { String reason=optional(value,500,"Lý do hủy"); ApiErrors.require(reason!=null,"Hãy ghi lý do hủy buổi tiệc để lưu vào nhật ký và giải thích cho khách."); return reason; }
     public void eventState(UUID id,String state,long version) {

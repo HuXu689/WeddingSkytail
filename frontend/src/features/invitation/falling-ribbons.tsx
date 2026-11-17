@@ -46,20 +46,22 @@ function createRibbon(w: number, h: number): Ribbon {
   };
 }
 
-export function FallingRibbons({ count = 12 }: { count?: number }) {
+export function FallingRibbons({ count = 4, active = true }: { count?: number; active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ribbonsRef = useRef<Ribbon[]>([]);
   const rafRef = useRef<number>(0);
-  const [enabled, setEnabled] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setEnabled(!mq.matches);
-    const handler = (e: MediaQueryListEvent) => setEnabled(!e.matches);
+    setMotionOk(!mq.matches);
+    const handler = (e: MediaQueryListEvent) => setMotionOk(!e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  const enabled = motionOk && active && count > 0;
 
   useEffect(() => {
     if (!enabled) return;

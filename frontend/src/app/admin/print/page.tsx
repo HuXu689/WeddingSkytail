@@ -19,9 +19,8 @@ export default function PrintCentre(){
  const [page,setPage]=useState(0),[selected,setSelected]=useState<string[]>([]),[query,setQuery]=useState('');
  const [style,setStyle]=useState<ExportLabelStyle>('NAME_QR'),[preview,setPreview]=useState<ExportPreview|null>(null);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
- const guests=useAdmin<Invitation[]>(`/admin/invitations?page=${page}&archived=false`);
- const keyword=query.trim().toLowerCase();
- const visible=(guests.data??[]).filter(row=>keyword.length===0||row.display_name.toLowerCase().includes(keyword)||(row.group_name??'').toLowerCase().includes(keyword));
+ const guests=useAdmin<Invitation[]>(`/admin/invitations?page=${page}&archived=false${query.trim()?`&query=${encodeURIComponent(query.trim())}`:''}`);
+ const visible=guests.data??[];
  const onPage=visible.filter(row=>selected.includes(row.id));
  const cells=preview?preview.rows.map(row=>({code:row.rowNumber,name:row.displayName,summary:row.eventSummary}))
   :onPage.map((row,index)=>({code:index+1,name:row.display_name,summary:row.assigned_events??''}));
@@ -33,7 +32,7 @@ export default function PrintCentre(){
  async function revoke(){if(!preview)return;setBusy(true);try{await api(`/admin/exports/${preview.id}/revoke`,'POST');setPreview(null);setNotice('Đã thu hồi bản in.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  return <><Heading title="Trung tâm in" description="Chọn khách, chọn mẫu nhãn rồi xem trước lưới A4 3×5 đúng như file PDF sẽ in. Bản in dùng lại link QR hiện có nên không làm mất hiệu lực QR đã phát cho khách."/><Feedback error={error} notice={notice} retry={()=>void guests.reload().catch(()=>{})}/>
   <section className="card print-layout"><div className="section-heading"><div><h2>Chọn khách để in</h2><p className="field-hint">Đã chọn {selected.length}/300 · tối đa {PER_PAGE} nhãn mỗi trang A4 · khách đã lưu trữ hoặc thu hồi link không in được.</p></div><div className="row"><button className="secondary" type="button" disabled={visible.length===0} onClick={()=>setSelected(onPage.length>0?selected.filter(id=>!visible.some(row=>row.id===id)):Array.from(new Set(selected.concat(visible.filter(row=>row.active&&!row.archived).map(row=>row.id)))).slice(0,300))}>{onPage.length>0?'Bỏ chọn trang này':'Chọn tất cả trang này'}</button></div></div>
-   <div className="toolbar"><label>Tìm khách<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Tên khách hoặc nhóm"/></label><span className="muted">Hiện {visible.length} khách trên trang {page+1}</span></div>
+   <div className="toolbar"><label>Tìm khách<input type="search" value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}} placeholder="Tên khách hoặc nhóm"/></label><span className="muted">Hiện {visible.length} khách trên trang {page+1}</span></div>
    {!guests.data&&!guests.error&&<Loading/>}{guests.data?.length===0&&<Empty>Chưa có khách để in.</Empty>}
    {guests.data&&visible.length>0&&<div className="table"><table><thead><tr><th><span className="sr-only">Chọn</span></th><th>Người nhận</th><th>Nhóm</th><th>Buổi được mời</th><th>Trạng thái</th></tr></thead><tbody>{visible.map(row=><tr key={row.id}><td><input type="checkbox" checked={selected.includes(row.id)} disabled={!row.active||row.archived||(!selected.includes(row.id)&&selected.length>=300)} onChange={()=>toggle(row.id)} aria-label={`Chọn ${row.display_name} để in`}/></td><td>{row.display_name}</td><td>{row.group_name||'—'}</td><td>{row.assigned_events||'—'}</td><td><Badge value={row.active?'ACTIVE':'INACTIVE'}/>{row.archived&&<span className="field-hint"> · Đã lưu trữ</span>}</td></tr>)}</tbody></table></div>}
    <div className="pagination"><button className="secondary" disabled={page===0} onClick={()=>setPage(page-1)}>← Trang trước</button><span>Trang {page+1}</span><button className="secondary" disabled={!guests.data||guests.data.length<50} onClick={()=>setPage(page+1)}>Trang sau →</button></div>

@@ -2,8 +2,8 @@
 import {useEffect,useRef,useState} from 'react';
 
 /**
- * Hiệu ứng trái tim 3D, tim đôi và bong bóng tình yêu bay lên khắp thiệp.
- * Đã khắc phục lỗi thiếu clearRect và hỗ trợ sự kiện 'wedding:hearts' khi khách thả tim.
+ * Hiệu ứng trái tim chúc phúc bay lên khi mở thiệp và khi khách thả tim ('wedding:hearts').
+ * Tự động ngủ đông dừng requestAnimationFrame khi không còn hạt trên màn hình (khi count === 0).
  */
 
 interface FloatingHeart {
@@ -22,26 +22,25 @@ interface FloatingHeart {
 }
 
 const HEART_COLORS = [
-  'rgba(218, 105, 125, 0.55)',
-  'rgba(195, 162, 107, 0.5)',
-  'rgba(235, 145, 160, 0.55)',
-  'rgba(214, 170, 135, 0.5)',
-  'rgba(185, 75, 95, 0.45)',
-  'rgba(242, 185, 195, 0.6)',
+  'rgba(218, 105, 125, 0.5)',
+  'rgba(195, 162, 107, 0.46)',
+  'rgba(235, 145, 160, 0.5)',
+  'rgba(214, 170, 135, 0.45)',
+  'rgba(185, 75, 95, 0.42)',
 ];
 
 function newHeart(w: number, h: number, now: number, burst = false): FloatingHeart {
   const variants: FloatingHeart['variant'][] = ['glossy', 'double', 'sparkle', 'glossy'];
   return {
     x: 24 + Math.random() * Math.max(20, w - 48),
-    y: h + (burst ? Math.random() * 40 : 10 + Math.random() * 120),
-    size: (burst ? 12 : 9) + Math.random() * 18,
-    speed: (burst ? 1.1 : 0.45) + Math.random() * 0.75,
-    swayAmp: 14 + Math.random() * 32,
-    swayFreq: 0.002 + Math.random() * 0.003,
-    rotation: (Math.random() - 0.5) * 28,
-    rotSpeed: (Math.random() - 0.5) * 0.35,
-    opacity: (burst ? 0.55 : 0.28) + Math.random() * 0.4,
+    y: h + (burst ? Math.random() * 45 : 10 + Math.random() * 120),
+    size: (burst ? 11 : 8) + Math.random() * 14,
+    speed: (burst ? 1.05 : 0.42) + Math.random() * 0.65,
+    swayAmp: 12 + Math.random() * 26,
+    swayFreq: 0.002 + Math.random() * 0.0026,
+    rotation: (Math.random() - 0.5) * 24,
+    rotSpeed: (Math.random() - 0.5) * 0.3,
+    opacity: (burst ? 0.5 : 0.24) + Math.random() * 0.32,
     startTime: now,
     color: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
     variant: variants[Math.floor(Math.random() * variants.length)],
@@ -76,8 +75,7 @@ function drawHeart(
   drawHeartPath(ctx, size);
   ctx.fill();
 
-  // Điểm nhấn ánh sáng 3D trên trái tim
-  ctx.fillStyle = 'rgba(255, 250, 245, 0.45)';
+  ctx.fillStyle = 'rgba(255, 250, 245, 0.42)';
   ctx.beginPath();
   ctx.ellipse(-size * 0.18, -size * 0.22, size * 0.1, size * 0.05, -0.5, 0, Math.PI * 2);
   ctx.fill();
@@ -85,33 +83,42 @@ function drawHeart(
   if (variant === 'double') {
     ctx.translate(size * 0.42, -size * 0.22);
     ctx.rotate(0.25);
-    ctx.strokeStyle = 'rgba(255, 235, 190, 0.75)';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(255, 235, 190, 0.72)';
+    ctx.lineWidth = 1.1;
     drawHeartPath(ctx, size * 0.62);
     ctx.stroke();
   } else if (variant === 'sparkle') {
-    ctx.fillStyle = 'rgba(255, 240, 195, 0.8)';
+    ctx.fillStyle = 'rgba(255, 240, 195, 0.75)';
     ctx.beginPath();
-    ctx.arc(0, -size * 0.52, 1.8, 0, Math.PI * 2);
+    ctx.arc(0, -size * 0.52, 1.6, 0, Math.PI * 2);
     ctx.fill();
   }
 
   ctx.restore();
 }
 
-export function FloatingHearts({ count = 24 }: { count?: number }) {
+export function FloatingHearts({
+  count = 0,
+  active = true,
+}: {
+  count?: number;
+  active?: boolean;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heartsRef = useRef<FloatingHeart[]>([]);
   const rafRef = useRef(0);
-  const [enabled, setEnabled] = useState(false);
+  const runningRef = useRef(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setEnabled(!motion.matches);
-    const update = (event: MediaQueryListEvent) => setEnabled(!event.matches);
+    setMotionOk(!motion.matches);
+    const update = (event: MediaQueryListEvent) => setMotionOk(!event.matches);
     motion.addEventListener('change', update);
     return () => motion.removeEventListener('change', update);
   }, []);
+
+  const enabled = motionOk && active;
 
   useEffect(() => {
     if (!enabled) return;
@@ -136,24 +143,6 @@ export function FloatingHearts({ count = 24 }: { count?: number }) {
       }
     };
     resize();
-
-    const now = performance.now();
-    heartsRef.current = Array.from({ length: count }, (_, index) => {
-      const heart = newHeart(width, height, now - index * 260);
-      heart.y = Math.random() * height;
-      return heart;
-    });
-
-    const onHeartBurst = () => {
-      const burstTime = performance.now();
-      for (let i = 0; i < 16; i++) {
-        heartsRef.current.push(newHeart(width, height, burstTime, true));
-      }
-      if (heartsRef.current.length > count + 40) {
-        heartsRef.current = heartsRef.current.slice(-(count + 40));
-      }
-    };
-    window.addEventListener('wedding:hearts', onHeartBurst);
 
     function frame(time: number) {
       ctx!.clearRect(0, 0, width, height);
@@ -186,20 +175,57 @@ export function FloatingHearts({ count = 24 }: { count?: number }) {
           heart.variant
         );
       }
+
+      if (count === 0 && heartsRef.current.length === 0) {
+        ctx!.clearRect(0, 0, width, height);
+        runningRef.current = false;
+        return;
+      }
       rafRef.current = requestAnimationFrame(frame);
     }
 
+    function ensureRunning() {
+      if (runningRef.current || document.hidden) return;
+      runningRef.current = true;
+      rafRef.current = requestAnimationFrame(frame);
+    }
+
+    const now = performance.now();
+    const initialBurst = count > 0 ? count : 8;
+    heartsRef.current = Array.from({ length: initialBurst }, (_, index) => {
+      const heart = newHeart(width, height, now + index * 90, count === 0);
+      if (count > 0) heart.y = Math.random() * height;
+      return heart;
+    });
+    ensureRunning();
+
+    const onHeartBurst = () => {
+      resize();
+      const burstTime = performance.now();
+      for (let i = 0; i < 14; i++) {
+        heartsRef.current.push(newHeart(width, height, burstTime + i * 35, true));
+      }
+      if (heartsRef.current.length > count + 36) {
+        heartsRef.current = heartsRef.current.slice(-(count + 36));
+      }
+      ensureRunning();
+    };
+    window.addEventListener('wedding:hearts', onHeartBurst);
+
     const onVisibility = () => {
       cancelAnimationFrame(rafRef.current);
-      if (!document.hidden) rafRef.current = requestAnimationFrame(frame);
+      runningRef.current = false;
+      if (!document.hidden && (count > 0 || heartsRef.current.length > 0)) {
+        ensureRunning();
+      }
     };
 
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('resize', resize);
-    if (!document.hidden) rafRef.current = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      runningRef.current = false;
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('resize', resize);
       window.removeEventListener('wedding:hearts', onHeartBurst);

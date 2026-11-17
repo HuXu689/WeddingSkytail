@@ -4,31 +4,35 @@ import {createPortal} from 'react-dom';
 import {api} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
 import type {GiftView,WishFeedScope} from '@/shared/invitation-features';
-import {SectionCornerStickers,StickerBadge} from './wedding-stickers';
+import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
 
 export function giftPath(scope:WishFeedScope){return scope.kind==='public'?`/public/weddings/${encodeURIComponent(scope.slug)}/gifts`:`/guest/invitations/${encodeURIComponent(scope.invitationId)}/gifts`;}
 
-function GiftKeepsakeEmblem(){
- return <svg className="gift-keepsake-svg" viewBox="0 0 180 128" fill="none" aria-hidden="true">
+export function GiftKeepsakeEmblem(){
+ return <svg className="gift-keepsake-svg" viewBox="0 0 210 140" fill="none" aria-hidden="true">
   <defs>
    <linearGradient id="giftCardPaper" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stopColor="#fffdf9"/>
-    <stop offset="100%" stopColor="#f5ecda"/>
+    <stop offset="0%" stopColor="#fffef9"/>
+    <stop offset="55%" stopColor="#faf2e2"/>
+    <stop offset="100%" stopColor="#f2e2c6"/>
    </linearGradient>
    <linearGradient id="giftCardGold" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stopColor="#f3dfa2"/>
-    <stop offset="50%" stopColor="#c59c4a"/>
-    <stop offset="100%" stopColor="#8f6b23"/>
+    <stop offset="0%" stopColor="#f4e0a3"/>
+    <stop offset="50%" stopColor="#c79b44"/>
+    <stop offset="100%" stopColor="#8d671f"/>
    </linearGradient>
   </defs>
-  <rect x="22" y="26" width="136" height="84" rx="12" fill="url(#giftCardPaper)" stroke="url(#giftCardGold)" strokeWidth="1.6"/>
-  <rect x="28" y="32" width="124" height="72" rx="8" stroke="url(#giftCardGold)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.7"/>
-  <path d="M24 30 L90 74 L156 30" stroke="url(#giftCardGold)" strokeWidth="1.4" fill="none"/>
-  <path d="M26 106 L74 64 M154 106 L106 64" stroke="url(#giftCardGold)" strokeWidth="1" opacity="0.55"/>
-  <circle cx="90" cy="70" r="18" fill="currentColor" stroke="url(#giftCardGold)" strokeWidth="1.8"/>
-  <circle cx="90" cy="70" r="13.5" stroke="url(#giftCardGold)" strokeWidth="0.9" strokeDasharray="2 2"/>
-  <path d="M90 77 L82.5 69.5 C79 65 84.5 60 90 65 C95.5 60 101 65 97.5 69.5 Z" fill="#f7e7ba"/>
-  <path d="M90 10 L92 15 L97 17 L92 19 L90 24 L88 19 L83 17 L88 15 Z" fill="url(#giftCardGold)"/>
+  <rect x="26" y="28" width="158" height="94" rx="14" fill="url(#giftCardPaper)" stroke="url(#giftCardGold)" strokeWidth="1.8"/>
+  <rect x="33" y="35" width="144" height="80" rx="10" stroke="url(#giftCardGold)" strokeWidth="0.85" strokeDasharray="3.5 3.5" opacity="0.78"/>
+  <path d="M29 33 L105 82 L181 33" stroke="url(#giftCardGold)" strokeWidth="1.5" fill="none"/>
+  <path d="M31 116 L85 71 M179 116 L125 71" stroke="url(#giftCardGold)" strokeWidth="1.1" opacity="0.52"/>
+  <path d="M62 28 C78 16, 132 16, 148 28" stroke="url(#giftCardGold)" strokeWidth="1.2" strokeLinecap="round" opacity="0.75"/>
+  <circle cx="105" cy="76" r="20" fill="currentColor" stroke="url(#giftCardGold)" strokeWidth="2"/>
+  <circle cx="105" cy="76" r="15" stroke="url(#giftCardGold)" strokeWidth="0.95" strokeDasharray="2.2 2.2"/>
+  <path d="M105 84 L96.5 75.5 C92.5 70.5 98.8 64.5 105 70 C111.2 64.5 117.5 70.5 113.5 75.5 Z" fill="#faecc2"/>
+  <path d="M105 8 L107.2 14 L113.2 16.2 L107.2 18.4 L105 24.4 L102.8 18.4 L96.8 16.2 L102.8 14 Z" fill="url(#giftCardGold)"/>
+  <circle cx="48" cy="18" r="2.2" fill="url(#giftCardGold)" opacity="0.75"/>
+  <circle cx="162" cy="18" r="2.2" fill="url(#giftCardGold)" opacity="0.75"/>
  </svg>;
 }
 
@@ -56,6 +60,14 @@ function CopyIcon(){
  </svg>;
 }
 
+function ExternalIcon(){
+ return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+  <polyline points="15 3 21 3 21 9"/>
+  <line x1="10" y1="14" x2="21" y2="3"/>
+ </svg>;
+}
+
 export function GiftBox({scope}:{scope:WishFeedScope}){
  const path=giftPath(scope);return <ScopedGiftBox key={path} path={path}/>;
 }
@@ -75,7 +87,9 @@ function ScopedGiftBox({path}:{path:string}){
    </div>
    <p className="eyebrow">Một chút yêu thương</p>
    <h2>Hộp quà mừng ngày chung đôi</h2>
+   <div className="gift-box-divider" aria-hidden="true"><span>✦</span></div>
    <p className="gift-box-lead">Sự hiện diện và những lời chúc phúc tốt đẹp của bạn chính là món quà quý giá nhất đối với chúng mình.</p>
+   {view.recipients.length>0&&<p className="gift-box-recipients-hint">{view.recipients.length>1?`Gồm ${view.recipients.length} mã mừng riêng biệt`:`Dành tặng ${oneLine(view.recipients[0].label)}`}</p>}
    <button ref={opener} type="button" className="gift-trigger" aria-haspopup="dialog" onClick={()=>{setOpened(true);if(typeof window!=='undefined'){window.dispatchEvent(new CustomEvent('wedding:fireworks'));window.dispatchEvent(new CustomEvent('wedding:hearts'));}}}>
     <span className="gift-symbol" aria-hidden="true"><GiftIcon/></span>
     <span>Mở hộp quà mừng</span>
@@ -91,7 +105,11 @@ function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|
  const title=useId(),description=useId(),ownerDocument=opener?.ownerDocument??document;
  useEffect(()=>{
   alive.current=true;const node=dialog.current;node?.showModal();close.current?.focus();
-  if(node&&opener)node.style.setProperty('--wedding-accent',getComputedStyle(opener).getPropertyValue('--wedding-accent'));
+  if(node&&opener){
+   node.style.setProperty('--wedding-accent',getComputedStyle(opener).getPropertyValue('--wedding-accent'));
+   const canvas=opener.closest('.wedding-canvas');
+   if(canvas){for(const cls of ['theme-traditional','theme-modern','theme-elegant']){if(canvas.classList.contains(cls))node.classList.add(cls);}}
+  }
   const overflow=ownerDocument.body.style.overflow;ownerDocument.body.style.overflow='hidden';
   return()=>{alive.current=false;node?.close();ownerDocument.body.style.overflow=overflow;if(opener?.isConnected)opener.focus({preventScroll:true});};
  },[opener,ownerDocument]);
@@ -123,37 +141,51 @@ function GiftDialog({path,opener,onClose}:{path:string;opener:HTMLButtonElement|
  return createPortal(<dialog ref={dialog} className="gift-dialog" aria-labelledby={title} aria-describedby={description}
   onCancel={event=>{event.preventDefault();onClose();}} onClick={event=>{if(event.target===event.currentTarget){const box=event.currentTarget.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)onClose();}}}>
   <div className="gift-dialog-content">
-   <header className="gift-dialog-header">
-    <div className="gift-dialog-titlewrap">
-     <span className="gift-dialog-badge">Thiệp mừng cưới</span>
-     <h2 id={title}>Hộp quà mừng</h2>
-    </div>
-    <button ref={close} type="button" className="secondary gift-close" onClick={onClose} aria-label="Đóng hộp quà">Đóng ×</button>
-   </header>
-   <p id={description} className="gift-dialog-intro">Nếu bạn muốn gửi quà, hãy kiểm tra đúng tên người nhận trong ứng dụng ngân hàng trước khi chuyển.</p>
-   {!view&&!error&&<p className="gift-loading" role="status">Đang mở hộp quà…</p>}
-   {error&&<div className="gift-error-box" role="alert"><p>{error}</p><button type="button" className="secondary" onClick={()=>setRetry(value=>value+1)}>Thử tải lại hộp quà</button></div>}
-   {view&&!available&&<p role="status">Hộp quà hiện không khả dụng. Bạn vẫn có thể gửi lời chúc tới hai bạn.</p>}
-   {available&&recipient&&url&&<div className="gift-qr-card">
-    {view.recipients.length>1&&<div className="gift-options" role="group" aria-label="Chọn người nhận">{view.recipients.map((item,index)=><button type="button" className="secondary" key={item.assetId??index} aria-pressed={selected===index} onClick={()=>choose(index)} disabled={busy}>{oneLine(item.label)}</button>)}</div>}
-    <div className="gift-recipient-meta">
-     <h3>{oneLine(recipient.label)}</h3>
-     {recipient.description&&<p className="gift-description">{text(recipient.description)}</p>}
-    </div>
-    <div className="gift-qr-pedestal">
-     {!imageReady&&!imageError&&<p className="gift-qr-loading" role="status">Đang tải mã QR…</p>}
-     <img key={`${url}-${retry}`} className="gift-qr" src={url} alt={`Mã QR quà mừng — ${oneLine(recipient.label)}`} width={280} height={280} onLoad={()=>{setImageReady(true);setImageError(false);}} onError={()=>{setImageError(true);setImageReady(false);}}/>
-    </div>
-    {imageError&&<p className="gift-error-box" role="alert">Chưa tải được ảnh QR. <button type="button" className="secondary" onClick={()=>{setImageError(false);setImageReady(false);setRetry(value=>value+1);}}>Thử tải lại ảnh</button></p>}
-    <div className="row gift-actions">
-     <button type="button" disabled={busy||!imageReady||imageError} onClick={()=>void download()}><DownloadIcon/><span>{busy?'Đang tải…':'Tải ảnh QR'}</span></button>
-     <button type="button" className="secondary" disabled={busy||!imageReady||imageError} onClick={()=>void copy()}><CopyIcon/><span>Sao chép ảnh QR</span></button>
-     <a className="button secondary" href={url} target="_blank" rel="noreferrer">Mở ảnh gốc ↗</a>
-    </div>
-    {copyNotice&&<p className="field-hint gift-feedback" role="status">{copyNotice}</p>}
-    {downloadError&&<p className="gift-error-box" role="alert">{downloadError}</p>}
-    <p className="field-hint gift-disclaimer">Ảnh tải về giữ nguyên PNG. Việc mở hoặc tải mã không phải là chuyển tiền hay xác nhận đã nhận quà.</p>
-   </div>}
+   <div className="gift-dialog-card-frame">
+    <SectionCornerStickers compact/>
+    <header className="gift-dialog-header">
+     <div className="gift-dialog-seal" aria-hidden="true">
+      <WeddingSticker kind="wax-seal-song-hy" size={44}/>
+     </div>
+     <div className="gift-dialog-titlewrap">
+      <span className="gift-dialog-badge">Thiệp mừng cưới</span>
+      <h2 id={title}>Hộp quà mừng</h2>
+     </div>
+     <button ref={close} type="button" className="secondary gift-close" onClick={onClose} aria-label="Đóng hộp quà">Đóng ×</button>
+    </header>
+    <p id={description} className="gift-dialog-intro">Nếu bạn muốn gửi quà, hãy kiểm tra đúng tên người nhận trong ứng dụng ngân hàng trước khi chuyển.</p>
+    <div className="gift-dialog-ornament-rule" aria-hidden="true"><span>✦</span></div>
+    {!view&&!error&&<p className="gift-loading" role="status">Đang mở hộp quà…</p>}
+    {error&&<div className="gift-error-box" role="alert"><p>{error}</p><button type="button" className="secondary" onClick={()=>setRetry(value=>value+1)}>Thử tải lại hộp quà</button></div>}
+    {view&&!available&&<p role="status">Hộp quà hiện không khả dụng. Bạn vẫn có thể gửi lời chúc tới hai bạn.</p>}
+    {available&&recipient&&url&&<div className="gift-qr-card">
+     {view.recipients.length>1&&<div className="gift-options" role="group" aria-label="Chọn người nhận">{view.recipients.map((item,index)=><button type="button" className="secondary" key={item.assetId??index} aria-pressed={selected===index} onClick={()=>choose(index)} disabled={busy}>{oneLine(item.label)}</button>)}</div>}
+     <div className="gift-recipient-meta">
+      <span className="gift-recipient-kicker">Người nhận quà mừng</span>
+      <h3>{oneLine(recipient.label)}</h3>
+      {recipient.description?.trim()&&<div className="gift-recipient-note">
+       <p className="gift-description">{text(recipient.description)}</p>
+       <button type="button" className="secondary gift-copy-info-btn" onClick={async()=>{try{await navigator.clipboard.writeText(text(recipient.description));if(alive.current)setCopyNotice('Đã sao chép thông tin tài khoản vào bộ nhớ tạm.');}catch{if(alive.current)setCopyNotice('Trình duyệt chưa hỗ trợ sao chép tự động. Vui lòng chọn chữ để sao chép.');}}}><CopyIcon/><span>Sao chép thông tin</span></button>
+      </div>}
+     </div>
+     <div className="gift-qr-stage">
+      <div className="gift-qr-pedestal">
+       {!imageReady&&!imageError&&<p className="gift-qr-loading" role="status">Đang tải mã QR…</p>}
+       <img key={`${url}-${retry}`} className="gift-qr" src={url} alt={`Mã QR quà mừng — ${oneLine(recipient.label)}`} width={280} height={280} onLoad={()=>{setImageReady(true);setImageError(false);}} onError={()=>{setImageError(true);setImageReady(false);}}/>
+      </div>
+      <p className="gift-qr-caption">Mở ứng dụng ngân hàng hoặc ví điện tử để quét mã</p>
+     </div>
+     {imageError&&<p className="gift-error-box" role="alert">Chưa tải được ảnh QR. <button type="button" className="secondary" onClick={()=>{setImageError(false);setImageReady(false);setRetry(value=>value+1);}}>Thử tải lại ảnh</button></p>}
+     <div className="row gift-actions">
+      <button type="button" className="gift-primary-btn" disabled={busy||!imageReady||imageError} onClick={()=>void download()}><DownloadIcon/><span>{busy?'Đang tải…':'Tải ảnh QR'}</span></button>
+      <button type="button" className="secondary" disabled={busy||!imageReady||imageError} onClick={()=>void copy()}><CopyIcon/><span>Sao chép ảnh QR</span></button>
+      <a className="button secondary" href={url} target="_blank" rel="noreferrer"><ExternalIcon/><span>Mở ảnh gốc ↗</span></a>
+     </div>
+     {copyNotice&&<p className="field-hint gift-feedback" role="status">{copyNotice}</p>}
+     {downloadError&&<p className="gift-error-box" role="alert">{downloadError}</p>}
+     <p className="field-hint gift-disclaimer">Ảnh tải về giữ nguyên PNG. Việc mở hoặc tải mã không phải là chuyển tiền hay xác nhận đã nhận quà.</p>
+    </div>}
+   </div>
   </div>
  </dialog>,ownerDocument.body);
 }

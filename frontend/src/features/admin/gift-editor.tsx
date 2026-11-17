@@ -56,6 +56,18 @@ export function GiftEditor({initial}:{initial:GiftConfiguration}){
    </fieldset>
    <div className="gift-recipient-grid">{panel('first',draft.mode==='SINGLE'?'Người nhận chung':'Người nhận thứ nhất')}{draft.mode==='DUAL'&&panel('second','Người nhận thứ hai')}</div>
    {draft.mode==='SINGLE'&&<p className="field-hint">Cấu hình người nhận thứ hai được giữ lại khi chuyển về một mã, không xuất hiện với khách.</p>}
+   {draft.enabled&&<section className="card gift-admin-preview">
+    <div className="section-heading"><div><h3>Xem trước hộp quà (bản nháp)</h3><p className="field-hint">Kiểm tra nhãn người nhận, mô tả thông tin ngân hàng và ảnh QR trước khi phát hành.</p></div></div>
+    <div className="gift-admin-preview-grid">
+     {[draft.first,...(draft.mode==='DUAL'?[draft.second]:[])].map((item,idx)=><div className="gift-admin-preview-item" key={idx}>
+      <span className="eyebrow">Hộp quà mừng</span>
+      <h4>{item.label.trim()||'Chưa nhập tên người nhận'}</h4>
+      {item.description.trim()?<p className="gift-description">{item.description}</p>:<p className="field-hint">Chưa có mô tả tên ngân hàng / số tài khoản</p>}
+      {item.description.trim().length>0&&item.description.trim().length<=4&&<p className="warning">Mô tả hiện rất ngắn ({item.description.trim()}) — nên ghi rõ Tên ngân hàng và Chủ tài khoản để khách đối chiếu.</p>}
+      {item.assetId?<img className="gift-qr-preview" src={`/api/v1/admin/gifts/assets/${encodeURIComponent(item.assetId)}`} alt={`Xem trước QR ${idx+1}`} width={200} height={200}/>:<p className="field-hint">Chưa có ảnh QR</p>}
+     </div>)}
+    </div>
+   </section>}
    {incomplete&&<p role="status" className="warning">Bản nháp còn thiếu nhãn hoặc ảnh QR đang dùng. Bạn vẫn có thể lưu, nhưng chưa thể phát hành khi bật.</p>}
    <div className="row"><button disabled={busy||!dirty||conflict}>{busy?'Đang xử lý…':'Lưu bản nháp'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>setReloadPrompt(true)}>Tải lại cấu hình</button></div>
   </form>

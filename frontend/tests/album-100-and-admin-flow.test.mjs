@@ -48,3 +48,42 @@ test('ADMIN-FLOW: wedding page gates owner actions and section editor supports d
  assert.match(sections,/function removeSection/);
  assert.match(sections,/Xóa mục/);
 });
+
+test('CONSISTENCY: public and personal invitations align WeddingCanvas calendar/wishes slots and entry gates',()=>{
+ const pub=read('../src/app/w/[slug]/page.tsx');
+ const guest=read('../src/app/invitation/[id]/page.tsx');
+ const token=read('../src/app/i/[token]/page.tsx');
+ assert.match(pub,/calendar=\{<WeddingMonthCalendar/);
+ assert.match(pub,/wishes=\{<ApprovedWishes/);
+ assert.match(guest,/calendar=\{<WeddingMonthCalendar/);
+ assert.match(guest,/wishes=\{<WishBook/);
+ assert.match(token,/token-bridge-card/);
+ assert.match(token,/SectionCornerStickers/);
+});
+
+test('GIFT-REDESIGN: dialog inherits theme/accent, stationery frame, and primary button uses --wedding-accent',()=>{
+ const gift=read('../src/features/invitation/gift-box.tsx');
+ const css=read('../src/features/invitation/design.css');
+ assert.match(gift,/gift-dialog-card-frame/);
+ assert.match(gift,/gift-qr-stage/);
+ assert.match(gift,/theme-traditional/);
+ assert.match(css,/\.gift-dialog\s*\{[^}]*--inv-gold-border:/);
+ assert.match(css,/\.gift-dialog \.gift-primary-btn,\.gift-dialog button:not\(\.secondary\)\{background:var\(--wedding-accent/);
+});
+
+test('ADMIN-FLOW-2: GuestEditForm keeps controlled assignments, role gating on invitations/events, and search on print/exports',()=>{
+ const guestEdit=read('../src/features/admin/guest-edit-form.tsx');
+ assert.match(guestEdit,/checked=\{isChecked\}/);
+ assert.doesNotMatch(guestEdit,/defaultChecked=\{!!assigned\}/);
+ const inv=read('../src/app/admin/invitations/page.tsx');
+ assert.match(inv,/useAdminRole\(\)/);
+ assert.match(inv,/link-panel-qr/);
+ assert.match(inv,/isOwner&&selected\.length>0&&<BulkPolicyPanel/);
+ const events=read('../src/app/admin/events/page.tsx');
+ assert.match(events,/useAdminRole\(\)/);
+ assert.match(events,/isOwner&&event\.state==='DRAFT'/);
+ const print=read('../src/app/admin/print/page.tsx');
+ assert.match(print,/query=\$\{encodeURIComponent/);
+ const exportsPage=read('../src/app/admin/exports/page.tsx');
+ assert.match(exportsPage,/query=\$\{encodeURIComponent/);
+});

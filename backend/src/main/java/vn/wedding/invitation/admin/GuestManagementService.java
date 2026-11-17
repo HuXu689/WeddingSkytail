@@ -120,8 +120,8 @@ public class GuestManagementService {
         db.update("UPDATE invitations SET display_name=?,group_name=?,salutation=?,internal_note=?,version=version+1 WHERE id=?",Texts.oneLine(input.displayName()),Texts.oneLine(input.groupName()),Texts.oneLine(input.salutation()),Texts.text(input.internalNote()),id);
         for(var a:input.assignments())db.update("INSERT INTO assignments(invitation_id,event_id,max_people) VALUES(?,?,?) ON CONFLICT(invitation_id,event_id) DO UPDATE SET max_people=EXCLUDED.max_people",id,a.eventId(),a.maxPeople());
         if(requested.isEmpty())db.update("DELETE FROM assignments WHERE invitation_id=?",id);else db.update("DELETE FROM assignments WHERE invitation_id=? AND event_id<>ALL(?::uuid[])",id,requested.toArray(new UUID[0]));
-        db.update("INSERT INTO audit(action,target) VALUES('INVITATION_UPDATE',?)",id);return Map.of("id",id,"warnings",warnings);
+        audit("INVITATION_UPDATE",id);return Map.of("id",id,"warnings",warnings);
     }
-    public void archive(UUID id,boolean value,long version){var row=db.queryForMap("SELECT * FROM invitations WHERE id=? FOR UPDATE",id);ApiErrors.version(number(row,"version"),version);db.update("UPDATE invitations SET archived=?,version=version+1 WHERE id=?",value,id);db.update("INSERT INTO audit(action,target) VALUES(?,?)",value?"INVITATION_ARCHIVE":"INVITATION_RESTORE",id);}
+    public void archive(UUID id,boolean value,long version){var row=db.queryForMap("SELECT * FROM invitations WHERE id=? FOR UPDATE",id);ApiErrors.version(number(row,"version"),version);db.update("UPDATE invitations SET archived=?,version=version+1 WHERE id=?",value,id);audit(value?"INVITATION_ARCHIVE":"INVITATION_RESTORE",id);}
     public List<Map<String,Object>> assignments(UUID id){return db.queryForList("SELECT event_id,max_people FROM assignments WHERE invitation_id=? ORDER BY event_id",id);}
 }

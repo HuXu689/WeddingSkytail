@@ -1,9 +1,12 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import { FALLBACK_ALBUM } from './media-fallback';
+void FALLBACK_ALBUM;
 
 /**
- * Mưa hoa hồng, hoa anh đào 5 cánh, trái tim và sao vàng rơi lộng lẫy.
- * Hỗ trợ sự kiện 'wedding:petals' để tung thêm mưa hoa khi người dùng bấm nút.
+ * Mưa cánh hoa hồng & hoa anh đào rơi dịu nhẹ.
+ * Hỗ trợ chế độ burst-only (intensity='burst') tự dừng RAF khi hết cánh hoa rơi,
+ * và luôn phản hồi sự kiện 'wedding:petals'.
  */
 
 type Petal = {
@@ -25,33 +28,32 @@ type Petal = {
 };
 
 const COLORS = [
-  'rgba(242, 182, 194, 0.72)', // Hồng phấn sakura
-  'rgba(225, 130, 148, 0.62)', // Hồng cánh sen
-  'rgba(195, 162, 107, 0.62)', // Vàng champagne
-  'rgba(248, 215, 198, 0.72)', // Hồng kem
-  'rgba(255, 232, 200, 0.68)', // Ánh kim kem
-  'rgba(198, 92, 108, 0.52)',  // Đỏ hồng trầm
-  'rgba(235, 195, 145, 0.65)', // Vàng cát
+  'rgba(242, 182, 194, 0.62)',
+  'rgba(225, 130, 148, 0.52)',
+  'rgba(195, 162, 107, 0.52)',
+  'rgba(248, 215, 198, 0.62)',
+  'rgba(255, 232, 200, 0.58)',
+  'rgba(198, 92, 108, 0.45)',
 ];
 
 function makePetal(w: number, h: number, scatter = false): Petal {
-  const types: Petal['type'][] = ['petal', 'sakura', 'rose', 'petal', 'sakura', 'heart', 'star', 'sparkle'];
+  const types: Petal['type'][] = ['petal', 'sakura', 'rose', 'petal', 'sakura', 'sparkle'];
   const type = types[Math.floor(Math.random() * types.length)];
   return {
     x: Math.random() * w,
-    y: scatter ? Math.random() * h : -24 - Math.random() * 100,
-    size: type === 'sparkle' ? 3 + Math.random() * 4 : 8 + Math.random() * 14,
+    y: scatter ? Math.random() * h : -24 - Math.random() * 90,
+    size: type === 'sparkle' ? 2.5 + Math.random() * 3.5 : 7 + Math.random() * 11,
     rotation: Math.random() * 360,
-    rotationSpeed: (Math.random() - 0.5) * 2.2,
+    rotationSpeed: (Math.random() - 0.5) * 1.8,
     flipPhase: Math.random() * Math.PI * 2,
-    flipSpeed: 0.002 + Math.random() * 0.003,
-    fallSpeed: 0.42 + Math.random() * 0.75,
-    swayAmplitude: 22 + Math.random() * 46,
-    swaySpeed: 0.0012 + Math.random() * 0.002,
-    opacity: 0.42 + Math.random() * 0.45,
+    flipSpeed: 0.0018 + Math.random() * 0.0025,
+    fallSpeed: 0.36 + Math.random() * 0.62,
+    swayAmplitude: 18 + Math.random() * 38,
+    swaySpeed: 0.0011 + Math.random() * 0.0018,
+    opacity: 0.34 + Math.random() * 0.36,
     type,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    delay: scatter ? 0 : Math.random() * 1800,
+    delay: scatter ? 0 : Math.random() * 1400,
     phase: Math.random() * Math.PI * 2,
   };
 }
@@ -80,37 +82,13 @@ function draw(ctx: CanvasRenderingContext2D, p: Petal, time: number) {
     ctx.bezierCurveTo(s * 0.85, -s * 0.55, s * 0.7, s * 0.4, 0, s);
     ctx.bezierCurveTo(-s * 0.7, s * 0.4, -s * 0.85, -s * 0.55, 0, -s);
     ctx.fill();
-    // Đường gân sáng mềm trên cánh hoa
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(0, -s * 0.65);
-    ctx.quadraticCurveTo(s * 0.15, 0, 0, s * 0.65);
-    ctx.stroke();
   } else if (p.type === 'sakura') {
-    // Cánh hoa anh đào có khía chữ V ở đầu
     ctx.beginPath();
     ctx.moveTo(0, s * 0.9);
     ctx.bezierCurveTo(-s * 0.85, s * 0.3, -s * 0.75, -s * 0.65, -s * 0.22, -s * 0.95);
     ctx.lineTo(0, -s * 0.68);
     ctx.lineTo(s * 0.22, -s * 0.95);
     ctx.bezierCurveTo(s * 0.75, -s * 0.65, s * 0.85, s * 0.3, 0, s * 0.9);
-    ctx.closePath();
-    ctx.fill();
-  } else if (p.type === 'heart') {
-    ctx.beginPath();
-    ctx.moveTo(0, s * 0.35);
-    ctx.bezierCurveTo(-s * 0.55, -s * 0.1, -s * 0.55, -s * 0.55, 0, -s * 0.22);
-    ctx.bezierCurveTo(s * 0.55, -s * 0.55, s * 0.55, -s * 0.1, 0, s * 0.35);
-    ctx.fill();
-  } else if (p.type === 'star') {
-    ctx.beginPath();
-    for (let i = 0; i < 4; i++) {
-      const a = (i * 90 * Math.PI) / 180;
-      const b = ((i * 90 + 45) * Math.PI) / 180;
-      ctx.lineTo(Math.cos(a) * s * 0.65, Math.sin(a) * s * 0.65);
-      ctx.lineTo(Math.cos(b) * s * 0.18, Math.sin(b) * s * 0.18);
-    }
     ctx.closePath();
     ctx.fill();
   } else {
@@ -122,22 +100,30 @@ function draw(ctx: CanvasRenderingContext2D, p: Petal, time: number) {
   ctx.restore();
 }
 
-export function PetalShower({ intensity = 'normal' }: { intensity?: 'light' | 'normal' | 'dense' }) {
+export function PetalShower({
+  intensity = 'light',
+  active = true,
+}: {
+  intensity?: 'burst' | 'light' | 'normal' | 'dense';
+  active?: boolean;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const petalsRef = useRef<Petal[]>([]);
   const rafRef = useRef(0);
   const runningRef = useRef(false);
-  const [enabled, setEnabled] = useState(false);
-  const counts = { light: 30, normal: 52, dense: 80 };
+  const [motionOk, setMotionOk] = useState(false);
+  const counts = { burst: 0, light: 16, normal: 30, dense: 48 };
   const count = counts[intensity];
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setEnabled(!motion.matches);
-    const update = (event: MediaQueryListEvent) => setEnabled(!event.matches);
+    setMotionOk(!motion.matches);
+    const update = (event: MediaQueryListEvent) => setMotionOk(!event.matches);
     motion.addEventListener('change', update);
     return () => motion.removeEventListener('change', update);
   }, []);
+
+  const enabled = motionOk && active;
 
   useEffect(() => {
     if (!enabled) return;
@@ -161,32 +147,20 @@ export function PetalShower({ intensity = 'normal' }: { intensity?: 'light' | 'n
         canvas.height = targetH;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
-      if (!petalsRef.current.length && width > 0 && height > 0) {
+      if (!petalsRef.current.length && count > 0 && width > 0 && height > 0) {
         petalsRef.current = Array.from({ length: count }, () => makePetal(width, height, true));
       }
     };
-
-    const onPetalBurst = () => {
-      const now = performance.now();
-      for (let i = 0; i < 28; i++) {
-        const p = makePetal(width, height, false);
-        p.delay = now + i * 35;
-        p.fallSpeed *= 1.4;
-        petalsRef.current.push(p);
-      }
-      if (petalsRef.current.length > count + 45) {
-        petalsRef.current = petalsRef.current.slice(-(count + 45));
-      }
-    };
-    window.addEventListener('wedding:petals', onPetalBurst);
 
     const frame = (time: number) => {
       const dt = lastTime ? Math.min(time - lastTime, 40) : 16;
       lastTime = time;
       ctx.clearRect(0, 0, width, height);
 
-      if (!petalsRef.current.length && width > 0) {
-        petalsRef.current = Array.from({ length: count }, () => makePetal(width, height, true));
+      if (petalsRef.current.length < count && width > 0) {
+        while (petalsRef.current.length < count) {
+          petalsRef.current.push(makePetal(width, height, true));
+        }
       }
 
       for (let i = 0; i < petalsRef.current.length; i++) {
@@ -206,15 +180,39 @@ export function PetalShower({ intensity = 'normal' }: { intensity?: 'light' | 'n
           petal.delay = time;
         }
       }
+
+      if (count === 0 && petalsRef.current.length === 0) {
+        ctx.clearRect(0, 0, width, height);
+        runningRef.current = false;
+        return;
+      }
+
       rafRef.current = requestAnimationFrame(frame);
     };
 
     const start = () => {
       if (runningRef.current || document.hidden) return;
+      if (count === 0 && petalsRef.current.length === 0) return;
       runningRef.current = true;
       lastTime = 0;
       rafRef.current = requestAnimationFrame(frame);
     };
+
+    const onPetalBurst = () => {
+      resize();
+      const now = performance.now();
+      for (let i = 0; i < 24; i++) {
+        const p = makePetal(width, height, false);
+        p.delay = now + i * 32;
+        p.fallSpeed *= 1.35;
+        petalsRef.current.push(p);
+      }
+      if (petalsRef.current.length > count + 40) {
+        petalsRef.current = petalsRef.current.slice(-(count + 40));
+      }
+      start();
+    };
+    window.addEventListener('wedding:petals', onPetalBurst);
 
     const visibility = () => {
       cancelAnimationFrame(rafRef.current);
@@ -223,6 +221,7 @@ export function PetalShower({ intensity = 'normal' }: { intensity?: 'light' | 'n
     };
 
     resize();
+    if (count === 0) petalsRef.current = [];
     document.addEventListener('visibilitychange', visibility);
     window.addEventListener('resize', resize);
     start();

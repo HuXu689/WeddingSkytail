@@ -4,6 +4,7 @@ import {adjacentMonth,defaultCalendarItem,localDay,monthCells,type CalendarItem}
 import {oneLine} from '@/shared/text';
 import {date} from '@/shared/api';
 import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
+import {friendlyTimezone} from './media-fallback';
 
 export function WeddingMonthCalendar({items}:{items:CalendarItem[]}){
  const valid=items.filter(item=>localDay(item.at,item.timezone));
@@ -26,7 +27,7 @@ function CalendarContent({items}:{items:CalendarItem[]}){
    <p className="eyebrow">Những ngày chung vui</p>
    <h2 id={heading}>Lịch hẹn cùng bạn</h2>
    <div className="calendar-header-ornament" aria-hidden="true">
-    <WeddingSticker kind="lovebirds" size={74}/>
+    <WeddingSticker kind="lovebirds" size={64}/>
    </div>
   </header>
   <div className="month-navigation"><button type="button" className="secondary" aria-label="Tháng trước" onClick={()=>{setDir(-1);setMonth(value=>adjacentMonth(value,-1));}}>←</button><h3 aria-live="polite">Tháng {m} · {year}</h3><button type="button" className="secondary" aria-label="Tháng sau" onClick={()=>{setDir(1);setMonth(value=>adjacentMonth(value,1));}}>→</button></div>
@@ -37,8 +38,8 @@ function CalendarContent({items}:{items:CalendarItem[]}){
     return <td key={column}>{events.length?<button type="button" className="calendar-day" aria-current={today?'date':undefined} aria-pressed={selected===key} aria-controls={details} aria-label={`${day}/${m}/${year}, ${events.length} mốc${events.every(item=>item.cancelled)?', đã hủy':''}${today?', hôm nay':''}`} onClick={()=>setSelected(key)}><span>{day}</span><small>{events.length} mốc</small>{today&&<span className="sr-only">Hôm nay</span>}</button>:<span className="calendar-plain" aria-current={today?'date':undefined}>{day}</span>}</td>;
    })}</tr>)}</tbody>
   </table></div>
-  <p className="field-hint">Chọn ngày có mốc để xem chi tiết. Ngày sự kiện được tính theo múi giờ ghi ở từng mốc. Ngày được khoanh viền là hôm nay theo {initial.timezone}.</p>
+  <p className="field-hint">Chọn ngày được đánh dấu để xem chi tiết chương trình ({friendlyTimezone(initial.timezone)}). Ngày có viền mảnh là hôm nay.</p>
   <button type="button" className="secondary" onClick={()=>{setMonth(initialDay.slice(0,7));setSelected(initialDay);}}>Về ngày sự kiện</button>
-  <div id={details} className="calendar-details" aria-live="polite"><h3>Chi tiết ngày {selected.split('-').reverse().join('/')}</h3><ul>{selectedItems.map(item=><li key={item.id}><strong>{oneLine(item.title)}</strong>{item.cancelled&&<p>Buổi tiệc đã hủy</p>}{item.tentative&&<p>Dự kiến</p>}<p><time dateTime={item.at}>{date(item.at,item.timezone)}</time> · {item.timezone}</p>{item.venue&&<p>{oneLine(item.venue)}</p>}{item.address&&<p>{oneLine(item.address)}</p>}{item.calendarUrl&&!item.cancelled&&<a className="button secondary" href={item.calendarUrl}>Thêm vào lịch</a>}</li>)}</ul></div>
+  <div id={details} className="calendar-details" aria-live="polite"><h3>Chi tiết ngày {selected.split('-').reverse().join('/')}</h3><ul>{selectedItems.map(item=><li key={item.id}><strong>{oneLine(item.title)}</strong>{item.cancelled&&<p>Buổi tiệc đã hủy</p>}{item.tentative&&<p>Dự kiến</p>}<p><time dateTime={item.at}>{date(item.at,item.timezone)}</time> · {friendlyTimezone(item.timezone)}</p>{item.venue&&<p>{oneLine(item.venue)}</p>}{item.address&&<p>{oneLine(item.address)}</p>}{item.calendarUrl&&!item.cancelled&&<a className="button secondary" href={item.calendarUrl}>Thêm vào lịch</a>}</li>)}</ul></div>
  </section>;
 }

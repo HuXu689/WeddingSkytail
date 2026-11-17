@@ -42,4 +42,11 @@ class CoreRulesTest {
     @Test void ownerRsvpReasonMustNotBeBlank() {
         assertThrows(Exception.class,()->vn.wedding.invitation.admin.ResponseManagementService.validateReason("  "));
     }
+    @Test void mapsUrlSanitizesMarkdownAndRejectsMalformedUrls() {
+        assertNull(vn.wedding.invitation.admin.AdminService.cleanMapsUrl("   "));
+        assertEquals("https://maps.google.com/?q=Forevermark",vn.wedding.invitation.admin.AdminService.cleanMapsUrl("[Bản đồ](https://maps.google.com/?q=Forevermark)"));
+        assertEquals("https://maps.google.com/?q=Forevermark",vn.wedding.invitation.admin.AdminService.cleanMapsUrl("https://maps.google.com/?q=Forevermark](https://maps.google.com/?q=Forevermark"));
+        assertThrows(Exception.class,()->vn.wedding.invitation.admin.AdminService.cleanMapsUrl("http://maps.google.com"));
+        assertThrows(Exception.class,()->vn.wedding.invitation.admin.AdminService.cleanMapsUrl("https://maps.google.com/bad space"));
+    }
 }

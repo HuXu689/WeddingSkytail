@@ -1,6 +1,15 @@
-'use client';
+ 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {api,ApiError} from '@/shared/api';
+export function useAdminRole() {
+ const [role,setRole]=useState<'OWNER'|'EDITOR'|null>(null);
+ useEffect(()=>{
+  let active=true;
+  api<{role:'OWNER'|'EDITOR'}>('/auth/me').then(me=>{if(active)setRole(me.role);}).catch(()=>{});
+  return()=>{active=false;};
+ },[]);
+ return {role,isOwner:role==='OWNER',isEditor:role==='EDITOR'};
+}
 export function useAdmin<T>(path:string) {
  const [data,setData]=useState<T|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
  const sequence=useRef(0);

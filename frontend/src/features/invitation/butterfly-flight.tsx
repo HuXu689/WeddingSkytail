@@ -91,19 +91,21 @@ function drawButterfly(ctx: CanvasRenderingContext2D, b: Butterfly, time: number
   ctx.restore();
 }
 
-export function ButterflyFlight({ count = 7 }: { count?: number }) {
+export function ButterflyFlight({ count = 2, active = true }: { count?: number; active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const butterfliesRef = useRef<Butterfly[]>([]);
   const rafRef = useRef(0);
-  const [enabled, setEnabled] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setEnabled(!motion.matches);
-    const update = (e: MediaQueryListEvent) => setEnabled(!e.matches);
+    setMotionOk(!motion.matches);
+    const update = (e: MediaQueryListEvent) => setMotionOk(!e.matches);
     motion.addEventListener('change', update);
     return () => motion.removeEventListener('change', update);
   }, []);
+
+  const enabled = motionOk && active && count > 0;
 
   useEffect(() => {
     if (!enabled) return;

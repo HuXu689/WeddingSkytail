@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$BaseUrl = "http://localhost:8088",
   [string]$Username = "",
   [string]$Password = "",
@@ -14,25 +14,33 @@ if (-not $Username -or -not $Password) { throw "Hãy truyền -Username/-Passwor
 
 # Chỉ cần sửa block này khi dùng cho một cặp đôi khác. Script không ghi các giá trị này vào migration.
 $demo = @{
-  Names = 'Minh & An'
+  Names = 'Hoàng An & Thanh Bình'
   Slug = 'our-wedding'
   Theme = 'ELEGANT'
-  Accent = 'OLIVE'
-  Message = "Trân trọng kính mời bạn đến chung vui\ntrong ngày hạnh phúc của chúng mình.\nSự hiện diện của bạn là món quà thật quý giá."
-  Story = "Chúng mình gặp nhau vào một chiều mưa rất nhẹ, khi cả hai đều vô tình trú dưới cùng một mái hiên. Từ một lời hỏi thăm giản dị, những cuộc trò chuyện dài dần trở thành điều không thể thiếu trong mỗi ngày.\n\nSau những chuyến đi, những bữa cơm muộn và rất nhiều lần cùng nhau lựa chọn, chúng mình quyết định viết tiếp câu chuyện này bằng một lời hứa trọn đời. Cảm ơn bạn đã đến và chứng kiến khoảnh khắc đặc biệt ấy."
-  Footer = 'Cảm ơn bạn đã là một phần trong ngày hạnh phúc của chúng mình.'
-  Event1Title = 'Lễ gia tiên & tiệc thân mật'
-  Event1Venue = 'The Olive Garden'
-  Event1Address = '32 Nguyễn Huệ, Quận 1, Thành phố Hồ Chí Minh'
-  Event1Start = '2027-04-18T10:30:00Z'
-  Event1Deadline = '2027-04-10T16:00:00Z'
-  Event1Capacity = 80
-  Event2Title = 'Tiệc mừng cùng bạn bè'
-  Event2Venue = 'The Bloom Wedding House'
-  Event2Address = '88 Trần Phú, Hải Châu, Đà Nẵng'
-  Event2Start = '2027-04-24T17:30:00Z'
-  Event2Deadline = '2027-04-15T16:00:00Z'
-  Event2Capacity = 160
+  Accent = 'BURGUNDY'
+  Message = "Trân trọng kính mời Quý vị và Gia đình tới dự bữa tiệc chung vui mừng Lễ Thành Hôn của hai con chúng tôi.\nSự hiện diện và lời chúc phúc của Quý khách là niềm vinh hạnh lớn lao của gia đình."
+  Story = "Bắt đầu từ một cuộc gặp gỡ tình cờ vào chiều thu Hà Nội năm 2022, dưới mái hiên nhỏ trên phố Phan Đình Phùng khi cơn mưa bất chợt ghé ngang. Từ một tách trà nóng sẻ đôi và những câu chuyện không đầu không cuối, chúng mình nhận ra nhịp đập bình yên nơi ánh mắt người đối diện.\n\nQua hơn một nghìn ngày cùng nhau đi qua bao mùa nắng gió, những chuyến tàu đêm khám phá miền đất mới và cả những ngày bình dị bên căn bếp nhỏ, tình yêu cứ thế lớn dần bằng sự thấu hiểu và bao dung.\n\nHôm nay, Hoàng An và Thanh Bình quyết định nắm tay nhau bước vào lễ đường, viết tiếp chương đẹp nhất của cuộc đời bằng một tổ ấm ngập tràn tiếng cười."
+  Footer = 'Cảm ơn bạn đã luôn yêu thương, đồng hành và dành thời gian quý báu đến chung vui cùng vợ chồng mình. Hẹn gặp bạn tại ngày hạnh phúc!'
+  Event1Title = 'Lễ Ăn Hỏi & Tiệc Thân Mật Hai Gia Đình'
+  Event1Venue = 'Tư gia Nhà Gái & Không gian Sen Tây Hồ'
+  Event1Address = 'Số 45 Phố Thái Hà, Quận Đống Đa, Hà Nội'
+  Event1Start = '2026-12-24T02:00:00Z'
+  Event1Deadline = '2026-12-19T16:59:00Z'
+  Event1Capacity = 100
+  Event1Maps = 'https://maps.google.com/?q=45+Thai+Ha+Dong+Da+Ha+Noi'
+  Event1Dress = 'Áo dài truyền thống hoặc trang phục lịch sự tông màu ấm (Đỏ trầm, Vàng kem, Xanh olive).'
+  Event1Parking = 'Ô tô gửi tại bãi đỗ tòa nhà Việt Tower đầu ngõ 45 Thái Hà; có đội bê tráp hướng dẫn.'
+  Event1Note = 'Sau nghi lễ nạp tài lúc 09:00 sáng, kính mời gia đình hai bên dùng bữa trưa thân mật lúc 11:30.'
+  Event2Title = 'Lễ Thành Hôn & Tiệc Cưới Chính Thức'
+  Event2Venue = 'Trung tâm Hội nghị & Tiệc cưới Forevermark – Sảnh Arabian (Tầng 2)'
+  Event2Address = '614 Lạc Long Quân, Phường Nhật Tân, Quận Tây Hồ, Hà Nội'
+  Event2Start = '2026-12-25T04:00:00Z'
+  Event2Deadline = '2026-12-20T16:59:00Z'
+  Event2Capacity = 260
+  Event2Maps = 'https://maps.google.com/?q=Forevermark+614+Lac+Long+Quan+Tay+Ho+Ha+Noi'
+  Event2Dress = 'Trang phục lịch sự, trang nhã theo tông Trắng kem, Be sáng, Hồng đất hoặc Đen cổ điển.'
+  Event2Parking = 'Khuôn viên sảnh chính có bãi đỗ ô tô và xe máy rộng rãi miễn phí (rẽ cổng số 2 hướng Âu Cơ / Võ Chí Công).'
+  Event2Note = 'Đón khách và chụp hình Photobooth từ 10:30 sáng; nghi thức Lễ Thành Hôn cử hành đúng 11:15.'
 }
 
 function New-Session { New-Object Microsoft.PowerShell.Commands.WebRequestSession }
@@ -80,10 +88,10 @@ function Get-EventByTitle($title, $venue) {
   foreach ($candidate in $events) { if ([string]$candidate.title -eq $title -and [string]$candidate.venue -eq $venue) { return [string](@($candidate.id)[0]) } }
   return $null
 }
-function Ensure-Event($title, $venue, $address, $start, $deadline, $capacity) {
+function Ensure-Event($title, $venue, $address, $start, $deadline, $capacity, $maps = '', $dress = '', $parking = '', $note = '') {
   $existing = Get-EventByTitle $title $venue
   if ($null -ne $existing) { return $existing }
-  $body = @{ title=$title; venue=$venue; address=$address; startAt=$start; deadline=$deadline; timezone='Asia/Ho_Chi_Minh'; capacity=$capacity; expectedVersion=0 }
+  $body = @{ title=$title; venue=$venue; address=$address; startAt=$start; deadline=$deadline; timezone='Asia/Ho_Chi_Minh'; capacity=$capacity; mapsUrl=$maps; dressCode=$dress; parking=$parking; note=$note; expectedVersion=0 }
   $created = Invoke-Api $owner '/admin/events' 'POST' $body (Get-Csrf $owner)
   return [string]$created.id
 }
@@ -106,9 +114,9 @@ function Publish-Event($eventId, $title, $venue) {
   foreach ($candidate in $fresh) { if ([string](@($candidate.id)[0]) -eq $eventId) { return $candidate } }
   throw "Không đọc lại được buổi tiệc demo: $title"
 }
-$event1Draft = Ensure-Event $demo.Event1Title $demo.Event1Venue $demo.Event1Address $demo.Event1Start $demo.Event1Deadline $demo.Event1Capacity
+$event1Draft = Ensure-Event $demo.Event1Title $demo.Event1Venue $demo.Event1Address $demo.Event1Start $demo.Event1Deadline $demo.Event1Capacity $demo.Event1Maps $demo.Event1Dress $demo.Event1Parking $demo.Event1Note
 $event1 = Publish-Event $event1Draft $demo.Event1Title $demo.Event1Venue
-$event2Draft = Ensure-Event $demo.Event2Title $demo.Event2Venue $demo.Event2Address $demo.Event2Start $demo.Event2Deadline $demo.Event2Capacity
+$event2Draft = Ensure-Event $demo.Event2Title $demo.Event2Venue $demo.Event2Address $demo.Event2Start $demo.Event2Deadline $demo.Event2Capacity $demo.Event2Maps $demo.Event2Dress $demo.Event2Parking $demo.Event2Note
 $event2 = Publish-Event $event2Draft $demo.Event2Title $demo.Event2Venue
 Write-Host "Đã chuẩn bị 2 buổi tiệc: $($event1.event_code), $($event2.event_code)" -ForegroundColor Green
 
