@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none">
+  <defs>
+    <linearGradient id="envPaper" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffdf9"/>
+      <stop offset="100%" stop-color="#f2e6d0"/>
+    </linearGradient>
+    <linearGradient id="envGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff2b5"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#9a6f0b"/>
+    </linearGradient>
+  </defs>
+  <!-- Open Envelope Back -->
+  <path d="M30 74 L100 24 L170 74 V152 C170 158 165 162 160 162 H40 C35 162 30 158 30 152 Z" fill="#e8d8be" stroke="url(#envGold)" stroke-width="2"/>
+  <!-- Love Letter Card rising from envelope -->
+  <rect x="46" y="34" width="108" height="96" rx="6" fill="url(#envPaper)" stroke="url(#envGold)" stroke-width="1.5"/>
+  <!-- Roses & Hearts overflowing -->
+  <circle cx="68" cy="54" r="16" fill="#f3b6c0" stroke="url(#envGold)" stroke-width="1.2"/>
+  <circle cx="132" cy="56" r="14" fill="#f5d5a7" stroke="url(#envGold)" stroke-width="1.2"/>
+  <path d="M100 66 L88 54 C80 44 92 32 100 42 C108 32 120 44 112 54 Z" fill="#d94f5f" stroke="url(#envGold)" stroke-width="1.2"/>
+  <!-- Decorative lines on letter -->
+  <line x1="68" y1="82" x2="132" y2="82" stroke="#c3a26b" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="78" y1="94" x2="122" y2="94" stroke="#c3a26b" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Envelope Front Flaps -->
+  <path d="M30 74 L100 122 L170 74 L170 154 C170 159 166 162 160 162 H40 C34 162 30 159 30 154 Z" fill="url(#envPaper)" stroke="url(#envGold)" stroke-width="2"/>
+  <path d="M32 158 L100 112 L168 158" stroke="url(#envGold)" stroke-width="1.4" fill="none"/>
+  <!-- Wax Seal -->
+  <circle cx="100" cy="118" r="16" fill="#a82030" stroke="url(#envGold)" stroke-width="2"/>
+  <path d="M100 125 L93 118 C89 113 95 108 100 113 C105 108 111 113 107 118 Z" fill="url(#envGold)"/>
+</svg>

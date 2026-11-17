@@ -4,6 +4,7 @@ import {api,ApiError} from '@/shared/api';
 import {createOpenIntent} from './open-intent';
 import {INVITATION_UNAVAILABLE as unavailable} from './access-copy';
 import {WeddingIllustration} from './wedding-illustration';
+import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
 
 const openInvitation=createOpenIntent<unknown>(api);
 
@@ -49,6 +50,11 @@ export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>v
   }finally{if(current===generation.current){locked.current=false;setBusy(false);}}
  }
  return <section className="hero invitation-entry" aria-busy={phase==='loading'||busy}>
+  <SectionCornerStickers compact/>
+  <div className="entry-floating-stickers" aria-hidden="true">
+   <WeddingSticker kind="royal-crest" size={92}/>
+  </div>
+  <StickerBadge sticker="wax-seal-song-hy" label="Thiệp hồng kính mời"/>
   <div className={`invitation-envelope ${phase==='opening'?'is-opening':''}`} aria-hidden="true"><span className="envelope-letter"><WeddingIllustration kind="heart"/></span><span className="envelope-flap"/><span className="envelope-seal">♡</span></div>
   <p className="eyebrow">{phase==='pin'?'Bảo vệ bằng mã PIN':'Một lời mời dành cho bạn'}</p>
   <h1 ref={heading} tabIndex={-1}>{phase==='pin'?'Nhập mã PIN để mở thiệp':<>Hẹn gặp bạn<br/>ngày chung đôi.</>}</h1>

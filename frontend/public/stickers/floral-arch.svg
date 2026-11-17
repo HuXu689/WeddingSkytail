@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" fill="none">
+  <defs>
+    <linearGradient id="garlandGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c3a26b" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#d4af37" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#c3a26b" stop-opacity="0.2"/>
+    </linearGradient>
+    <radialGradient id="garlandRose" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff0f3"/>
+      <stop offset="55%" stop-color="#f3b6c0"/>
+      <stop offset="100%" stop-color="#c96b79"/>
+    </radialGradient>
+  </defs>
+  <!-- Arching vine -->
+  <path d="M16 92 Q90 22 160 44 Q230 22 304 92" stroke="url(#garlandGold)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M36 96 Q160 10 284 96" stroke="url(#garlandGold)" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+  <!-- Leaves along arch -->
+  <g fill="#6f8769" opacity="0.85">
+    <ellipse cx="64" cy="64" rx="12" ry="5" transform="rotate(-30 64 64)"/>
+    <ellipse cx="96" cy="48" rx="12" ry="5" transform="rotate(-15 96 48)"/>
+    <ellipse cx="224" cy="48" rx="12" ry="5" transform="rotate(15 224 48)"/>
+    <ellipse cx="256" cy="64" rx="12" ry="5" transform="rotate(30 256 64)"/>
+  </g>
+  <!-- Side Roses -->
+  <circle cx="118" cy="46" r="16" fill="#f5d5a7" stroke="#d4af37" stroke-width="1.2"/>
+  <circle cx="202" cy="46" r="16" fill="#f5d5a7" stroke="#d4af37" stroke-width="1.2"/>
+  <!-- Center Grand Rose -->
+  <circle cx="160" cy="42" r="24" fill="url(#garlandRose)" stroke="#d4af37" stroke-width="1.5"/>
+  <path d="M146 38 C152 24 168 24 174 38 C178 50 164 58 152 52 C144 46 148 34 158 32" stroke="#fffdf9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Hanging pearl drops -->
+  <line x1="160" y1="66" x2="160" y2="96" stroke="#d4af37" stroke-width="1.2"/>
+  <circle cx="160" cy="100" r="4.5" fill="#d4af37"/>
+  <line x1="118" y1="62" x2="118" y2="84" stroke="#d4af37" stroke-width="1"/>
+  <circle cx="118" cy="88" r="3.5" fill="#d4af37"/>
+  <line x1="202" y1="62" x2="202" y2="84" stroke="#d4af37" stroke-width="1"/>
+  <circle cx="202" cy="88" r="3.5" fill="#d4af37"/>
+</svg>

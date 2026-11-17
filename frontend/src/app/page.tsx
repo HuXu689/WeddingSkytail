@@ -1,6 +1,13 @@
+import {SectionCornerStickers,StickerBadge,WeddingSticker} from '@/features/invitation/wedding-stickers';
+
 export default function Home() {
  return <main className="welcome-shell">
   <section className="welcome-card">
+   <SectionCornerStickers compact/>
+   <div className="welcome-crest" aria-hidden="true">
+    <WeddingSticker kind="royal-crest" size={108}/>
+   </div>
+   <StickerBadge sticker="wedding-rings" label="Lễ thành hôn"/>
    <div className="welcome-flower" aria-hidden="true">✦</div>
    <p className="eyebrow">Hẹn ngày chung đôi</p>
    <h1>Một lời mời,<br/><em>một câu chuyện.</em></h1>

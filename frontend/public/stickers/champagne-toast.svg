@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <defs>
+    <linearGradient id="fluteGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff4c2"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#9e7312"/>
+    </linearGradient>
+    <linearGradient id="champagneLiquid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff6d6"/>
+      <stop offset="100%" stop-color="#e3b963"/>
+    </linearGradient>
+  </defs>
+  <!-- Left Flute -->
+  <g transform="translate(55, 30) rotate(-14 25 65)">
+    <path d="M10 10 H40 L34 65 C32 76 18 76 16 65 Z" fill="url(#champagneLiquid)" opacity="0.75" stroke="url(#fluteGold)" stroke-width="2"/>
+    <line x1="25" y1="73" x2="25" y2="115" stroke="url(#fluteGold)" stroke-width="2.5"/>
+    <ellipse cx="25" cy="116" rx="16" ry="4" fill="url(#fluteGold)"/>
+    <circle cx="22" cy="52" r="2" fill="#fff"/>
+    <circle cx="28" cy="38" r="1.5" fill="#fff"/>
+    <circle cx="24" cy="26" r="2" fill="#fff"/>
+  </g>
+  <!-- Right Flute -->
+  <g transform="translate(75, 30) rotate(14 25 65)">
+    <path d="M10 10 H40 L34 65 C32 76 18 76 16 65 Z" fill="url(#champagneLiquid)" opacity="0.75" stroke="url(#fluteGold)" stroke-width="2"/>
+    <line x1="25" y1="73" x2="25" y2="115" stroke="url(#fluteGold)" stroke-width="2.5"/>
+    <ellipse cx="25" cy="116" rx="16" ry="4" fill="url(#fluteGold)"/>
+    <circle cx="26" cy="48" r="2" fill="#fff"/>
+    <circle cx="21" cy="34" r="1.5" fill="#fff"/>
+  </g>
+  <!-- Clink Sparkle Starburst -->
+  <path d="M90 12 L93 24 L105 27 L93 30 L90 42 L87 30 L75 27 L87 24 Z" fill="url(#fluteGold)"/>
+  <circle cx="72" cy="16" r="3" fill="#f3b6c0"/>
+  <circle cx="108" cy="18" r="2.5" fill="#f3b6c0"/>
+  <path d="M90 66 L83 59 C79 54 85 48 90 54 C95 48 101 54 97 59 Z" fill="#c94a5e"/>
+</svg>

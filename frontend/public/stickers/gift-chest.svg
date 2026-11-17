@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none">
+  <defs>
+    <linearGradient id="keepsakeSilk" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffdf8"/>
+      <stop offset="60%" stop-color="#f7efe1"/>
+      <stop offset="100%" stop-color="#ebd9bc"/>
+    </linearGradient>
+    <linearGradient id="keepsakeCrimson" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9e3946"/>
+      <stop offset="55%" stop-color="#7c2531"/>
+      <stop offset="100%" stop-color="#56141d"/>
+    </linearGradient>
+    <linearGradient id="keepsakeGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8e8b0"/>
+      <stop offset="50%" stop-color="#cca352"/>
+      <stop offset="100%" stop-color="#9b7326"/>
+    </linearGradient>
+  </defs>
+  <!-- Soft ambient ring -->
+  <circle cx="100" cy="96" r="68" fill="url(#keepsakeSilk)" stroke="url(#keepsakeGold)" stroke-width="1" stroke-dasharray="3 4" opacity="0.75"/>
+  <!-- Outer keepsake envelope / box -->
+  <rect x="34" y="64" width="132" height="84" rx="12" fill="url(#keepsakeSilk)" stroke="url(#keepsakeGold)" stroke-width="2"/>
+  <rect x="41" y="71" width="118" height="70" rx="8" stroke="url(#keepsakeGold)" stroke-width="0.9" opacity="0.6"/>
+  <!-- Satin ribbon sash -->
+  <rect x="92" y="64" width="16" height="84" fill="url(#keepsakeCrimson)"/>
+  <rect x="34" y="100" width="132" height="14" fill="url(#keepsakeCrimson)"/>
+  <!-- Gold trim on ribbon -->
+  <line x1="92" y1="64" x2="92" y2="148" stroke="url(#keepsakeGold)" stroke-width="1"/>
+  <line x1="108" y1="64" x2="108" y2="148" stroke="url(#keepsakeGold)" stroke-width="1"/>
+  <line x1="34" y1="100" x2="166" y2="100" stroke="url(#keepsakeGold)" stroke-width="1"/>
+  <line x1="34" y1="114" x2="166" y2="114" stroke="url(#keepsakeGold)" stroke-width="1"/>
+  <!-- Lid flap -->
+  <path d="M28 56 C28 49 33 44 40 44 H160 C167 44 172 49 172 56 V68 C172 71 169 73 166 73 H34 C31 73 28 71 28 68 Z" fill="url(#keepsakeCrimson)" stroke="url(#keepsakeGold)" stroke-width="2"/>
+  <!-- Silk bow -->
+  <path d="M100 44 C78 24 58 32 68 46 C76 54 90 50 100 44 Z" fill="url(#keepsakeGold)" stroke="#8c6419" stroke-width="1"/>
+  <path d="M100 44 C122 24 142 32 132 46 C124 54 110 50 100 44 Z" fill="url(#keepsakeGold)" stroke="#8c6419" stroke-width="1"/>
+  <!-- Center wax seal medallion -->
+  <circle cx="100" cy="107" r="18" fill="url(#keepsakeCrimson)" stroke="url(#keepsakeGold)" stroke-width="2.2"/>
+  <circle cx="100" cy="107" r="13.5" stroke="url(#keepsakeGold)" stroke-width="1" stroke-dasharray="2 2"/>
+  <path d="M100 114 L92 106 C88 101 94 96 100 101 C106 96 112 101 108 106 Z" fill="url(#keepsakeGold)"/>
+  <!-- Subtle sparkle stars -->
+  <path d="M100 16 L102 22 L108 24 L102 26 L100 32 L98 26 L92 24 L98 22 Z" fill="url(#keepsakeGold)"/>
+  <circle cx="54" cy="30" r="2.2" fill="url(#keepsakeGold)"/>
+  <circle cx="146" cy="30" r="2.2" fill="url(#keepsakeGold)"/>
+</svg>

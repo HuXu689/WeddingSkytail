@@ -8,5 +8,130 @@
 .wedding-canvas .wedding-cover:not(:has(.cover-photo)){background:radial-gradient(ellipse at 15% 15%,var(--cinematic-wash),var(--inv-paper) 65%)}.wedding-canvas .wedding-cover:not(:has(.cover-photo)) .cover-content{border-radius:180px 180px 16px 16px;box-shadow:var(--cinematic-shadow);background:var(--inv-paper)}
 .wedding-canvas .wedding-body{padding-top:clamp(28px,4cqw,56px)}.wedding-canvas .content-section{max-width:960px;border:0;border-radius:28px;padding:clamp(24px,4.5cqw,56px);box-shadow:var(--cinematic-shadow);background:var(--inv-paper-bright);margin-block:clamp(36px,6cqw,80px)}
 .wedding-canvas .invitation-section-heading{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;border:0;padding-bottom:24px}.wedding-canvas .invitation-section-heading h2{margin:0;font-size:clamp(28px,3.8cqw,44px);line-height:1.3}.wedding-canvas .invitation-section-mark{display:block;width:auto;height:auto;border:0;border-radius:0;background:none}.wedding-canvas .invitation-section-mark .wedding-illustration{width:76px;height:61px}
-.wedding-canvas .content-family{background:var(--cinematic-wash);box-shadow:none}.wedding-canvas .family-group{border:0;border-radius:24px;background:var(--inv-paper-bright);padding:clamp(20px,3cqw,36px)}.wedding-canvas .intro-person{padding:28px 20px;border-radius:100px 100px 16px 16px;background:var(--cinematic-wash)}.wedding-canvas .content-ceremony{border:1px solid var(--inv-champagne-soft);border-radius:120px 120px 24px 24px;padding-top:48px}.wedding-canvas .ceremony-card{border-radius:20px;background:linear-gradient(180deg,var(--inv-paper),var(--inv-paper-deep))}.wedding-canvas .ceremony-card::before{border-radius:15px}.wedding-canvas .timeline-item{padding-block:18px}.wedding-canvas .timeline-item::after{box-shadow:0 0 0 5px var(--cinematic-wash)}
-.wedding-canvas .wedding-story{border-block:1px solid var(--cinematic-line)}.wedding-canvas .wedding-story .story-copy{font-size:17px;line-height:1.95}.wedding-canvas .album-gallery{gap:18px;padding:12px}.wedding-canvas .album-gallery button{border:7px solid var(--inv-paper-bright);border-bottom-width:24px;border-radius:14px;box-shadow:var(--cinematic-shadow)}.wedding-canvas .wedding-countdown{padding-block:32px;background:var(--cinematic-wash);box-shadow:none;border:0}.wedding-canvas .countdown-units strong{font-size:clamp(36px,5cqw,64px)}.wedding-canvas .guest-disclosure{border-color:var(--cinematic-line)}.wedding-canvas .wedding-thanks{padding-block:64px;border-bottom:1px solid var(--inv-champagne-soft);border-radius:50% 50% 0 0}.wedding-canvas.theme-modern .content-section,.wedding-canvas.theme-modern .family-group{border-radius:16px}
+.wedding-canvas .content-family{background:var(--cinematic-wash);box-shadow:none}.wedding-canvas .family-group{border:0;border-radius:24px;background:var(--inv-paper-bright);padding:clamp(20px,3cqw,36px)}.wedding-canvas .intro-person{padding:28px 20px;border-radius:24px;background:var(--cinematic-wash)}.wedding-canvas .content-ceremony{border:1px solid var(--inv-champagne-soft);border-radius:28px;padding-top:40px}.wedding-canvas .ceremony-card{border-radius:20px;background:linear-gradient(180deg,var(--inv-paper),var(--inv-paper-deep))}.wedding-canvas .ceremony-card::before{border-radius:15px}.wedding-canvas .timeline-item{padding-block:18px}.wedding-canvas .timeline-item::after{box-shadow:0 0 0 5px var(--cinematic-wash)}
+.wedding-canvas .wedding-story{border-block:1px solid var(--cinematic-line)}.wedding-canvas .wedding-story .story-copy{font-size:17px;line-height:1.95}.wedding-canvas .album-gallery{gap:18px;padding:12px}.wedding-canvas .album-gallery button{border:6px solid var(--inv-paper-bright);border-bottom-width:14px;border-radius:14px;box-shadow:var(--cinematic-shadow)}.wedding-canvas .wedding-countdown{padding-block:32px;background:var(--cinematic-wash);box-shadow:none;border:0}.wedding-canvas .countdown-units strong{font-size:clamp(36px,5cqw,64px)}.wedding-canvas .guest-disclosure{border-color:var(--cinematic-line)}.wedding-canvas .wedding-thanks{padding-block:56px;border-bottom:1px solid var(--inv-champagne-soft);border-radius:24px}.wedding-canvas.theme-modern .content-section,.wedding-canvas.theme-modern .family-group{border-radius:16px}
+/* Invitation event copy and occasion-aware gift dialog. */
+@media(prefers-reduced-motion:no-preference){.wedding-canvas.cinematic-opening::before,.wedding-canvas.cinematic-opening::after{will-change:transform,opacity}}
+.reveal.is-visible:not(:has(form)):not(form){animation:sectionReveal var(--motion-reveal,650ms) var(--motion-ease,ease) both}
+.reveal.is-visible{animation:none!important}
+@media(prefers-reduced-motion:reduce){.reveal.is-visible{animation:none!important}}
+
+.wedding-canvas .wedding-events>.section-intro{max-width:760px;margin-inline:auto}
+.wedding-canvas .wedding-events>.section-intro h2{max-width:22ch;font-family:var(--inv-serif);font-size:clamp(30px,4cqw,44px);line-height:1.22}
+.wedding-canvas .wedding-events .event-card{position:relative;border:1px solid var(--inv-champagne-soft);border-radius:14px;background:var(--inv-paper-bright);box-shadow:0 8px 24px rgba(43,42,38,.045)}
+.wedding-canvas .wedding-events .event-content h2{font-family:var(--inv-serif);font-size:clamp(23px,3cqw,30px);line-height:1.3}
+.wedding-canvas .wedding-events .event-date{display:inline-block;padding:7px 14px;border:1px solid var(--inv-champagne-soft);border-radius:999px;font-family:var(--inv-serif);font-size:17px}
+.wedding-canvas .wedding-events .event-place{gap:5px;margin-top:12px}
+.wedding-canvas .wedding-events .event-place strong{font-family:var(--inv-serif);font-size:19px;font-weight:400}
+.wedding-canvas .wedding-events .event-place span{line-height:1.7}
+.wedding-canvas .wedding-events .map-button{border-color:var(--inv-champagne-soft);background:var(--inv-paper);color:var(--wedding-accent)}
+.wedding-canvas .rsvp-summary{border-color:var(--inv-champagne-soft);border-radius:14px;background:var(--inv-paper-bright);box-shadow:0 8px 24px rgba(43,42,38,.045)}
+.wedding-canvas .rsvp-summary strong{font-family:var(--inv-serif);font-size:20px;font-weight:400}
+.wedding-canvas .invitation-section-heading h2{font-family:var(--inv-serif);font-weight:400;letter-spacing:.01em}
+.wedding-canvas .content-ceremony .ceremony-card{border:1px solid var(--inv-champagne-soft)}
+.wedding-canvas .content-timeline .timeline-day{font-family:var(--inv-serif);font-size:20px;color:var(--inv-ink)}
+.wedding-canvas .wedding-thanks small{letter-spacing:.12em;text-transform:uppercase}
+@media(max-width:520px){.wedding-canvas .gift-box{border-radius:16px}.wedding-canvas .wedding-events .event-card{padding:18px}}
+
+/* Short, user-triggered curtain reveal for the authenticated invitation. */
+.wedding-canvas.cinematic-opening{position:relative;isolation:isolate;animation:cinematicCanvasIn 700ms var(--motion-ease,ease) both}
+.wedding-canvas.cinematic-opening::before,.wedding-canvas.cinematic-opening::after{position:absolute;z-index:30;top:0;bottom:0;width:51%;content:'';pointer-events:none;background:repeating-linear-gradient(90deg,rgba(53,24,36,.22) 0 3%,transparent 4% 10%),linear-gradient(90deg,#451e30,#713448 30%,#55283a 72%,#341c28);box-shadow:inset 0 0 50px rgba(20,10,14,.35)}
+.wedding-canvas.cinematic-opening::before{left:0;transform-origin:left center;animation:curtainLeft 1100ms cubic-bezier(.65,0,.25,1) 180ms both}
+.wedding-canvas.cinematic-opening::after{right:0;transform-origin:right center;animation:curtainRight 1100ms cubic-bezier(.65,0,.25,1) 180ms both}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*{animation:filmTitleReveal 650ms var(--motion-ease,ease) both}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(1){animation-delay:250ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(2){animation-delay:350ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(3){animation-delay:450ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(4){animation-delay:520ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(5){animation-delay:590ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(6){animation-delay:660ms}
+.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*:nth-child(7){animation-delay:730ms}
+@keyframes curtainLeft{to{transform:translateX(-103%) scaleX(.8);opacity:.5}}
+@keyframes curtainRight{to{transform:translateX(103%) scaleX(.8);opacity:.5}}
+@keyframes cinematicCanvasIn{from{opacity:.85}to{opacity:1}}
+@keyframes filmTitleReveal{from{opacity:0;transform:translateY(14px);filter:blur(3px)}to{opacity:1;transform:none;filter:blur(0)}}
+@media(prefers-reduced-motion:reduce){.wedding-canvas.cinematic-opening,.wedding-canvas.cinematic-opening::before,.wedding-canvas.cinematic-opening::after,.wedding-canvas.cinematic-opening .wedding-cover .cover-content>*{animation:none!important}}
+
+/* Keep the cinematic reveal above the artwork only while it is moving; it must never cover interactive content after opening. */
+.wedding-canvas.cinematic-opening::before,.wedding-canvas.cinematic-opening::after{z-index:6;animation-fill-mode:forwards}
+@media(prefers-reduced-motion:reduce){.wedding-canvas.cinematic-opening::before,.wedding-canvas.cinematic-opening::after{display:none}}
+
+/* Wedding-stationery gift presentation. */
+.wedding-canvas .gift-box{position:relative;isolation:isolate;max-width:720px;margin:clamp(36px,6cqw,72px) auto 24px;padding:clamp(24px,4.5cqw,40px) clamp(18px,4cqw,36px);border:1px solid var(--inv-champagne-soft);border-radius:20px;background:radial-gradient(ellipse at 50% 0,var(--cinematic-wash,rgba(195,162,107,.12)),transparent 65%),var(--inv-paper-bright);box-shadow:var(--cinematic-shadow,0 18px 46px rgba(43,42,38,.08));overflow:hidden}
+.wedding-canvas .gift-box .eyebrow{margin:4px 0 8px;color:var(--wedding-accent);letter-spacing:.16em}
+.wedding-canvas .gift-box h2{margin:0;font-family:var(--inv-serif);font-weight:400;font-size:clamp(26px,3.6cqw,38px);line-height:1.25;color:var(--wedding-accent)}
+.wedding-canvas .gift-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;margin-top:22px;padding:12px 28px;border:1px solid var(--wedding-accent);border-radius:999px;background:var(--wedding-accent)!important;color:#fff;letter-spacing:.02em;box-shadow:0 8px 24px color-mix(in srgb,var(--wedding-accent) 28%,transparent)}
+.wedding-canvas .gift-symbol{display:inline-flex;align-items:center;justify-content:center;font-size:20px;color:var(--inv-champagne-soft)}
+.wedding-canvas .gift-dialog{border:1px solid var(--inv-champagne-soft);border-radius:20px;box-shadow:0 28px 90px rgba(27,24,20,.32)}
+.wedding-canvas .gift-dialog::backdrop{background:rgba(25,23,20,.66);backdrop-filter:blur(4px)}
+.wedding-canvas .gift-dialog-content{padding:clamp(20px,4.5vw,32px);background:radial-gradient(ellipse at 50% 0,var(--cinematic-wash,rgba(195,162,107,.1)),transparent 55%),var(--inv-paper-bright)}
+.wedding-canvas .gift-dialog h2,.wedding-canvas .gift-dialog h3{color:var(--inv-ink)}
+.wedding-canvas .gift-dialog h2{margin:6px 0 0;font-size:clamp(24px,4.5vw,32px)}
+.wedding-canvas .gift-dialog .gift-close,.wedding-canvas .gift-dialog .gift-options button{border-radius:999px}
+.wedding-canvas .gift-dialog .gift-options button[aria-pressed="true"]{background:var(--wedding-accent)!important;color:#fff!important;border-color:var(--wedding-accent)}
+.wedding-canvas .gift-dialog .gift-qr{border:0;padding:0;background:#fff;border-radius:0}
+.wedding-canvas .gift-dialog .row{justify-content:center}
+
+/* ============================================================================
+   ENHANCED CINEMATIC EFFECTS — Hiệu ứng kịch tính cho mở thiệp
+   ============================================================================ */
+@keyframes spotlightReveal {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.5); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas.cinematic-opening .wedding-cover::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    margin: -150px 0 0 -150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(195,162,107,.2) 0%, rgba(195,162,107,.08) 40%, transparent 70%);
+    animation: spotlightReveal 2s cubic-bezier(0.16, 1, 0.3, 1) 500ms both;
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+@keyframes joinReveal {
+  0% { opacity: 0; transform: scale(2); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas.cinematic-opening .couple-join {
+    animation: joinReveal 600ms cubic-bezier(0.16, 1, 0.3, 1) 650ms both;
+  }
+}
+
+@keyframes openingFlash {
+  0% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0); }
+  15% { box-shadow: inset 0 0 100px 20px rgba(255,245,220,.15); }
+  100% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas.cinematic-opening {
+    animation: cinematicCanvasIn 700ms var(--motion-ease, ease) both, openingFlash 1800ms ease-out 300ms both;
+  }
+}
+
+.wedding-canvas.cinematic-opening::before,
+.wedding-canvas.cinematic-opening::after {
+  background:
+    repeating-linear-gradient(90deg, rgba(53,24,36,.18) 0 2%, transparent 3% 8%),
+    repeating-linear-gradient(0deg, rgba(80,30,48,.06) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, #451e30, #713448 25%, #8a3f56 50%, #713448 75%, #451e30);
+  box-shadow: inset 0 0 60px rgba(20,10,14,.4), inset 0 0 120px rgba(20,10,14,.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-canvas.cinematic-opening .wedding-cover::before {
+    display: none;
+  }
+}

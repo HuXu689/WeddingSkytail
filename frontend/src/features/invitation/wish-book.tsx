@@ -4,20 +4,37 @@ import {api,ApiError} from '@/shared/api';
 import {text} from '@/shared/text';
 import {GuestDisclosure} from './guest-disclosure';
 import {WishFeed} from './wish-feed';
+import {SectionCornerStickers,StickerBadge} from './wedding-stickers';
 export interface Wish {id?:string;display_name:string;message:string;state?:string;created_at:string}
 /** T24: guests write wishes, the owner approves them, and only approved ones are shown to everyone. */
 export function WishBook({id,reload}:{id:string;reload:()=>Promise<void>}){
  const submitting=useRef(false);
-  const [name,setName]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState(''),[mine,setMine]=useState<Wish[]|null>(null),[mineError,setMineError]=useState('');
+ const [name,setName]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState(''),[mine,setMine]=useState<Wish[]|null>(null),[mineError,setMineError]=useState('');
  async function loadMine(){setMineError('');try{setMine(await api<Wish[]>(`/guest/invitations/${id}/wishes`));}catch{setMineError('Không tải được lời chúc của bạn. Vui lòng thử lại.');}}
  async function submit(event:React.FormEvent){
   event.preventDefault();if(submitting.current)return;submitting.current=true;setBusy(true);setError('');setNotice('');
-  try{await api(`/guest/invitations/${id}/wishes`,'POST',{displayName:name,message});setMessage('');setNotice('Đã gửi lời chúc. Lời chúc sẽ xuất hiện trên thiệp sau khi chủ tiệc duyệt.');await loadMine();await reload();}
+  try{
+   await api(`/guest/invitations/${id}/wishes`,'POST',{displayName:name,message});
+   setMessage('');
+   setNotice('Đã gửi lời chúc. Lời chúc sẽ xuất hiện trên thiệp sau khi chủ tiệc duyệt.');
+   if(typeof window!=='undefined'){
+    window.dispatchEvent(new CustomEvent('wedding:fireworks'));
+    window.dispatchEvent(new CustomEvent('wedding:hearts'));
+   }
+   await loadMine();await reload();
+  }
   catch(e){setError(e instanceof ApiError?e.message:'Chưa thể gửi lời chúc. Vui lòng thử lại.');}
   finally{submitting.current=false;setBusy(false);}
  }
  return <section className="wish-book reveal">
-  <div className="section-intro"><p className="eyebrow">Sổ lời chúc</p><h2>Gửi lời chúc tới hai bạn</h2></div>
+  <SectionCornerStickers compact/>
+  <div className="section-intro">
+   <div>
+    <StickerBadge sticker="love-letter" label="Lưu bút chúc phúc"/>
+    <p className="eyebrow">Sổ lời chúc</p>
+    <h2>Gửi lời chúc tới hai bạn</h2>
+   </div>
+  </div>
   <GuestDisclosure title="Viết lời chúc" hint="Một lời nhắn gửi tới hai bạn. Chỉ hiển thị sau khi được duyệt.">
   <form className="wish-form" onSubmit={submit}>
    <label>Tên hiển thị (không bắt buộc)<input value={name} onChange={event=>setName(event.target.value)} maxLength={200} placeholder="Để trống sẽ dùng tên trên thiệp"/></label>

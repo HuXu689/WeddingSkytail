@@ -141,7 +141,7 @@
 .color-option:hover { background:var(--compat-color-f4f7ee); }
 .color-option[aria-pressed="true"] { border-color:var(--olive); box-shadow:inset 0 0 0 2px var(--olive); }
 .color-dot { width:22px; height:22px; border-radius:50%; border:1px solid var(--compat-color-00000022); flex-shrink:0; }
-.editor-savebar { position:sticky; bottom:0; z-index:5; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:18px; padding:14px 18px; background:var(--compat-color-fffdf9f2); border:1px solid var(--line); border-radius:14px; backdrop-filter:blur(10px); }
+.editor-savebar { position:static; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:18px; padding:14px 18px; background:var(--compat-color-fffdf7); border:1px solid var(--line); border-radius:14px; }
 .design-warning { color:var(--compat-color-8a5a1f); background:var(--compat-color-fcf0d9); border:1px solid var(--compat-color-ecd9ae); border-radius:8px; padding:8px 12px; font-size:13px; margin:0; }
 .media-upload { display:flex; flex-direction:column; gap:4px; }
 .media-flags { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 10px; }
@@ -238,3 +238,41 @@
 .public-exposure-panel{margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--status-warning-border);border-radius:var(--radius-md)}
 .public-exposure-panel p{margin:0 0 6px}
 .public-exposure-panel p:last-child{margin:0}
+/* Luồng quản lý thiệp cưới & thư viện 100+ ảnh */
+.wedding-status-card{display:grid;gap:14px}
+.wedding-status-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.wedding-workspace-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}
+.wedding-workspace-tabs button{background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--line);border-radius:var(--radius-pill);padding:10px 18px;font-weight:600}
+.wedding-workspace-tabs button:hover{background:var(--brand-soft);border-color:var(--brand-border)}
+.wedding-workspace-tabs button[aria-pressed="true"]{background:var(--olive);color:var(--compat-color-fff);border-color:var(--olive)}
+.wedding-tab-panel.is-hidden{display:none}
+.wedding-media-summary{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg-surface-soft)}
+.wedding-media-thumb{width:96px;height:96px;border-radius:var(--radius-sm);object-fit:cover;border:1px solid var(--line);flex-shrink:0}
+.wedding-media-placeholder{width:96px;height:96px;border-radius:var(--radius-sm);border:1px dashed var(--brand-border);display:grid;place-items:center;text-align:center;font-size:12px;color:var(--text-secondary);background:var(--bg-subtle);padding:8px}
+.wedding-album-preview-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 18px}
+.wedding-album-preview-strip img{width:54px;height:54px;border-radius:var(--radius-sm);object-fit:cover;border:1px solid var(--line)}
+.wedding-album-preview-strip span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:54px;padding:0 10px;border-radius:var(--radius-sm);background:var(--brand-soft);color:var(--text-primary);font-size:13px;font-weight:700}
+.section-editor-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;list-style:none}
+.section-editor-summary::-webkit-details-marker{display:none}
+.section-editor-body{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.media-dropzone{display:grid;gap:10px;justify-items:center;text-align:center;padding:28px 20px;border:2px dashed var(--brand-border);border-radius:var(--radius-lg);background:var(--bg-surface-soft);transition:border-color .15s,background-color .15s}
+.media-dropzone.is-dragging{border-color:var(--olive);background:var(--brand-soft)}
+.media-dropzone p{margin:0}
+.media-auto-add{display:inline-flex;align-items:center;gap:8px;margin:0;font-weight:500;cursor:pointer}
+.media-upload-progress{width:min(480px,100%);display:grid;gap:6px;margin-top:4px}
+.media-progress-track{height:8px;border-radius:var(--radius-pill);background:var(--brand-soft);overflow:hidden}
+.media-progress-track span{display:block;height:100%;background:var(--olive);transition:width .18s ease}
+.media-hero-card{border-color:var(--brand-border)}
+.media-hero-grid{display:grid;grid-template-columns:minmax(200px,340px) minmax(0,1fr);gap:20px;align-items:center;margin-top:12px}
+.media-hero-focal{border-radius:var(--radius-md);border:1px solid var(--line)}
+.media-hero-info{display:grid;gap:6px}
+.media-album-bar{display:grid;gap:12px;margin:14px 0}
+.media-album-sorter{margin:12px 0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg-surface-soft)}
+.media-sorter-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:12px;max-height:360px;overflow-y:auto;padding:4px}
+.media-sorter-item{position:relative;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg-surface);overflow:hidden;padding:6px;display:grid;gap:6px}
+.media-sorter-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block}
+.media-sorter-num{position:absolute;top:10px;left:10px;padding:2px 6px;border-radius:var(--radius-pill);background:var(--bg-inverse);color:var(--text-on-inverse);font-size:11px;font-weight:700}
+.media-sorter-actions{display:flex;gap:4px;justify-content:space-between}
+.media-sorter-actions button{flex:1;min-height:32px;padding:4px;font-size:12px}
+.media-album-order-pill{position:absolute;top:8px;left:8px;padding:3px 9px;border-radius:var(--radius-pill);background:var(--olive);color:var(--text-on-inverse);font-size:11px;font-weight:700;pointer-events:none}
+@media(max-width:700px){.media-hero-grid{grid-template-columns:minmax(0,1fr)}.wedding-workspace-tabs button{flex:1 1 calc(50% - 5px);text-align:center}}

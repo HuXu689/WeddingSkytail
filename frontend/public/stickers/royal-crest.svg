@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none">
+  <defs>
+    <linearGradient id="crestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9e8a2"/>
+      <stop offset="30%" stop-color="#d4af37"/>
+      <stop offset="50%" stop-color="#aa7c11"/>
+      <stop offset="75%" stop-color="#e6c65a"/>
+      <stop offset="100%" stop-color="#fff1b8"/>
+    </linearGradient>
+    <radialGradient id="crestRuby" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffccd5"/>
+      <stop offset="50%" stop-color="#c94a5e"/>
+      <stop offset="100%" stop-color="#7a1c2b"/>
+    </radialGradient>
+  </defs>
+  <g stroke="url(#crestGold)" stroke-width="1" opacity="0.45" stroke-linecap="round">
+    <line x1="120" y1="12" x2="120" y2="2"/>
+    <line x1="95" y1="18" x2="88" y2="6"/>
+    <line x1="145" y1="18" x2="152" y2="6"/>
+    <line x1="72" y1="30" x2="62" y2="20"/>
+    <line x1="168" y1="30" x2="178" y2="20"/>
+  </g>
+  <path d="M120 138 C72 135 40 100 44 56 C46 35 62 20 80 18" stroke="url(#crestGold)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M120 138 C168 135 200 100 196 56 C194 35 178 20 160 18" stroke="url(#crestGold)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <g fill="url(#crestGold)" opacity="0.85">
+    <ellipse cx="44" cy="82" rx="11" ry="4.5" transform="rotate(-65 44 82)"/>
+    <ellipse cx="52" cy="104" rx="11" ry="4.5" transform="rotate(-40 52 104)"/>
+    <ellipse cx="70" cy="122" rx="11" ry="4.5" transform="rotate(-20 70 122)"/>
+    <ellipse cx="46" cy="58" rx="10" ry="4" transform="rotate(-80 46 58)"/>
+    <ellipse cx="60" cy="36" rx="10" ry="4" transform="rotate(-45 60 36)"/>
+    <ellipse cx="196" cy="82" rx="11" ry="4.5" transform="rotate(65 196 82)"/>
+    <ellipse cx="188" cy="104" rx="11" ry="4.5" transform="rotate(40 188 104)"/>
+    <ellipse cx="170" cy="122" rx="11" ry="4.5" transform="rotate(20 170 122)"/>
+    <ellipse cx="194" cy="58" rx="10" ry="4" transform="rotate(80 194 58)"/>
+    <ellipse cx="180" cy="36" rx="10" ry="4" transform="rotate(45 180 36)"/>
+  </g>
+  <path d="M96 42 L102 22 L120 34 L138 22 L144 42 Z" fill="url(#crestGold)" stroke="#8c620a" stroke-width="1"/>
+  <circle cx="102" cy="19" r="3" fill="url(#crestGold)"/>
+  <circle cx="120" cy="15" r="4" fill="url(#crestRuby)"/>
+  <circle cx="138" cy="19" r="3" fill="url(#crestGold)"/>
+  <circle cx="107" cy="84" r="22" stroke="url(#crestGold)" stroke-width="3.5" fill="none"/>
+  <circle cx="133" cy="84" r="22" stroke="url(#crestGold)" stroke-width="3.5" fill="none"/>
+  <polygon points="133,54 140,61 133,66 126,61" fill="#fffdf9" stroke="url(#crestGold)" stroke-width="1.2"/>
+  <path d="M120 96 L110 86 C104 79 112 70 120 78 C128 70 136 79 130 86 Z" fill="url(#crestRuby)"/>
+  <path d="M90 138 Q120 128 150 138 Q135 152 120 142 Q105 152 90 138 Z" fill="url(#crestGold)"/>
+</svg>

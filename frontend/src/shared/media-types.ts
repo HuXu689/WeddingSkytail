@@ -1,1 +1,20 @@
-export interface MediaAsset { id:string; kind:'IMAGE'|'AUDIO'; mime_type:string; original_name:string; width:number|null; height:number|null; bytes:number; created_at:string; focal_x:number; focal_y:number; draft_hero:boolean; published_hero:boolean; draft_album:boolean; published_album:boolean; draft_music:boolean; published_music:boolean }
+export interface MediaAsset {
+  id:string;
+  kind:'IMAGE'|'AUDIO';
+  mime_type:string;
+  original_name:string;
+  width:number|null;
+  height:number|null;
+  bytes:number;
+  created_at:string;
+  focal_x:number;
+  focal_y:number;
+  draft_hero:boolean;
+  published_hero:boolean;
+  draft_album:boolean;
+  published_album:boolean;
+  draft_album_order:number;
+  published_album_order:number;
+  draft_music:boolean;
+  published_music:boolean;
+}

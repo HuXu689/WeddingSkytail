@@ -1,0 +1,768 @@
+/* ============================================================================
+   GRAND-EFFECTS-EXTRA.CSS — Hiệu ứng lộng lẫy toàn diện cho toàn bộ thiệp cưới
+   Bao gồm: Sân khấu hiệu ứng sticky full-thiệp, hệ thống nhãn dán (Stickers),
+   hoa bốn góc, dải phân cách hoàng gia, thanh tương tác chúc phúc,
+   con dấu sáp Song Hỷ, và trang trí từng khối từ bìa tới chân thiệp.
+   ============================================================================ */
+
+/* === 1. FULL-INVITATION STICKY EFFECT STAGE === */
+.wedding-canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+.wedding-effects-viewport {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin-bottom: -100vh;
+  margin-bottom: -100dvh;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.wedding-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.butterfly-flight,
+.sparkle-trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* === 2. ATMOSPHERE MODES (4 CHẾ ĐỘ BẦU TRỜI LỘNG LẪY) === */
+.wedding-canvas.atmosphere-royal {
+  --atmosphere-glow: rgba(212, 175, 55, 0.14);
+  --atmosphere-tint: rgba(255, 246, 224, 0.45);
+}
+
+.wedding-canvas.atmosphere-sakura {
+  --atmosphere-glow: rgba(235, 145, 168, 0.16);
+  --atmosphere-tint: rgba(255, 240, 244, 0.5);
+}
+
+.wedding-canvas.atmosphere-starlight {
+  --atmosphere-glow: rgba(185, 200, 235, 0.16);
+  --atmosphere-tint: rgba(248, 250, 255, 0.45);
+}
+
+.wedding-canvas.atmosphere-crimson {
+  --atmosphere-glow: rgba(185, 45, 62, 0.14);
+  --atmosphere-tint: rgba(255, 242, 236, 0.5);
+}
+
+.wedding-canvas.atmosphere-sakura .wedding-body,
+.wedding-canvas.atmosphere-crimson .wedding-body,
+.wedding-canvas.atmosphere-starlight .wedding-body,
+.wedding-canvas.atmosphere-royal .wedding-body {
+  background-image:
+    radial-gradient(circle at 12% 15%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%),
+    radial-gradient(circle at 88% 35%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%),
+    radial-gradient(circle at 18% 68%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 45%),
+    radial-gradient(circle at 85% 88%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%);
+}
+
+/* === 3. WEDDING STICKERS & CORNER BOUQUETS === */
+.wedding-sticker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 14px rgba(130, 59, 66, 0.14));
+}
+
+.wedding-sticker img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.sticker-floral-corner,
+.sticker-royal-crest,
+.sticker-wax-seal-song-hy,
+.sticker-lovebirds,
+.sticker-floral-divider,
+.sticker-champagne-toast,
+.sticker-gift-chest,
+.sticker-butterfly-gold,
+.sticker-wedding-rings,
+.sticker-love-letter,
+.sticker-lantern-wish,
+.sticker-floral-arch {
+  position: relative;
+}
+
+@keyframes stickerFloatGentle {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-6px) rotate(2deg) scale(1.03); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-sticker {
+    animation: stickerFloatGentle 4.5s ease-in-out infinite;
+  }
+}
+
+/* 4 góc hoa hồng và lá vàng tinh tế, không che nội dung */
+.section-corner-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.corner-bouquet {
+  position: absolute;
+  width: clamp(68px, 11cqw, 112px);
+  height: auto;
+  opacity: 0.42;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 8px rgba(82, 60, 40, 0.1));
+}
+
+.section-corner-stickers.is-compact .corner-bouquet {
+  width: clamp(46px, 7.5cqw, 72px);
+  opacity: 0.34;
+}
+
+.bouquet-tl {
+  top: 4px;
+  left: 4px;
+}
+
+.bouquet-tr {
+  top: 4px;
+  right: 4px;
+  transform: scaleX(-1);
+}
+
+.bouquet-bl {
+  bottom: 4px;
+  left: 4px;
+  transform: scaleY(-1);
+}
+
+.bouquet-br {
+  bottom: 4px;
+  right: 4px;
+  transform: scale(-1, -1);
+}
+
+/* === 4. ORNATE SECTION DIVIDERS === */
+.ornate-section-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: clamp(28px, 4.5cqw, 52px) auto;
+  max-width: 680px;
+  padding: 0 16px;
+  pointer-events: none;
+  position: relative;
+  z-index: 2;
+}
+
+.ornate-divider-line {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ornate-divider-svg {
+  width: min(100%, 520px);
+  height: auto;
+  display: block;
+  opacity: 0.92;
+}
+
+.ornate-divider-badge {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffdf9 45%, #f7ecd5 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.65);
+  box-shadow: 0 6px 20px rgba(195, 162, 107, 0.25), 0 0 0 4px rgba(255, 253, 249, 0.85);
+  display: grid;
+  place-items: center;
+  padding: 7px;
+}
+
+.ornate-divider-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ornate-divider-caption {
+  font-family: var(--inv-serif, 'Times New Roman', serif);
+  font-style: italic;
+  font-size: clamp(13px, 1.5cqw, 16px);
+  color: var(--wedding-accent);
+  opacity: 0.86;
+  text-align: center;
+  letter-spacing: normal;
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 231, 0.9) 20%, rgba(255, 248, 231, 0.9) 80%, transparent);
+  padding: 3px 18px;
+  border-radius: 999px;
+}
+
+/* === 5. STICKER BADGE PILLS FOR EVERY SECTION === */
+.invitation-sticker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 7px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 252, 242, 0.96), rgba(246, 233, 205, 0.88));
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  box-shadow: 0 4px 14px rgba(195, 162, 107, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+
+.sticker-badge-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fffdf9;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.sticker-badge-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sticker-badge-label {
+  font-family: var(--inv-sans, Arial, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a5821;
+}
+
+/* === 6. FLOATING SIDE STICKERS ALONG THE FULL INVITATION BODY === */
+.floating-side-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.side-sticker-item {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  box-shadow: 0 8px 24px rgba(195, 162, 107, 0.16);
+  backdrop-filter: blur(4px);
+}
+
+.side-sticker-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.side-sticker-item span {
+  font-family: var(--inv-serif, 'Times New Roman', serif);
+  font-size: 11px;
+  font-style: italic;
+  color: #7a5821;
+  white-space: nowrap;
+}
+
+.side-sticker-item.pos-1 { top: 6%; left: 10px; transform: rotate(-5deg); }
+.side-sticker-item.pos-2 { top: 22%; right: 10px; transform: rotate(4deg); }
+.side-sticker-item.pos-3 { top: 40%; left: 12px; transform: rotate(3deg); }
+.side-sticker-item.pos-4 { top: 58%; right: 12px; transform: rotate(-4deg); }
+.side-sticker-item.pos-5 { top: 75%; left: 10px; transform: rotate(-3deg); }
+.side-sticker-item.pos-6 { top: 90%; right: 10px; transform: rotate(5deg); }
+
+@keyframes sideStickerBob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .side-sticker-item {
+    animation: sideStickerBob 5s ease-in-out infinite;
+  }
+  .side-sticker-item:nth-child(even) {
+    animation-delay: 2.2s;
+  }
+}
+
+@container (max-width: 980px) {
+  .floating-side-stickers {
+    display: none;
+  }
+}
+
+/* === 7. INTERACTIVE CELEBRATION BAR (THANH TƯƠNG TÁC LỄ HỘI) === */
+.celebration-interactive-bar {
+  position: relative;
+  z-index: 5;
+  max-width: 780px;
+  margin: 0 auto clamp(24px, 4cqw, 40px);
+  padding: 14px 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 253, 248, 0.95), rgba(249, 239, 218, 0.92));
+  border: 1.5px solid rgba(212, 175, 55, 0.55);
+  box-shadow: 0 14px 36px rgba(130, 95, 45, 0.12), inset 0 0 0 3px rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+.celebration-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.celebration-bar-spark {
+  color: #c39738;
+  font-size: 14px;
+}
+
+.celebration-bar-title {
+  font-family: var(--inv-sans, Arial, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #6b5324;
+}
+
+.celebration-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.celebration-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(195, 162, 107, 0.55);
+  background: linear-gradient(180deg, #fffefb 0%, #f7eedb 100%) !important;
+  color: #3d311b !important;
+  font-family: var(--inv-sans, Arial, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(195, 162, 107, 0.16);
+  cursor: pointer;
+}
+
+.celebration-action-btn:hover {
+  border-color: var(--wedding-accent);
+  box-shadow: 0 6px 18px rgba(195, 162, 107, 0.28);
+}
+
+.celebration-action-btn.is-bursting {
+  transform: scale(1.06);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.55);
+}
+
+.celebration-mode-btn {
+  background: linear-gradient(135deg, var(--wedding-accent), color-mix(in srgb, var(--wedding-accent) 75%, #c3a26b)) !important;
+  color: #fff !important;
+  border-color: transparent;
+}
+
+.celebration-btn-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.celebration-btn-text {
+  line-height: 1.2;
+}
+
+/* === 8. HERO COVER LUXURY STICKERS & ROYAL CREST === */
+.wedding-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-floating-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cover-arch-sticker {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.72;
+}
+
+.cover-butterfly-left {
+  position: absolute;
+  top: 18%;
+  left: 6%;
+  opacity: 0.85;
+}
+
+.cover-lovebirds-right {
+  position: absolute;
+  top: 14%;
+  right: 6%;
+  opacity: 0.85;
+}
+
+.cover-photo-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.photo-corner-florals {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: clamp(90px, 22%, 145px);
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.photo-corner-seal {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: clamp(54px, 14%, 76px);
+  height: auto;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+}
+
+.cover-royal-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  pointer-events: none;
+}
+
+.cover-crest-img {
+  width: 86px;
+  height: 62px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(195, 162, 107, 0.32));
+}
+
+.cover-motto-pill {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-family: var(--inv-sans, Arial, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  background: rgba(255, 251, 240, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+/* === 9. FULL SECTION ENHANCEMENTS (STORY, COUNTDOWN, EVENTS, SECTIONS, ALBUM, GIFT, WISHES, THANKS) === */
+.wedding-story,
+.wedding-countdown,
+.wedding-events,
+.content-section,
+.wedding-album,
+.wedding-month-calendar,
+.gift-box,
+.wish-book,
+.wedding-thanks,
+.invitation-entry,
+.welcome-card {
+  position: relative;
+}
+
+.story-header-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.story-seal-ornament {
+  margin-top: 12px;
+}
+
+.story-wax-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 6px 16px 6px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 238, 0.85);
+  border: 1px dashed rgba(195, 162, 107, 0.65);
+  font-family: var(--inv-serif, 'Times New Roman', serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--wedding-accent);
+}
+
+.thanks-crest-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.thanks-ribbon-tag {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 6px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  background: linear-gradient(90deg, rgba(255,250,235,0.4), rgba(247,232,196,0.7), rgba(255,250,235,0.4));
+  font-family: var(--inv-serif, 'Times New Roman', serif);
+  font-style: italic;
+  font-size: 14px;
+  color: #7a5821;
+}
+
+.intro-person-crest,
+.family-group-seal,
+.ceremony-card-sticker {
+  margin-bottom: 10px;
+}
+
+.intro-person,
+.family-group,
+.ceremony-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 12px 32px rgba(130, 95, 45, 0.08), inset 0 0 0 4px rgba(255, 253, 249, 0.65);
+}
+
+.album-heading-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.album-main {
+  position: relative;
+}
+
+.album-frame-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(28, 24, 20, 0.68);
+  border: 1px solid rgba(212, 175, 55, 0.65);
+  color: #fffdf5;
+  font-family: var(--inv-sans, Arial, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.calendar-header-ornament {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.gift-box-sticker-hero {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.wish-book-public-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.entry-floating-stickers,
+.welcome-crest {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.illustration-dove,
+.illustration-crown {
+  color: var(--wedding-accent);
+}
+
+/* Thẻ sự kiện và lời chúc tinh gọn, không dán tem đè chữ */
+.wedding-canvas .event-card {
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.08), transparent 45%),
+    linear-gradient(180deg, #fffefb, #fbf6ec);
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  box-shadow: 0 10px 28px rgba(130, 95, 45, 0.07), inset 0 0 0 3px rgba(255, 255, 255, 0.65);
+}
+
+.wedding-canvas .wish-item {
+  position: relative;
+  rotate: 0deg;
+  background: linear-gradient(135deg, #fffefb 0%, #faf4e8 100%);
+  border: 1px solid rgba(212, 175, 55, 0.36);
+  border-left: 4px solid var(--wedding-accent);
+  border-radius: 0 16px 16px 0;
+  box-shadow: 0 8px 24px rgba(43, 42, 38, 0.05);
+}
+
+/* Bìa có ảnh cho TRADITIONAL / MODERN: dùng gradient mượt thay cho khối hộp xám cứng */
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .cover-photo::after {
+  background:
+    linear-gradient(180deg, rgba(22, 14, 15, 0.14) 0%, rgba(22, 14, 15, 0.32) 45%, rgba(22, 14, 15, 0.84) 100%),
+    linear-gradient(90deg, rgba(22, 14, 15, 0.56) 0%, transparent 72%);
+}
+
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .cover-content {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin-block: 0;
+  padding: clamp(40px, 6cqw, 72px) clamp(24px, 5cqw, 64px);
+  text-shadow: 0 2px 16px rgba(14, 10, 10, 0.45);
+}
+
+.wedding-canvas.theme-traditional .wedding-cover:has(.cover-photo):not(.hero-split) .cover-content {
+  margin-inline: auto;
+  text-align: center;
+  max-width: 720px;
+}
+
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .cover-motto-pill {
+  background: rgba(255, 249, 236, 0.14);
+  color: #fff8eb;
+  border-color: rgba(235, 200, 130, 0.6);
+}
+
+.wedding-canvas.theme-traditional .wedding-cover:not(:has(.cover-photo)) .cover-motto-pill,
+.wedding-canvas .hero-split .cover-motto-pill,
+.wedding-canvas.theme-modern .wedding-cover:not(:has(.cover-photo)) .cover-motto-pill {
+  background: rgba(195, 162, 107, 0.12);
+  color: var(--wedding-accent);
+  border-color: rgba(195, 162, 107, 0.48);
+}
+
+/* === 10. AURORA, SHIMMER & 3D EFFECTS FROM PREVIOUS LAYER === */
+@keyframes auroraShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(195,162,107,.09) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(220,130,150,.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 20%, rgba(242,215,195,.08) 0%, transparent 50%);
+    background-size: 200% 200%;
+    animation: auroraShift 14s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .wedding-canvas .wedding-cover:has(.cover-photo)::after {
+    display: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .event-card {
+    transition: transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 360ms ease;
+  }
+  .wedding-canvas .event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 42px rgba(130, 95, 45, 0.16), 0 0 24px rgba(195, 162, 107, 0.14);
+  }
+  .wedding-canvas .wish-item {
+    transition: transform 280ms ease, box-shadow 280ms ease;
+  }
+  .wedding-canvas .wish-item:hover {
+    transform: translateY(-2px) rotate(0deg) !important;
+    box-shadow: 0 12px 34px rgba(195, 162, 107, 0.18);
+  }
+}
+
+@container (max-width: 680px) {
+  .cover-butterfly-left,
+  .cover-lovebirds-right {
+    display: none;
+  }
+  .celebration-bar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .celebration-action-btn {
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-sticker,
+  .side-sticker-item {
+    animation: none !important;
+  }
+  .wedding-canvas .wedding-cover::after {
+    display: none;
+  }
+}

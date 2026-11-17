@@ -1,0 +1,455 @@
+/* ============================================================================
+   GRAND-EFFECTS.CSS — Hiệu ứng lộng lẫy cho thiệp cưới
+   Bao gồm: shimmer text, parallax layers, golden borders, glowing accents,
+   animated ornaments, radial bursts, light rays, và nhiều hơn nữa.
+   Tất cả tuân thủ prefers-reduced-motion.
+   ============================================================================ */
+
+/* === CRISP TYPOGRAPHY FOR COUPLE NAMES (high contrast across all themes) === */
+.wedding-canvas .couple-names {
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+}
+
+.wedding-canvas .wedding-cover.hero-split .couple-names,
+.wedding-canvas .wedding-cover:not(:has(.cover-photo)) .couple-names {
+  color: var(--wedding-accent);
+}
+
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .couple-names {
+  color: #fffdf7;
+  text-shadow: 0 2px 18px rgba(18, 12, 10, 0.45);
+}
+
+/* === ORNAMENTAL BORDER GLOW === */
+/* Viền thiệp phát sáng mềm mại */
+@keyframes borderGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(195,162,107,.06), 0 20px 60px rgba(37,51,41,.08); }
+  50% { box-shadow: 0 0 28px rgba(195,162,107,.12), 0 24px 80px rgba(37,51,41,.1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas {
+    animation: borderGlow 6s ease-in-out infinite;
+  }
+}
+
+/* === SUBTLE AMBIENT LIGHT === */
+.wedding-canvas .wedding-body::before {
+  content: none;
+}
+
+/* === SECTION REVEAL CASCADING === */
+/* Hiệu ứng hiện ra từng phần tuần tự, lộng lẫy hơn */
+@keyframes grandReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    filter: blur(4px);
+  }
+  60% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .content-section.reveal.is-visible {
+    animation: grandReveal 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both !important;
+  }
+  .wedding-canvas .wedding-story.reveal.is-visible {
+    animation: grandReveal 1000ms cubic-bezier(0.2, 0.7, 0.2, 1) both !important;
+  }
+  .wedding-canvas .wedding-album.reveal.is-visible {
+    animation: grandReveal 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 100ms both !important;
+  }
+  .wedding-canvas .wedding-countdown.reveal.is-visible {
+    animation: grandReveal 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both !important;
+  }
+  .wedding-canvas .wedding-thanks.reveal.is-visible {
+    animation: grandReveal 1000ms cubic-bezier(0.2, 0.7, 0.2, 1) both !important;
+  }
+  .wedding-canvas .gift-box.reveal.is-visible {
+    animation: grandReveal 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both !important;
+  }
+}
+
+/* === ORNAMENTAL CORNER ANIMATION === */
+/* Góc trang trí vẽ đường ra khi hiện */
+@keyframes drawCorner {
+  from { stroke-dashoffset: 1200; }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .celebration-corner path {
+    stroke-dasharray: 1200;
+    animation: drawCorner 2.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  .wedding-canvas .celebration-corner.corner-end path {
+    animation-delay: 0.3s;
+  }
+}
+
+/* === SECTION HEADING DECORATION === */
+/* Tiêu đề mỗi phần có hiệu ứng gạch dưới vàng */
+@keyframes headingLine {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .invitation-section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--inv-champagne, #c3a26b) 20%,
+      var(--inv-champagne, #c3a26b) 80%,
+      transparent
+    );
+    transform-origin: center;
+    animation: headingLine 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 200ms both;
+  }
+  .wedding-canvas .invitation-section-heading {
+    position: relative;
+  }
+}
+
+/* === ILLUSTRATION ICONS ANIMATE === */
+/* SVG icon section heading có hiệu ứng vẽ */
+@keyframes drawIllustration {
+  from { stroke-dashoffset: 400; opacity: 0.3; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes glintPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-illustration .illustration-drawing {
+    stroke-dasharray: 400;
+    animation: drawIllustration 1.5s ease-out both;
+  }
+  .wedding-canvas .wedding-illustration .illustration-glints {
+    animation: glintPulse 3s ease-in-out infinite;
+  }
+}
+
+/* === COUNTDOWN NUMBER ANIMATION === */
+/* Số đếm ngược có hiệu ứng lớn dần và glow */
+@keyframes countPulse {
+  0%, 100% { text-shadow: 0 0 8px rgba(195,162,107,.15); }
+  50% { text-shadow: 0 0 20px rgba(195,162,107,.3), 0 0 40px rgba(195,162,107,.1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .countdown-units strong {
+    animation: countPulse 3s ease-in-out infinite;
+  }
+}
+
+/* === ALBUM CARD TILT & GLOW === */
+/* Thẻ ảnh album có ánh sáng viền */
+@keyframes albumShine {
+  0% { box-shadow: 0 8px 28px rgba(43,42,38,.04); }
+  50% { box-shadow: 0 12px 36px rgba(195,162,107,.12), 0 0 20px rgba(195,162,107,.06); }
+  100% { box-shadow: 0 8px 28px rgba(43,42,38,.04); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .album-gallery button {
+    transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 500ms ease;
+  }
+  .wedding-canvas .album-gallery button:hover {
+    animation: albumShine 2s ease-in-out;
+  }
+}
+
+/* === CEREMONY CARD INNER GLOW === */
+/* Thẻ nghi lễ có ánh sáng bên trong */
+.wedding-canvas .ceremony-card {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes cardInnerGlow {
+  0% { opacity: 0; transform: translateX(-100%); }
+  50% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .ceremony-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,245,220,.08), transparent);
+    animation: cardInnerGlow 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+/* === TIMELINE DOT PULSE === */
+/* Chấm trên timeline nhịp đập */
+@keyframes timelinePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(82,102,76,.3); }
+  50% { box-shadow: 0 0 0 6px rgba(82,102,76,.0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .timeline-item::after {
+    animation: timelinePulse 2.5s ease-in-out infinite;
+  }
+}
+
+/* === DRESS CODE SWATCH SPARKLE === */
+/* Mẫu màu trang phục lấp lánh */
+@keyframes swatchGlow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  50% { box-shadow: 0 4px 16px rgba(195,162,107,.2), 0 0 20px rgba(195,162,107,.1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .dress-swatch {
+    animation: swatchGlow 3s ease-in-out infinite;
+    transition: transform 300ms ease;
+  }
+  .wedding-canvas .dress-swatch:hover {
+    transform: scale(1.15);
+  }
+}
+
+/* === WISH BOOK STATIONERY === */
+.wedding-canvas .wish-list .wish-item {
+  animation: none;
+}
+
+/* === GIFT BOX MAGICAL GLOW === */
+/* Hộp quà phát sáng kỳ diệu */
+@keyframes giftMagic {
+  0%, 100% {
+    box-shadow: 0 18px 46px rgba(43,42,38,.08);
+  }
+  50% {
+    box-shadow: 0 18px 46px rgba(43,42,38,.08),
+                0 0 40px rgba(195,162,107,.1),
+                0 0 80px rgba(195,162,107,.05);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .gift-box {
+    animation: giftMagic 4s ease-in-out infinite;
+  }
+}
+
+/* === COVER ORNAMENT FLOAT === */
+/* Biểu tượng trang trí cover bay lên xuống */
+@keyframes ornamentFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-ornament {
+    animation: ornamentFloat 3s ease-in-out infinite, invitationOrnament 900ms var(--motion-ease) both;
+  }
+}
+
+/* === MUSIC BUTTON RING WAVES === */
+/* Nút nhạc phát sóng ra ngoài khi đang chơi */
+@keyframes musicRing {
+  0% { box-shadow: 0 0 0 0 rgba(82,102,76,.35); }
+  50% { box-shadow: 0 0 0 10px rgba(82,102,76,.0); }
+  100% { box-shadow: 0 0 0 0 rgba(82,102,76,.0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .invitation-music-button[aria-pressed="true"] {
+    animation: musicRing 2s ease-out infinite;
+  }
+}
+
+/* === ENHANCED ENVELOPE ANIMATION === */
+/* Phong bì mở lộng lẫy hơn */
+@keyframes sealGlow {
+  0%, 100% { box-shadow: 0 3px 10px rgba(73,60,37,.12); }
+  50% { box-shadow: 0 3px 20px rgba(195,162,107,.3), 0 0 30px rgba(195,162,107,.15); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .invitation-entry .envelope-seal {
+    animation: sealGlow 2s ease-in-out infinite;
+  }
+  .invitation-entry.is-opening .envelope-seal {
+    animation: none;
+  }
+}
+
+/* === RADIAL BURST BEHIND THANKS SECTION === */
+/* Ánh sáng bùng ra sau phần cảm ơn */
+@keyframes radialBurst {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-thanks::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(195,162,107,.12) 0%, transparent 70%);
+    animation: radialBurst 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .wedding-canvas .wedding-thanks {
+    position: relative;
+  }
+}
+
+/* === SCROLL PROGRESS INDICATOR === */
+/* Thanh tiến trình cuộn trang */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wedding-accent), var(--inv-champagne, #c3a26b), var(--wedding-accent));
+    transform-origin: left;
+    transform: scaleX(0);
+    z-index: 100;
+    animation: none;
+    /* Dùng scroll-timeline nếu trình duyệt hỗ trợ */
+    animation: scrollProgress auto linear;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes scrollProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* === ENHANCED OPEN INVITATION BUTTON === */
+/* Nút mở thiệp đẹp hơn */
+@keyframes openBtnShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .open-invitation {
+    background: linear-gradient(
+      90deg,
+      var(--wedding-accent) 0%,
+      color-mix(in srgb, var(--wedding-accent) 70%, #f5e6c8) 40%,
+      color-mix(in srgb, var(--wedding-accent) 90%, #fff8e7) 50%,
+      color-mix(in srgb, var(--wedding-accent) 70%, #f5e6c8) 60%,
+      var(--wedding-accent) 100%
+    ) !important;
+    background-size: 200% auto;
+    animation: openBtnShimmer 3s ease-in-out infinite;
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--wedding-accent) 30%, transparent);
+  }
+  .wedding-canvas .open-invitation:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 32px color-mix(in srgb, var(--wedding-accent) 40%, transparent);
+  }
+}
+
+/* === RSVP FORM FOCUS EFFECTS === */
+/* Form phản hồi có hiệu ứng khi focus */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .rsvp-form input:focus,
+  .wedding-canvas .rsvp-form select:focus,
+  .wedding-canvas .rsvp-form textarea:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--wedding-accent) 15%, transparent);
+    transition: box-shadow 200ms ease;
+  }
+}
+
+/* === CALENDAR DAY HOVER BLOOM === */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .calendar-day:hover {
+    transform: scale(1.08);
+    transition: transform 200ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+}
+
+/* === PARALLAX-LIKE DEPTH FOR BODY === */
+/* Tạo chiều sâu với các lớp gradient di chuyển */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-body {
+    position: relative;
+    background-image:
+      radial-gradient(ellipse at 15% 20%, rgba(195,162,107,.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 70%, rgba(195,162,107,.05) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 50%, rgba(255,245,230,.04) 0%, transparent 60%);
+  }
+}
+
+/* === ENHANCED CONFETTI BACKGROUND FOR EVENTS === */
+/* Nền sự kiện có hiệu ứng confetti tinh tế */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-events {
+    background-image:
+      radial-gradient(2px 2px at 15% 25%, rgba(195,162,107,.15), transparent),
+      radial-gradient(2px 2px at 75% 15%, rgba(195,162,107,.12), transparent),
+      radial-gradient(1.5px 1.5px at 45% 85%, rgba(195,162,107,.1), transparent),
+      radial-gradient(2px 2px at 90% 70%, rgba(195,162,107,.12), transparent),
+      radial-gradient(1px 1px at 25% 65%, rgba(195,162,107,.1), transparent),
+      radial-gradient(1.5px 1.5px at 60% 40%, rgba(195,162,107,.08), transparent);
+    background-color: var(--inv-paper-deep, #f6f1e7);
+  }
+}
+
+/* === MONTH CALENDAR SUBTLE GLOW === */
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .wedding-month-calendar {
+    transition: box-shadow 400ms ease;
+  }
+  .wedding-canvas .wedding-month-calendar:hover {
+    box-shadow: 0 16px 48px rgba(195,162,107,.12), 0 0 24px rgba(195,162,107,.06);
+  }
+}
+
+/* === REDUCED MOTION FALLBACK === */
+@media (prefers-reduced-motion: reduce) {
+  .wedding-canvas .couple-names {
+    -webkit-text-fill-color: unset;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+  }
+  .wedding-canvas::after,
+  .wedding-canvas .wedding-body::before,
+  .wedding-canvas .ceremony-card::after,
+  .wedding-canvas .wedding-thanks::before {
+    display: none;
+  }
+}

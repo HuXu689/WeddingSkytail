@@ -3,6 +3,7 @@ import {useId,useState} from 'react';
 import {adjacentMonth,defaultCalendarItem,localDay,monthCells,type CalendarItem} from '@/shared/wedding-calendar';
 import {oneLine} from '@/shared/text';
 import {date} from '@/shared/api';
+import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stickers';
 
 export function WeddingMonthCalendar({items}:{items:CalendarItem[]}){
  const valid=items.filter(item=>localDay(item.at,item.timezone));
@@ -19,7 +20,15 @@ function CalendarContent({items}:{items:CalendarItem[]}){
  for(const item of items){const day=localDay(item.at,item.timezone)!;byDay.set(day,[...(byDay.get(day)??[]),item]);}
  const [year,m]=month.split('-').map(Number);const selectedItems=[...(byDay.get(selected)??[])].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));
  return <section className="wedding-month-calendar" aria-labelledby={heading}>
-  <header><p className="eyebrow">Những ngày chung vui</p><h2 id={heading}>Lịch hẹn cùng bạn</h2></header>
+  <SectionCornerStickers compact/>
+  <header>
+   <StickerBadge sticker="wedding-rings" label="Lịch hồng ngày cưới"/>
+   <p className="eyebrow">Những ngày chung vui</p>
+   <h2 id={heading}>Lịch hẹn cùng bạn</h2>
+   <div className="calendar-header-ornament" aria-hidden="true">
+    <WeddingSticker kind="lovebirds" size={74}/>
+   </div>
+  </header>
   <div className="month-navigation"><button type="button" className="secondary" aria-label="Tháng trước" onClick={()=>{setDir(-1);setMonth(value=>adjacentMonth(value,-1));}}>←</button><h3 aria-live="polite">Tháng {m} · {year}</h3><button type="button" className="secondary" aria-label="Tháng sau" onClick={()=>{setDir(1);setMonth(value=>adjacentMonth(value,1));}}>→</button></div>
   <div className="calendar-grid" key={month} data-dir={dir}><table><caption className="sr-only">Tháng {m} năm {year}, tuần bắt đầu thứ Hai</caption><thead><tr>{['T2','T3','T4','T5','T6','T7','CN'].map((label,index)=><th scope="col" key={label}><abbr title={['Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy','Chủ nhật'][index]}>{label}</abbr></th>)}</tr></thead>
    <tbody>{Array.from({length:cells.length/7},(_,week)=><tr key={week}>{cells.slice(week*7,week*7+7).map((day,column)=>{

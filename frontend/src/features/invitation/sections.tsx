@@ -1,6 +1,7 @@
 import {date} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
 import {WeddingIllustration} from './wedding-illustration';
+import {SectionCornerStickers,StickerBadge,type StickerKind} from './wedding-stickers';
 
 /**
  * Nội dung 5 phần tùy chọn của thiệp. `payload` là dữ liệu có cấu trúc (content schema 2);
@@ -42,8 +43,14 @@ export function ContentSections({sections}:{sections:ContentSection[]}){
   })}</>;
 }
 
-function SectionHeading({title,mark}:{title:string;mark:string}){
-  return <header className="invitation-section-heading"><span className="invitation-section-mark" aria-hidden="true"><WeddingIllustration kind={mark==='❧'?'flower':mark==='✧'?'rings':mark==='✦'?'heart':'spark'}/></span><h2>{oneLine(title)}</h2></header>;
+function SectionHeading({title,mark,sticker,badge}:{title:string;mark:string;sticker:StickerKind;badge:string}){
+  return <header className="invitation-section-heading">
+    <StickerBadge sticker={sticker} label={badge}/>
+    <div className="invitation-section-title-row">
+      <span className="invitation-section-mark" aria-hidden="true"><WeddingIllustration kind={mark==='❧'?'flower':mark==='✧'?'rings':mark==='✦'?'heart':'spark'}/></span>
+      <h2>{oneLine(title)}</h2>
+    </div>
+  </header>;
 }
 
 /** Giới thiệu hai bạn: chân dung bằng typography, nhịp lệch nhẹ trên desktop. */
@@ -52,12 +59,13 @@ function IntroSection({section}:{section:ContentSection}){
   const lead=text(section.body).trim();
   if(!people.length&&!lead) return null;
   return <section className="content-section content-intro reveal">
-    <SectionHeading title={section.title} mark="✦"/>
+    <SectionCornerStickers compact/>
+    <SectionHeading title={section.title} mark="✦" sticker="lovebirds" badge="Nhân vật chính"/>
     {lead&&<p className="intro-lead">{text(section.body)}</p>}
     {people.length>0&&<div className={`intro-people count-${Math.min(people.length,2)}`}>
       {people.map((person,index)=><article className="intro-person" key={`${index}-${person.name}`}>
-        <h3 className="intro-person-name">{oneLine(person.name)}</h3>
         {person.role&&<p className="intro-person-role">{oneLine(person.role)}</p>}
+        <h3 className="intro-person-name">{oneLine(person.name)}</h3>
         {person.note&&<p className="intro-person-note">{text(person.note)}</p>}
       </article>)}
     </div>}
@@ -72,7 +80,8 @@ function FamilySection({section}:{section:ContentSection}){
   const lead=text(section.body).trim();
   if(!groups.length&&!lead) return null;
   return <section className="content-section content-family reveal">
-    <SectionHeading title={section.title} mark="❧"/>
+    <SectionCornerStickers compact/>
+    <SectionHeading title={section.title} mark="❧" sticker="wax-seal-song-hy" badge="Gia đình hai bên"/>
     {lead&&<p className="family-lead">{text(section.body)}</p>}
     {groups.length>0&&<div className={`family-groups count-${Math.min(groups.length,2)}`}>
       {groups.map((group,index)=><div className="family-group" key={`${index}-${group.label}`}>
@@ -94,7 +103,8 @@ function CeremonySection({section}:{section:ContentSection}){
   const note=text(section.body).trim();
   if(!items.length&&!note) return null;
   return <section className="content-section content-ceremony reveal">
-    <SectionHeading title={section.title} mark="✧"/>
+    <SectionCornerStickers compact/>
+    <SectionHeading title={section.title} mark="✧" sticker="wedding-rings" badge="Nghi lễ thiêng liêng"/>
     {note&&<p className="ceremony-note">{text(section.body)}</p>}
     {items.length>0&&<div className="ceremony-list">
       {items.map((item,index)=><article className="ceremony-card" key={`${index}-${item.title}`}>
@@ -118,7 +128,8 @@ function TimelineSection({section}:{section:ContentSection}){
     const body=text(section.body).trim();
     if(!section.startsAt&&!body) return null;
     return <section className="content-section content-timeline reveal">
-      <SectionHeading title={section.title} mark="—"/>
+      <SectionCornerStickers compact/>
+      <SectionHeading title={section.title} mark="—" sticker="champagne-toast" badge="Dòng thời gian"/>
       {section.startsAt&&<time className="timeline-legacy-time" dateTime={section.startsAt}>{date(section.startsAt)}</time>}
       {body&&<p>{text(section.body)}</p>}
     </section>;
@@ -133,7 +144,8 @@ function TimelineSection({section}:{section:ContentSection}){
   }
   const note=text(section.body).trim();
   return <section className="content-section content-timeline reveal">
-    <SectionHeading title={section.title} mark="—"/>
+    <SectionCornerStickers compact/>
+    <SectionHeading title={section.title} mark="—" sticker="champagne-toast" badge="Chương trình buổi lễ"/>
     {note&&<p className="timeline-note">{text(section.body)}</p>}
     <div className="timeline-groups">
       {groups.map(group=><div className="timeline-group" key={group.day}>
@@ -160,7 +172,8 @@ function DressCodeSection({section}:{section:ContentSection}){
   const avoid=section.payload?.avoid?text(section.payload.avoid).trim():'';
   if(!palette.length&&!guidance&&!avoid&&!section.color) return null;
   return <section className="content-section content-dress-code reveal">
-    <SectionHeading title={section.title} mark="◐"/>
+    <SectionCornerStickers compact/>
+    <SectionHeading title={section.title} mark="◐" sticker="butterfly-gold" badge="Gợi ý trang phục"/>
     {guidance&&<p className="dress-guidance">{text(section.body)}</p>}
     {palette.length>0
       ?<ul className="dress-palette">{palette.map((color,index)=><li key={`${index}-${color.name}`}>

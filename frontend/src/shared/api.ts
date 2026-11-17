@@ -21,7 +21,7 @@ export async function uploadFile<T>(path:string,file:File):Promise<T>{
   const csrf=await api<{token:string;headerName:string}>('/session/csrf');
   const form=new FormData();form.append('file',file);
   const result=await fetch(`/api/v1${path}`,{method:'POST',headers:{[csrf.headerName]:csrf.token},credentials:'include',cache:'no-store',body:form});
-  if(!result.ok){const problem=await result.json().catch(()=>({}));throw new ApiError(result.status,problem.detail||'Không thể tải ảnh lên.');}
+  if(!result.ok){const problem=await result.json().catch(()=>({}));throw new ApiError(result.status,problem.detail||(result.status===401?'Vui lòng đăng nhập lại.':result.status===413?'Tệp vượt quá dung lượng cho phép.':'Không thể tải ảnh lên.'));}
   return await result.json() as T;
 }
 export async function uploadFileWithKey<T>(path:string,file:File,key:string):Promise<T>{

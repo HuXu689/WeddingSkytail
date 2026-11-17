@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 70" fill="none">
+  <defs>
+    <linearGradient id="divGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c3a26b" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#c3a26b" stop-opacity="0.75"/>
+      <stop offset="50%" stop-color="#e5c158" stop-opacity="1"/>
+      <stop offset="80%" stop-color="#c3a26b" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#c3a26b" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path d="M20 35 H240 M360 35 H580" stroke="url(#divGold)" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M140 35 C180 18 220 18 255 35 C220 52 180 52 140 35 Z" stroke="url(#divGold)" stroke-width="1" fill="none"/>
+  <path d="M345 35 C380 18 420 18 460 35 C420 52 380 52 345 35 Z" stroke="url(#divGold)" stroke-width="1" fill="none"/>
+  <polygon points="300,10 314,35 300,60 286,35" fill="#fffdf9" stroke="#c3a26b" stroke-width="1.5"/>
+  <circle cx="300" cy="35" r="14" fill="#f3b6c0" stroke="#c3a26b" stroke-width="1.4"/>
+  <path d="M300 42 L293 35 C289 30 295 25 300 30 C305 25 311 30 307 35 Z" fill="#a82030"/>
+  <ellipse cx="268" cy="28" rx="9" ry="4" transform="rotate(-25 268 28)" fill="#c3a26b" opacity="0.75"/>
+  <ellipse cx="268" cy="42" rx="9" ry="4" transform="rotate(25 268 42)" fill="#c3a26b" opacity="0.75"/>
+  <ellipse cx="332" cy="28" rx="9" ry="4" transform="rotate(25 332 28)" fill="#c3a26b" opacity="0.75"/>
+  <ellipse cx="332" cy="42" rx="9" ry="4" transform="rotate(-25 332 42)" fill="#c3a26b" opacity="0.75"/>
+  <circle cx="245" cy="35" r="3" fill="#c3a26b"/>
+  <circle cx="355" cy="35" r="3" fill="#c3a26b"/>
+</svg>

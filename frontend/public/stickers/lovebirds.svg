@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 140" fill="none">
+  <defs>
+    <linearGradient id="doveWing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#f5ebe1"/>
+      <stop offset="100%" stop-color="#dcc5b0"/>
+    </linearGradient>
+    <linearGradient id="ribbonGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d4af37"/>
+      <stop offset="50%" stop-color="#fff0b5"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  <path d="M35 95 Q75 125 110 88 Q145 125 185 95" stroke="url(#ribbonGold)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M110 72 L98 60 C90 50 102 38 110 48 C118 38 130 50 122 60 Z" fill="#d96b78" stroke="url(#ribbonGold)" stroke-width="1.2"/>
+  <g transform="translate(20, 18)">
+    <path d="M68 48 C58 32 34 28 16 42 C28 48 34 58 26 70 C44 72 64 64 72 52 Z" fill="url(#doveWing)" stroke="#c3a26b" stroke-width="1.4"/>
+    <path d="M52 44 C42 18 18 10 4 22 C18 30 28 42 32 52" fill="url(#doveWing)" stroke="#c3a26b" stroke-width="1.4"/>
+    <circle cx="64" cy="46" r="2" fill="#5a4638"/>
+    <path d="M72 48 L80 51 L72 53 Z" fill="#d4af37"/>
+  </g>
+  <g transform="translate(200, 18) scale(-1, 1)">
+    <path d="M68 48 C58 32 34 28 16 42 C28 48 34 58 26 70 C44 72 64 64 72 52 Z" fill="url(#doveWing)" stroke="#c3a26b" stroke-width="1.4"/>
+    <path d="M52 44 C42 18 18 10 4 22 C18 30 28 42 32 52" fill="url(#doveWing)" stroke="#c3a26b" stroke-width="1.4"/>
+    <circle cx="64" cy="46" r="2" fill="#5a4638"/>
+    <path d="M72 48 L80 51 L72 53 Z" fill="#d4af37"/>
+  </g>
+  <circle cx="110" cy="24" r="3" fill="#d4af37"/>
+  <circle cx="75" cy="30" r="2" fill="#d4af37"/>
+  <circle cx="145" cy="30" r="2" fill="#d4af37"/>
+</svg>

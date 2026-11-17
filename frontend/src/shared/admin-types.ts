@@ -1,6 +1,17 @@
 export type PolicyMode = 'INHERIT' | 'MANUAL_OPEN' | 'MANUAL_CLOSED' | 'SCHEDULED';
 export interface Policy { mode: PolicyMode; open_at: string | null; close_at: string | null; version: number }
-export interface Wedding extends Policy { layout?:import('@/features/invitation/layout').LayoutItem[]; draft_names: string; draft_message: string; names: string; message: string; published: boolean; tracking: boolean; draft_theme: import('@/features/invitation/design').Theme; draft_accent: import('@/features/invitation/design').Accent; draft_story: string; draft_footer: string; draft_show_story: boolean; draft_music_id: string|null; draft_music_autoplay: boolean; music_autoplay: boolean; draft_show_countdown: boolean; show_countdown: boolean; musicUrl: string|null; heroUrl: string|null; heroPosition?: string|null; albumUrls: string[] }
+export interface Wedding extends Policy {
+  layout?:import('@/features/invitation/layout').LayoutItem[];
+  sections?:import('@/features/invitation/sections').ContentSection[];
+  has_unpublished_changes?:boolean;
+  published_album_count?:number;
+  draft_names: string; draft_message: string; names: string; message: string; published: boolean; tracking: boolean;
+  draft_theme: import('@/features/invitation/design').Theme; draft_accent: import('@/features/invitation/design').Accent;
+  draft_story: string; draft_footer: string; draft_show_story: boolean;
+  draft_music_id: string|null; draft_music_autoplay: boolean; music_autoplay: boolean;
+  draft_show_countdown: boolean; show_countdown: boolean; musicUrl: string|null;
+  heroUrl: string|null; heroPosition?: string|null; albumUrls: string[];
+}
 export interface WeddingEvent extends EventCoordinates { id: string; event_code: string; title: string; start_at: string; deadline: string; timezone: string; venue: string; address: string; capacity: number; state: 'DRAFT'|'PUBLISHED'|'CANCELLED'; version: number; maps_url: string|null; dress_code: string|null; parking: string|null; note: string; change_notice: string|null; cancel_reason: string|null; revision: number }
 type EventCoordinates=import('./invitation-features').EventCoordinates;
 export type AccessState = 'OPEN'|'NOT_YET_OPEN'|'CLOSED_SCHEDULE'|'CLOSED_MANUAL'|'CLOSED_GLOBAL'|'REVOKED';

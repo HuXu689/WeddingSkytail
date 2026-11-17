@@ -110,7 +110,7 @@ const previewContexts:{id:PreviewContext;label:string;note:string}[]=[
  {id:'invalid',label:'Link hỏng',note:'Link sai, đã thu hồi hoặc hết hạn — không trả về phần nội dung nào.'}
 ];
 
-export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:boolean)=>void;save:(sections:ContentSection[])=>Promise<boolean>}){
+export function SectionEditor({busy,onDirty,onChangeDraft,save}:{busy:boolean;onDirty:(value:boolean)=>void;onChangeDraft?:(sections:ContentSection[])=>void;save:(sections:ContentSection[])=>Promise<boolean>}){
   const [rows,setRows]=useState<ContentSection[]|null>(null),[original,setOriginal]=useState(''),[error,setError]=useState(''),[context,setContext]=useState<PreviewContext>('guest');
   const dirty=rows!==null&&JSON.stringify(rows)!==original;
   useEffect(()=>{let active=true;void api<ContentSection[]>('/admin/wedding/sections').then(items=>{
@@ -119,26 +119,37 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
     setRows(upgraded);setOriginal(JSON.stringify(upgraded));
   }).catch(()=>{if(active)setError('Không tải được cấu hình. Không thể lưu để tránh ghi đè dữ liệu.');});return()=>{active=false;};},[]);
   useEffect(()=>{onDirty(dirty);},[dirty,onDirty]);
+  useEffect(()=>{if(rows)onChangeDraft?.(rows);},[rows,onChangeDraft]);
   useUnsavedChanges(dirty,'Nội dung tùy chọn chưa lưu. Rời trang và bỏ thay đổi?');
   function update(index:number,patch:Partial<ContentSection>){setRows(old=>old!.map((row,i)=>i===index?{...row,...patch}:row));}
   function updatePayload(index:number,patch:SectionPayload){setRows(old=>old!.map((row,i)=>i===index?{...row,payload:{...(row.payload??{}),...patch}}:row));}
   function move(index:number,offset:number){setRows(old=>{const next=[...old!];[next[index],next[index+offset]]=[next[index+offset],next[index]];return next;});}
+  function removeSection(index:number){setRows(old=>old!.filter((_,i)=>i!==index));}
   function add(kind:ContentSection['kind']){setRows(old=>[...old!,{kind,audience:'PRIVATE',enabled:false,title:kinds[kind],body:'',startsAt:null,color:null,payload:kind==='TIMELINE'?{timeline:[{at:'',title:'',note:'',venue:'',audience:'PRIVATE',tentative:false}]}:defaultPayload(kind)}]);}
   /** Link không hợp lệ: máy chủ từ chối trước khi gửi dữ liệu nên không có phần nào để hiển thị. */
   const previewSections=context==='invalid'?[]:(rows??[]).filter(row=>context==='guest'||row.audience==='PUBLIC').map(row=>context==='guest'?row:{...row,payload:publicPayload(row)});
   return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}
   {rows===null?<p>Đang tải cấu hình…</p>:<form onSubmit={async event=>{event.preventDefault();const problem=firstProblem(rows);if(problem){setError(problem);return;}setError('');if(await save(rows.map(forSave)))setOriginal(JSON.stringify(rows));}}>
   <div className="editor-group"><h3 className="editor-group-title">Nội dung &amp; thứ tự</h3>
-  <fieldset disabled={busy}>{rows.map((row,index)=><div className="section-editor-item" key={index}>
-    <h3>{index+1}. {kinds[row.kind]}</h3>
-    <label><input type="checkbox" checked={row.enabled} onChange={e=>update(index,{enabled:e.target.checked})}/>Hiển thị mục này</label>
-    {row.enabled&&!hasVisibleContent(row)&&<p className="field-hint section-empty-warning"><span aria-hidden="true">!</span> Mục đang bật nhưng chưa có nội dung nên sẽ không hiển thị trên thiệp. Thêm nội dung hoặc tắt mục.</p>}
-    <label>Tiêu đề<input required maxLength={200} value={row.title} onChange={e=>update(index,{title:e.target.value})}/></label>
-    <label>{bodyLabel[row.kind]}{row.kind==='DRESS_CODE'?' (ghi rõ tên màu bằng chữ)':''}<textarea maxLength={2000} value={row.body} onChange={e=>update(index,{body:e.target.value})}/></label>
-    <label>Quyền xem<select value={row.audience} onChange={e=>update(index,{audience:e.target.value as ContentSection['audience']})}><option value="PRIVATE">Chỉ lời mời riêng đã mở</option><option value="PUBLIC">Công khai trên thiệp chung</option></select></label>
-    <KindFields row={row} index={index} updatePayload={updatePayload} updateRow={update}/>
-    <div className="row"><button type="button" className="secondary" disabled={index===0} onClick={()=>move(index,-1)}>Lên</button><button type="button" className="secondary" disabled={index===rows.length-1} onClick={()=>move(index,1)}>Xuống</button></div>
-  </div>)}<label>Thêm nội dung<select value="" disabled={rows.length>=20} onChange={e=>{if(!e.target.value)return;add(e.target.value as ContentSection['kind']);}}><option value="">Chọn loại nội dung</option>{Object.entries(kinds).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p>Tắt mục không xóa nội dung. Thông tin buổi tiệc và RSVP không thể tắt hoặc đổi thứ tự tại đây.</p></fieldset></div>
+  <fieldset disabled={busy}>{rows.map((row,index)=><details className="section-editor-item" key={`${row.kind}-${index}`} open={index===0||!hasVisibleContent(row)}>
+    <summary className="section-editor-summary">
+     <span>{index+1}. {kinds[row.kind]} — <strong>{row.title||'Chưa đặt tiêu đề'}</strong></span>
+     <span className="row"><span className={row.enabled?'badge badge-active':'badge badge-draft'}>{row.enabled?'Đang bật':'Đang tắt'}</span><span className="badge">{row.audience==='PUBLIC'?'Công khai':'Chỉ lời mời riêng'}</span></span>
+    </summary>
+    <div className="section-editor-body">
+     <label><input type="checkbox" checked={row.enabled} onChange={e=>update(index,{enabled:e.target.checked})}/>Hiển thị mục này</label>
+     {row.enabled&&!hasVisibleContent(row)&&<p className="field-hint section-empty-warning"><span aria-hidden="true">!</span> Mục đang bật nhưng chưa có nội dung nên sẽ không hiển thị trên thiệp. Thêm nội dung hoặc tắt mục.</p>}
+     <label>Tiêu đề<input required maxLength={200} value={row.title} onChange={e=>update(index,{title:e.target.value})}/></label>
+     <label>{bodyLabel[row.kind]}{row.kind==='DRESS_CODE'?' (ghi rõ tên màu bằng chữ)':''}<textarea maxLength={2000} value={row.body} onChange={e=>update(index,{body:e.target.value})}/></label>
+     <label>Quyền xem<select value={row.audience} onChange={e=>update(index,{audience:e.target.value as ContentSection['audience']})}><option value="PRIVATE">Chỉ lời mời riêng đã mở</option><option value="PUBLIC">Công khai trên thiệp chung</option></select></label>
+     <KindFields row={row} index={index} updatePayload={updatePayload} updateRow={update}/>
+     <div className="row">
+      <button type="button" className="secondary" disabled={index===0} onClick={()=>move(index,-1)}>Lên</button>
+      <button type="button" className="secondary" disabled={index===rows.length-1} onClick={()=>move(index,1)}>Xuống</button>
+      <button type="button" className="danger" onClick={()=>removeSection(index)}>Xóa mục</button>
+     </div>
+    </div>
+  </details>)}<label>Thêm nội dung<select value="" disabled={rows.length>=20} onChange={e=>{if(!e.target.value)return;add(e.target.value as ContentSection['kind']);}}><option value="">Chọn loại nội dung</option>{Object.entries(kinds).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p>Tắt mục không xóa nội dung. Thông tin buổi tiệc và RSVP không thể tắt hoặc đổi thứ tự tại đây.</p></fieldset></div>
   <div className="editor-group"><h3 className="editor-group-title">Quyền hiển thị</h3><p className="field-hint">Mục “Chỉ lời mời riêng” không xuất hiện trên thiệp chung; bảng dưới đọc trực tiếp từ bản đang chỉnh.</p>{rows!==null&&<PublicExposurePanel rows={rows}/>}</div>
   <div className="editor-savebar"><p className={dirty?'design-warning':'field-hint'}>{dirty?'Bạn có thay đổi chưa lưu.':'Nội dung đã đồng bộ với dữ liệu tải từ máy chủ.'}</p><div className="row"><button disabled={!dirty||busy}>{busy?'Đang xử lý…':'Lưu nháp nội dung tùy chọn'}</button></div></div></form>}
   {rows&&<div className="editor-group"><h3 className="editor-group-title">Xem trước</h3><details><summary>Xem trước theo ngữ cảnh</summary><p className="field-hint">Xem trước chỉ mô phỏng hiển thị; máy chủ quyết định quyền thật và luôn lọc mục riêng tư khỏi thiệp chung.</p><div className="preview-segmented" role="group" aria-label="Ngữ cảnh xem trước">{previewContexts.map(item=><button type="button" key={item.id} data-context={item.id} aria-pressed={context===item.id} onClick={()=>setContext(item.id)}>{item.label}</button>)}</div><p className="field-hint">{previewContexts.find(item=>item.id===context)?.note}</p>
@@ -155,6 +166,7 @@ export function SectionEditor({busy,onDirty,save}:{busy:boolean;onDirty:(value:b
 function PublicExposurePanel({rows}:{rows:ContentSection[]}){
   const publicRows=rows.filter(row=>row.enabled&&row.audience==='PUBLIC');
   const hidden=rows.filter(row=>row.enabled&&row.audience==='PRIVATE');
+  const timelineAllPrivate=publicRows.some(row=>row.kind==='TIMELINE'&&(row.payload?.timeline?.length??0)>0&&!(row.payload?.timeline??[]).some(item=>item.audience!=='PRIVATE'));
   const describe=(row:ContentSection):string=>{
     const milestones=row.kind==='TIMELINE'?(row.payload?.timeline??[]).filter(item=>item.audience!=='PRIVATE'&&item.title.trim()).map(item=>item.title.trim()):[];
     return milestones.length?`${kinds[row.kind]} (mốc công khai: ${milestones.join(', ')})`:kinds[row.kind];
@@ -162,6 +174,7 @@ function PublicExposurePanel({rows}:{rows:ContentSection[]}){
   return <div className="public-exposure-panel" role="note" aria-label="Nội dung sẽ xuất hiện trên thiệp chung">
     <p><strong>Sẽ xuất hiện trên thiệp chung:</strong> {publicRows.length?`${publicRows.map(describe).join('; ')}.`:'chưa có mục công khai nào.'}</p>
     {hidden.length>0&&<p className="field-hint">Chỉ xuất hiện trong lời mời riêng: {hidden.map(row=>kinds[row.kind]).join(', ')}.</p>}
+    {timelineAllPrivate&&<p className="field-hint">Lưu ý: Mục lịch trình công khai chỉ có các mốc “Chỉ lời mời riêng”, nên máy chủ sẽ tự ẩn mục này trên thiệp chung.</p>}
     {publicRows.some(row=>row.kind==='CEREMONY')&&<p className="section-empty-warning"><span aria-hidden="true">!</span> Nghi lễ riêng đang bật công khai trên thiệp chung. Cân nhắc chuyển quyền xem về "Chỉ lời mời riêng" nếu không muốn khách ngoài nhìn thấy.</p>}
   </div>;
 }

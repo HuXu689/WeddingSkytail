@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none">
+  <defs>
+    <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff4c4"/>
+      <stop offset="35%" stop-color="#e5c158"/>
+      <stop offset="70%" stop-color="#b8860b"/>
+      <stop offset="100%" stop-color="#f7e396"/>
+    </linearGradient>
+    <linearGradient id="diamondShine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#e0f4ff"/>
+      <stop offset="100%" stop-color="#b8dcf5"/>
+    </linearGradient>
+  </defs>
+  <!-- Botanical Wreath around rings -->
+  <path d="M100 162 C52 156 24 118 32 72 C36 46 56 26 78 22" stroke="#6f8769" stroke-width="2" stroke-linecap="round"/>
+  <path d="M100 162 C148 156 176 118 168 72 C164 46 144 26 122 22" stroke="#6f8769" stroke-width="2" stroke-linecap="round"/>
+  <!-- Leaves -->
+  <g fill="#7d9676" opacity="0.85">
+    <ellipse cx="32" cy="96" rx="11" ry="4.5" transform="rotate(-65 32 96)"/>
+    <ellipse cx="44" cy="126" rx="11" ry="4.5" transform="rotate(-35 44 126)"/>
+    <ellipse cx="68" cy="148" rx="11" ry="4.5" transform="rotate(-15 68 148)"/>
+    <ellipse cx="38" cy="64" rx="10" ry="4" transform="rotate(-75 38 64)"/>
+    <ellipse cx="168" cy="96" rx="11" ry="4.5" transform="rotate(65 168 96)"/>
+    <ellipse cx="156" cy="126" rx="11" ry="4.5" transform="rotate(35 156 126)"/>
+    <ellipse cx="132" cy="148" rx="11" ry="4.5" transform="rotate(15 132 148)"/>
+    <ellipse cx="162" cy="64" rx="10" ry="4" transform="rotate(75 162 64)"/>
+  </g>
+  <!-- Left Ring -->
+  <circle cx="82" cy="98" r="28" stroke="url(#ringGold)" stroke-width="5" fill="none"/>
+  <circle cx="82" cy="98" r="24" stroke="#fff9e0" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- Right Ring -->
+  <circle cx="118" cy="98" r="28" stroke="url(#ringGold)" stroke-width="5" fill="none"/>
+  <circle cx="118" cy="98" r="24" stroke="#fff9e0" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- Solitaire Diamond on top of Right Ring -->
+  <polygon points="104,54 132,54 138,63 118,74 98,63" fill="url(#diamondShine)" stroke="url(#ringGold)" stroke-width="1.6"/>
+  <polyline points="104,54 118,63 132,54 M98,63 138,63 M118,63 118,74" stroke="url(#ringGold)" stroke-width="1"/>
+  <!-- Diamond Sparkle Rays -->
+  <path d="M118 32 L120 42 L130 44 L120 46 L118 52 L116 46 L106 44 L116 42 Z" fill="url(#ringGold)"/>
+  <!-- Bottom Rose Accent -->
+  <circle cx="100" cy="160" r="10" fill="#e899a6" stroke="url(#ringGold)" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 160" fill="none">
+  <defs>
+    <linearGradient id="bfGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff4c4"/>
+      <stop offset="40%" stop-color="#e5c158"/>
+      <stop offset="75%" stop-color="#b8860b"/>
+      <stop offset="100%" stop-color="#f7e396"/>
+    </linearGradient>
+    <radialGradient id="bfWing" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#fff5f7"/>
+      <stop offset="55%" stop-color="#f5c6d0"/>
+      <stop offset="100%" stop-color="#d48797"/>
+    </radialGradient>
+  </defs>
+  <!-- Upper Wings -->
+  <path d="M90 76 C68 25 14 14 20 62 C24 88 62 92 90 76 Z" fill="url(#bfWing)" stroke="url(#bfGold)" stroke-width="2.2"/>
+  <path d="M90 76 C112 25 166 14 160 62 C156 88 118 92 90 76 Z" fill="url(#bfWing)" stroke="url(#bfGold)" stroke-width="2.2"/>
+  <!-- Lower Wings -->
+  <path d="M90 80 C64 92 34 118 52 140 C68 154 86 120 90 80 Z" fill="url(#bfWing)" stroke="url(#bfGold)" stroke-width="2"/>
+  <path d="M90 80 C116 92 146 118 128 140 C112 154 94 120 90 80 Z" fill="url(#bfWing)" stroke="url(#bfGold)" stroke-width="2"/>
+  <!-- Filigree Wing Details -->
+  <circle cx="48" cy="56" r="8" stroke="url(#bfGold)" stroke-width="1.2" fill="none"/>
+  <circle cx="132" cy="56" r="8" stroke="url(#bfGold)" stroke-width="1.2" fill="none"/>
+  <!-- Body & Antennae -->
+  <ellipse cx="90" cy="82" rx="4" ry="26" fill="url(#bfGold)"/>
+  <path d="M88 58 Q76 36 64 38 M92 58 Q104 36 116 38" stroke="url(#bfGold)" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

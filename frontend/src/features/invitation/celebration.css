@@ -4,7 +4,27 @@
 .celebration-corner{position:absolute;width:clamp(72px,15%,180px);height:auto;stroke:currentColor;stroke-width:1;opacity:.8}
 .celebration-corner.corner-start{left:8px;top:8px}
 .celebration-corner.corner-end{right:8px;bottom:8px;transform:rotate(180deg)}
+.celebration-corner.corner-top-right{right:8px;top:8px;opacity:.6;width:clamp(56px,12%,140px)}
+.celebration-corner.corner-bottom-left{left:8px;bottom:8px;opacity:.6;width:clamp(56px,12%,140px)}
 .celebration-halo{position:absolute;width:300px;height:300px;right:-160px;top:-160px;border:1px solid currentColor;border-radius:50%;box-shadow:0 0 0 16px var(--celebration-paint-1),0 0 0 38px var(--celebration-paint-2);opacity:.6}
+.celebration-halo-alt{left:-160px;bottom:-160px;right:auto;top:auto;width:260px;height:260px;opacity:.4}
+/* Golden chain decorations */
+.celebration-chain{position:absolute;height:1px;background:repeating-linear-gradient(90deg,var(--inv-champagne,#c3a26b) 0 4px,transparent 4px 12px);opacity:.2}
+.celebration-chain.chain-top{top:4px;left:10%;right:10%}
+.celebration-chain.chain-bottom{bottom:4px;left:10%;right:10%}
+/* Diamond accents */
+.celebration-diamonds{position:absolute;inset:0}
+.celebration-diamond{position:absolute;width:6px;height:6px;background:var(--inv-champagne,#c3a26b);transform:rotate(45deg);opacity:.18}
+.celebration-diamond:nth-child(1){left:50%;top:6px}
+.celebration-diamond:nth-child(2){left:50%;bottom:6px}
+.celebration-diamond:nth-child(3){left:6px;top:50%}
+.celebration-diamond:nth-child(4){right:6px;top:50%}
+.celebration-diamond:nth-child(5){left:25%;top:4px}
+.celebration-diamond:nth-child(6){right:25%;top:4px}
+/* Floral vines */
+.celebration-vine{position:absolute;width:clamp(16px,3%,32px);height:60%;stroke:currentColor;stroke-width:.8;fill:currentColor;fill-opacity:.15;opacity:.25}
+.celebration-vine.vine-left{left:2px;top:20%}
+.celebration-vine.vine-right{right:2px;top:20%}
 .celebration-sparks{position:absolute;inset:0}
 .celebration-sparks span{position:absolute;left:8%;top:22%;width:5px;height:5px;background:var(--inv-champagne);border-radius:50%;box-shadow:0 0 12px var(--celebration-paint-3);opacity:.45}
 .celebration-sparks span:nth-child(2){left:92%;top:18%;width:3px;height:3px}
@@ -14,6 +34,10 @@
 .celebration-sparks span:nth-child(6){left:84%;top:94%;width:4px;height:4px}
 .celebration-sparks span:nth-child(7){left:7%;top:90%;width:3px;height:3px}
 .celebration-sparks span:nth-child(8){left:95%;top:43%;width:4px;height:4px}
+.celebration-sparks span:nth-child(9){left:50%;top:3%;width:3px;height:3px}
+.celebration-sparks span:nth-child(10){left:30%;top:97%;width:4px;height:4px}
+.celebration-sparks span:nth-child(11){left:70%;top:5%;width:3px;height:3px}
+.celebration-sparks span:nth-child(12){left:50%;top:96%;width:4px;height:4px}
 .wedding-canvas .wedding-cover .wedding-rule{position:relative;background:var(--inv-champagne);opacity:1}
 .wedding-canvas .wedding-rule::after{content:'';position:absolute;width:7px;height:7px;left:calc(50% - 4px);top:-3px;transform:rotate(45deg);background:var(--inv-champagne);box-shadow:0 0 0 4px var(--inv-paper)}
 .wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .wedding-rule::after{box-shadow:none}
@@ -27,9 +51,15 @@
 @keyframes invitationSpark{0%,100%{opacity:.2;transform:translateY(0) scale(.7)}50%{opacity:.8;transform:translateY(-14px) scale(1.15)}}
 @keyframes invitationOrnament{from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes invitationLight{from{opacity:0;transform:translateX(-140%) skewX(-20deg)}35%{opacity:.4}to{opacity:0;transform:translateX(240%) skewX(-20deg)}}
+@keyframes diamondTwinkle{0%,100%{opacity:.12;transform:rotate(45deg) scale(.8)}50%{opacity:.35;transform:rotate(45deg) scale(1.3)}}
+@keyframes vineSway{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+@keyframes chainShimmer{0%{background-position:0 0}100%{background-position:200px 0}}
+@keyframes haloBreath{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.6;transform:scale(1.05)}}
 @media(prefers-reduced-motion:no-preference){
  .wedding-canvas .celebration-sparks span{animation:invitationSpark 4s ease-in-out 1 both}
  .wedding-canvas .celebration-sparks span:nth-child(even){animation-delay:.6s}
+ .wedding-canvas .celebration-sparks span:nth-child(3n){animation-delay:1.2s}
+ .wedding-canvas .celebration-sparks span:nth-child(n+9){animation-delay:1.8s}
  .wedding-canvas .wedding-ornament{animation:invitationOrnament 900ms var(--motion-ease) both}
  .wedding-canvas .cover-content>.eyebrow.is-visible{animation-delay:80ms}
  .wedding-canvas .cover-content>.couple-names.is-visible{animation-delay:160ms}
@@ -37,6 +67,16 @@
  .wedding-canvas .cover-content>.wedding-message.is-visible{animation-delay:320ms}
  .wedding-canvas .cover-caption.is-visible{animation-delay:400ms}
  .wedding-canvas .hero-split .cover-photo::after{display:block;inset:0 auto 0 0;width:50%;background:linear-gradient(90deg,var(--celebration-paint-6),var(--celebration-paint-10),var(--celebration-paint-6));animation:invitationLight 1600ms ease-out 250ms both;pointer-events:none}
+ .wedding-canvas .celebration-diamond{animation:diamondTwinkle 3s ease-in-out infinite}
+ .wedding-canvas .celebration-diamond:nth-child(2){animation-delay:.5s}
+ .wedding-canvas .celebration-diamond:nth-child(3){animation-delay:1s}
+ .wedding-canvas .celebration-diamond:nth-child(4){animation-delay:1.5s}
+ .wedding-canvas .celebration-diamond:nth-child(5){animation-delay:2s}
+ .wedding-canvas .celebration-diamond:nth-child(6){animation-delay:2.5s}
+ .wedding-canvas .celebration-vine{animation:vineSway 6s ease-in-out infinite}
+ .wedding-canvas .celebration-vine.vine-right{animation-delay:3s}
+ .wedding-canvas .celebration-chain{animation:chainShimmer 8s linear infinite}
+ .wedding-canvas .celebration-halo-alt{animation:haloBreath 5s ease-in-out infinite}
 }
 @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
  .wedding-canvas .open-invitation,.wedding-canvas .gift-trigger{transition:transform 220ms ease,box-shadow 220ms ease}
@@ -44,7 +84,12 @@
 }
 @container (max-width:760px){
  .wedding-canvas .celebration-corner{width:72px;opacity:.65}
- .wedding-canvas .celebration-sparks span:nth-child(n+5){display:none}
+ .wedding-canvas .celebration-corner.corner-top-right,
+ .wedding-canvas .celebration-corner.corner-bottom-left{display:none}
+ .wedding-canvas .celebration-vine{display:none}
+ .wedding-canvas .celebration-sparks span:nth-child(n+7){display:none}
+ .wedding-canvas .celebration-chain{left:5%;right:5%}
+ .wedding-canvas .celebration-diamond:nth-child(n+5){display:none}
 }
 @media(prefers-reduced-motion:reduce){
  .wedding-canvas .celebration-sparks{display:none}

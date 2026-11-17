@@ -28,7 +28,40 @@ public class AdminService {
     public record GuestInput(@NotBlank @Size(max=200) String displayName,@NotNull @Size(max=100) String groupName,@NotBlank @Size(max=80) String salutation,@NotEmpty @Size(max=20) List<@Valid Assignment> assignments) {}
     public record PolicyInput(@Pattern(regexp="INHERIT|MANUAL_OPEN|MANUAL_CLOSED|SCHEDULED") @NotNull String mode,Instant openAt,Instant closeAt,long expectedVersion) {}
     public record TrackingInput(boolean enabled,long expectedVersion) {}
-    public Map<String,Object> wedding() { var result=new HashMap<>(db.queryForMap("SELECT * FROM wedding WHERE id=1")); result.putAll(media.draft()); result.put("layout",vn.wedding.invitation.wedding.LayoutService.list(db,true)); return result; }
+    public Map<String,Object> wedding() {
+        var row=db.queryForMap("SELECT * FROM wedding WHERE id=1");
+        var result=new HashMap<>(row);
+        result.putAll(media.draft());
+        result.put("layout",vn.wedding.invitation.wedding.LayoutService.list(db,true));
+        result.put("sections",vn.wedding.invitation.wedding.SectionService.list(db,true,true));
+        var publishedMedia=media.published();
+        Object pubAlbum=publishedMedia.get("albumUrls");
+        result.put("published_album_count",pubAlbum instanceof List<?> list?list.size():0);
+        result.put("has_unpublished_changes",hasUnpublishedChanges(row));
+        return result;
+    }
+    private boolean hasUnpublishedChanges(Map<String,Object> row) {
+        if(!Boolean.TRUE.equals(row.get("published"))) return true;
+        if(!Objects.equals(row.get("draft_names"),row.get("names"))
+            || !Objects.equals(row.get("draft_message"),row.get("message"))
+            || !Objects.equals(row.get("draft_theme"),row.get("theme"))
+            || !Objects.equals(row.get("draft_accent"),row.get("accent"))
+            || !Objects.equals(row.get("draft_story"),row.get("story"))
+            || !Objects.equals(row.get("draft_footer"),row.get("footer"))
+            || !Objects.equals(row.get("draft_show_story"),row.get("show_story"))
+            || !Objects.equals(row.get("draft_music_id"),row.get("music_id"))
+            || !Objects.equals(row.get("draft_music_autoplay"),row.get("music_autoplay"))
+            || !Objects.equals(row.get("draft_show_countdown"),row.get("show_countdown"))) return true;
+        var draftLayout=db.queryForList("SELECT section,enabled FROM wedding_layout WHERE surface='DRAFT' ORDER BY position");
+        var pubLayout=db.queryForList("SELECT section,enabled FROM wedding_layout WHERE surface='PUBLISHED' ORDER BY position");
+        if(!Objects.equals(draftLayout,pubLayout)) return true;
+        var draftMedia=db.queryForList("SELECT media_id,slot,sort_order,focal_x,focal_y FROM wedding_media_selection WHERE surface='DRAFT' ORDER BY slot,sort_order,media_id");
+        var pubMedia=db.queryForList("SELECT media_id,slot,sort_order,focal_x,focal_y FROM wedding_media_selection WHERE surface='PUBLISHED' ORDER BY slot,sort_order,media_id");
+        if(!Objects.equals(draftMedia,pubMedia)) return true;
+        var draftSections=db.queryForList("SELECT position,kind,audience,enabled,title,body,starts_at,color,payload::text FROM wedding_sections WHERE surface='DRAFT' ORDER BY position");
+        var pubSections=db.queryForList("SELECT position,kind,audience,enabled,title,body,starts_at,color,payload::text FROM wedding_sections WHERE surface='PUBLISHED' ORDER BY position");
+        return !Objects.equals(draftSections,pubSections);
+    }
     private Map<String,Object> lockWedding() { return db.queryForMap("SELECT * FROM wedding WHERE id=1 FOR UPDATE"); }
     /** Every admin action is attributed to the account that performed it (T25). */
     public void audit(String action,Object target) { db.update("INSERT INTO audit(action,target,actor) VALUES(?,?,?)",action,target.toString(),actor()); }
