@@ -111,33 +111,41 @@ export function GoldenDust({ count = 24, active = true }: { count?: number; acti
         p.y += p.vy;
 
         if (p.isBokeh) {
-          const bokehAlpha = baseAlpha * 0.16;
-          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+          const bokehAlpha = baseAlpha * 0.18;
+          const glow = ctx.createRadialGradient(p.x, p.y, p.size * 0.15, p.x, p.y, p.size);
           if (p.hue === 'rose') {
-            glow.addColorStop(0, `rgba(245, 185, 200, ${bokehAlpha})`);
-            glow.addColorStop(0.7, `rgba(235, 150, 175, ${bokehAlpha * 0.5})`);
-            glow.addColorStop(1, 'rgba(235, 150, 175, 0)');
+            glow.addColorStop(0, `rgba(255, 218, 228, ${bokehAlpha * 0.65})`);
+            glow.addColorStop(0.78, `rgba(248, 188, 206, ${bokehAlpha})`);
+            glow.addColorStop(1, 'rgba(248, 188, 206, 0)');
           } else {
-            glow.addColorStop(0, `rgba(255, 232, 175, ${bokehAlpha})`);
-            glow.addColorStop(0.7, `rgba(218, 182, 115, ${bokehAlpha * 0.5})`);
-            glow.addColorStop(1, 'rgba(195, 162, 107, 0)');
+            glow.addColorStop(0, `rgba(255, 244, 204, ${bokehAlpha * 0.65})`);
+            glow.addColorStop(0.78, `rgba(238, 206, 138, ${bokehAlpha})`);
+            glow.addColorStop(1, 'rgba(212, 175, 95, 0)');
           }
           ctx.fillStyle = glow;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx.fill();
+
+          ctx.strokeStyle = p.hue === 'rose'
+            ? `rgba(255, 232, 238, ${bokehAlpha * 0.55})`
+            : `rgba(255, 246, 212, ${bokehAlpha * 0.6})`;
+          ctx.lineWidth = 0.85;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.82, 0, Math.PI * 2);
+          ctx.stroke();
         } else {
-          const alpha = baseAlpha * 0.78;
+          const alpha = baseAlpha * 0.32;
           const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3.2);
-          glow.addColorStop(0, `rgba(255, 222, 145, ${alpha})`);
-          glow.addColorStop(0.35, `rgba(220, 185, 110, ${alpha * 0.55})`);
+          glow.addColorStop(0, `rgba(255, 228, 162, ${alpha})`);
+          glow.addColorStop(0.4, `rgba(232, 198, 128, ${alpha * 0.55})`);
           glow.addColorStop(1, 'rgba(195, 162, 107, 0)');
           ctx.fillStyle = glow;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 3.2, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = `rgba(255, 250, 230, ${Math.min(1, alpha * 1.25)})`;
+          ctx.fillStyle = `rgba(255, 250, 232, ${Math.min(0.34, alpha * 1.1)})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 0.55, 0, Math.PI * 2);
           ctx.fill();

@@ -19,9 +19,9 @@ interface Butterfly {
 }
 
 const BUTTERFLY_PALETTES = [
-  { wing: 'rgba(248, 200, 212, 0.72)', border: 'rgba(212, 175, 55, 0.85)', glow: 'rgba(255, 225, 160, 0.35)' },
-  { wing: 'rgba(255, 235, 190, 0.75)', border: 'rgba(195, 150, 60, 0.85)', glow: 'rgba(255, 215, 120, 0.4)' },
-  { wing: 'rgba(242, 175, 190, 0.68)', border: 'rgba(185, 110, 125, 0.82)', glow: 'rgba(245, 190, 205, 0.35)' },
+  { wing: 'rgba(254, 224, 232, 0.3)', border: 'rgba(232, 198, 126, 0.34)', glow: 'rgba(255, 236, 188, 0.2)' },
+  { wing: 'rgba(255, 242, 208, 0.32)', border: 'rgba(224, 188, 108, 0.34)', glow: 'rgba(255, 232, 168, 0.22)' },
+  { wing: 'rgba(252, 218, 226, 0.28)', border: 'rgba(228, 178, 188, 0.32)', glow: 'rgba(252, 224, 232, 0.2)' },
 ];
 
 function createButterfly(w: number, h: number): Butterfly {

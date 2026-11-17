@@ -284,7 +284,7 @@ export function Fireworks({
       ensureRunning();
     }
 
-    launchSalvo(mode === 'burst' ? 3 : 2);
+    if (mode === 'continuous') launchSalvo(2);
 
     const onCustomBurst = () => launchSalvo(4);
     window.addEventListener('wedding:fireworks', onCustomBurst);

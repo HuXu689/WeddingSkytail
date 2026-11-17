@@ -28,12 +28,12 @@ type Petal = {
 };
 
 const COLORS = [
-  'rgba(242, 182, 194, 0.62)',
-  'rgba(225, 130, 148, 0.52)',
-  'rgba(195, 162, 107, 0.52)',
-  'rgba(248, 215, 198, 0.62)',
-  'rgba(255, 232, 200, 0.58)',
-  'rgba(198, 92, 108, 0.45)',
+  'rgba(248, 198, 210, 0.72)',
+  'rgba(244, 182, 198, 0.68)',
+  'rgba(238, 208, 152, 0.66)',
+  'rgba(252, 222, 208, 0.74)',
+  'rgba(255, 238, 208, 0.72)',
+  'rgba(240, 172, 188, 0.64)',
 ];
 
 function makePetal(w: number, h: number, scatter = false): Petal {
@@ -42,7 +42,7 @@ function makePetal(w: number, h: number, scatter = false): Petal {
   return {
     x: Math.random() * w,
     y: scatter ? Math.random() * h : -24 - Math.random() * 90,
-    size: type === 'sparkle' ? 2.5 + Math.random() * 3.5 : 7 + Math.random() * 11,
+    size: type === 'sparkle' ? 3 + Math.random() * 3.5 : 8 + Math.random() * 11,
     rotation: Math.random() * 360,
     rotationSpeed: (Math.random() - 0.5) * 1.8,
     flipPhase: Math.random() * Math.PI * 2,
@@ -50,7 +50,7 @@ function makePetal(w: number, h: number, scatter = false): Petal {
     fallSpeed: 0.36 + Math.random() * 0.62,
     swayAmplitude: 18 + Math.random() * 38,
     swaySpeed: 0.0011 + Math.random() * 0.0018,
-    opacity: 0.34 + Math.random() * 0.36,
+    opacity: 0.18 + Math.random() * 0.12,
     type,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     delay: scatter ? 0 : Math.random() * 1400,
@@ -74,27 +74,39 @@ function draw(ctx: CanvasRenderingContext2D, p: Petal, time: number) {
   ctx.rotate(angle);
   ctx.scale(1, flip);
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = p.color;
+
+  const grad = ctx.createLinearGradient(0, -s, 0, s);
+  grad.addColorStop(0, p.color);
+  grad.addColorStop(0.65, p.color);
+  grad.addColorStop(1, 'rgba(255, 252, 246, 0.85)');
+  ctx.fillStyle = grad;
 
   if (p.type === 'petal' || p.type === 'rose') {
     ctx.beginPath();
     ctx.moveTo(0, -s);
-    ctx.bezierCurveTo(s * 0.85, -s * 0.55, s * 0.7, s * 0.4, 0, s);
-    ctx.bezierCurveTo(-s * 0.7, s * 0.4, -s * 0.85, -s * 0.55, 0, -s);
+    ctx.bezierCurveTo(s * 0.92, -s * 0.52, s * 0.76, s * 0.44, 0, s);
+    ctx.bezierCurveTo(-s * 0.76, s * 0.44, -s * 0.92, -s * 0.52, 0, -s);
     ctx.fill();
   } else if (p.type === 'sakura') {
     ctx.beginPath();
     ctx.moveTo(0, s * 0.9);
-    ctx.bezierCurveTo(-s * 0.85, s * 0.3, -s * 0.75, -s * 0.65, -s * 0.22, -s * 0.95);
-    ctx.lineTo(0, -s * 0.68);
+    ctx.bezierCurveTo(-s * 0.88, s * 0.3, -s * 0.78, -s * 0.65, -s * 0.22, -s * 0.95);
+    ctx.lineTo(0, -s * 0.66);
     ctx.lineTo(s * 0.22, -s * 0.95);
-    ctx.bezierCurveTo(s * 0.75, -s * 0.65, s * 0.85, s * 0.3, 0, s * 0.9);
+    ctx.bezierCurveTo(s * 0.78, -s * 0.65, s * 0.88, s * 0.3, 0, s * 0.9);
     ctx.closePath();
     ctx.fill();
   } else {
-    ctx.globalAlpha = alpha * (Math.sin(time * 0.008 + p.phase) * 0.5 + 0.5);
+    const twinkle = Math.sin(time * 0.008 + p.phase) * 0.5 + 0.5;
+    ctx.globalAlpha = alpha * twinkle;
+    ctx.fillStyle = 'rgba(255, 244, 204, 0.9)';
     ctx.beginPath();
-    ctx.arc(0, 0, s, 0, Math.PI * 2);
+    ctx.moveTo(0, -s);
+    ctx.quadraticCurveTo(s * 0.2, -s * 0.2, s, 0);
+    ctx.quadraticCurveTo(s * 0.2, s * 0.2, 0, s);
+    ctx.quadraticCurveTo(-s * 0.2, s * 0.2, -s, 0);
+    ctx.quadraticCurveTo(-s * 0.2, -s * 0.2, 0, -s);
+    ctx.closePath();
     ctx.fill();
   }
   ctx.restore();

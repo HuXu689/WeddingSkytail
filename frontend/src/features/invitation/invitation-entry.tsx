@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {MailOpen,Sparkles} from 'lucide-react';
 import {api,ApiError} from '@/shared/api';
 import {createOpenIntent} from './open-intent';
 import {INVITATION_UNAVAILABLE as unavailable} from './access-copy';
@@ -59,13 +60,24 @@ export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>v
   <p className="eyebrow">{phase==='pin'?'Bảo vệ bằng mã PIN':'Một lời mời dành cho bạn'}</p>
   <h1 ref={heading} tabIndex={-1}>{phase==='pin'?'Nhập mã PIN để mở thiệp':<>Hẹn gặp bạn<br/>ngày chung đôi.</>}</h1>
   <p>Website ghi nhận thời điểm mở thiệp để người gửi theo dõi lời mời; không công khai lịch sử của bạn.</p>
-  <button type="button" className="secondary intro-decoration-toggle" aria-pressed={decoration} onClick={()=>setDecoration(value=>!value)}>{decoration?'Tắt trang trí chuyển động':'Bật trang trí chuyển động'}</button>
+  <button type="button" className="secondary intro-decoration-toggle" aria-pressed={decoration} onClick={()=>setDecoration(value=>!value)}>
+   <Sparkles size={14} aria-hidden="true"/>
+   <span>{decoration?'Tắt trang trí chuyển động':'Bật trang trí chuyển động'}</span>
+  </button>
   {decoration&&<div className={`intro-decoration ${visible?'':'is-paused'}`} aria-hidden="true"><span>♡</span><span>❧</span><span>♡</span></div>}
   {phase==='pin'?<form className="pin-form" onSubmit={e=>{e.preventDefault();void open();}}>
    <p>Mã PIN do người gửi đặt riêng cho bạn, thường được gửi qua tin nhắn riêng. Mã không nằm trên thiệp hay mã QR.</p>
    <label>Mã PIN<input type="password" inputMode="numeric" autoComplete="one-time-code" maxLength={12} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,'').slice(0,12))} required disabled={busy}/></label>
-   <button disabled={busy||pin.length<4}>{busy?'Đang kiểm tra…':'Mở thiệp'}</button>
-  </form>:<button disabled={phase==='loading'||busy} onClick={()=>void open()}>{phase==='loading'?'Đang kiểm tra thiệp…':busy?'Đang mở thiệp…':phase==='error'?'Thử mở lại thiệp':'Mở thiệp'} <span aria-hidden="true">♡</span></button>}
+   <button className="invitation-seal-cta" disabled={busy||pin.length<4}>
+    <MailOpen size={17} aria-hidden="true"/>
+    <span>{busy?'Đang kiểm tra…':'Mở thiệp'}</span>
+    <Sparkles size={15} aria-hidden="true"/>
+   </button>
+  </form>:<button className="invitation-seal-cta" disabled={phase==='loading'||busy} onClick={()=>void open()}>
+   <MailOpen size={17} aria-hidden="true"/>
+   <span>{phase==='loading'?'Đang kiểm tra thiệp…':busy?'Đang mở thiệp…':phase==='error'?'Thử mở lại thiệp':'Mở thiệp'}</span>
+   <Sparkles size={15} aria-hidden="true"/>
+  </button>}
   <p className="sr-only" role="status">{phase==='opening'?'Đang mở thiệp. Vui lòng chờ.':''}</p>
   {error&&<p role="alert" className="error">{error}</p>}
  </section>;

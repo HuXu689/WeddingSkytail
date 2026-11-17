@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Heart} from 'lucide-react';
+import {ChevronDown,Heart,RefreshCw,RotateCcw} from 'lucide-react';
 import {api} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
 import {approvedWishPath,type ApprovedWishItem,type ApprovedWishPage,type WishFeedScope} from '@/shared/invitation-features';
@@ -122,7 +122,16 @@ function ScopedWishFeed({path}:{path:string}){
   {busy&&<p role="status" className="field-hint">Đang tải lời chúc…</p>}
   {loaded&&!busy&&items.length===0&&<p className="field-hint">Chưa có lời chúc nào được duyệt.</p>}
   {error&&<p role="alert" className="error">{error}</p>}
-  <div className="row">{error?<button type="button" className="secondary" disabled={busy} onClick={()=>void load(retryCursor.current)}>{busy?'Đang tải…':'Thử tải lại lời chúc'}</button>:cursor&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(cursor)}>{busy?'Đang tải…':'Xem thêm lời chúc'}</button>}
-  {loaded&&<button type="button" className="secondary" disabled={busy} onClick={()=>void load(null)}>{busy?'Đang tải…':'Làm mới lời chúc'}</button>}</div>
+  <div className="row wish-feed-actions">{error?<button type="button" className="secondary wish-action-btn" disabled={busy} onClick={()=>void load(retryCursor.current)}>
+   <RotateCcw size={14} aria-hidden="true"/>
+   <span>{busy?'Đang tải…':'Thử tải lại lời chúc'}</span>
+  </button>:cursor&&<button type="button" className="secondary wish-action-btn" disabled={busy} onClick={()=>void load(cursor)}>
+   <ChevronDown size={15} aria-hidden="true"/>
+   <span>{busy?'Đang tải…':'Xem thêm lời chúc'}</span>
+  </button>}
+  {loaded&&<button type="button" className="secondary wish-action-btn" disabled={busy} onClick={()=>void load(null)}>
+   <RefreshCw size={14} aria-hidden="true"/>
+   <span>{busy?'Đang tải…':'Làm mới lời chúc'}</span>
+  </button>}</div>
  </div>;
 }

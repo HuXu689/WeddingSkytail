@@ -134,10 +134,10 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
    {/* Sân khấu hiệu ứng sticky full viewport — tiết chế sang trọng, tự ngủ đông khi nghỉ */}
    <div className="wedding-effects-viewport" aria-hidden="true">
     <CelebrationOrnaments/>
-    <FallingRibbons count={atmosphere==='royal'||atmosphere==='crimson'?3:0} active={effectsEnabled}/>
-    <PetalShower intensity={atmosphere==='sakura'||atmosphere==='crimson'?'light':'burst'} active={effectsEnabled}/>
-    <GoldenDust count={atmosphere==='starlight'?24:atmosphere==='royal'?18:atmosphere==='crimson'?12:0} active={effectsEnabled}/>
-    <ButterflyFlight count={atmosphere==='sakura'||atmosphere==='royal'?2:0} active={effectsEnabled}/>
+    <FallingRibbons count={5} active={effectsEnabled}/>
+    <PetalShower intensity={atmosphere==='starlight'?'light':'normal'} active={effectsEnabled}/>
+    <GoldenDust count={atmosphere==='starlight'?30:24} active={effectsEnabled}/>
+    <ButterflyFlight count={atmosphere==='starlight'?1:3} active={effectsEnabled}/>
     {opened && <FloatingHearts count={0} active={effectsEnabled}/>}
     {opened && <Fireworks mode="burst" active={effectsEnabled}/>}
     {effectsEnabled && <SparkleTrail/>}

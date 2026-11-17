@@ -192,11 +192,23 @@ try{
   assert.match(await evaluate(`document.querySelector('.wedding-pass-card').textContent`),/Thẻ hẹn chung vui/);
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=390`),true,'Trang lời mời riêng mobile 390px không tràn ngang');
   await screenshot('03-mobile-smart-rsvp-pass');
+  await evaluate(`document.querySelector('.wish-feed-actions')?.scrollIntoView({block:'center'});true`);
+  await wait(250);
+  await screenshot('04-mobile-wish-feed-buttons');
 
   // 4. Kiểm tra contrast computed trên toàn bộ trang
   const contrastSrc=readFileSync(resolve('scripts/contrast-audit.mjs'),'utf8').replace(/export\s+/g,'');
   const contrastFailures=await evaluate(`(()=>{${contrastSrc};return inspectContrast().failures;})()`);
   assert.deepEqual(contrastFailures,[],'Không có lỗi tương phản computed trên các thành phần mới');
+
+  // 5. Kiểm thử màn hình Mở phong thư mời (/i/[token]) & tương phản nút chính
+  await command('Page.navigate',{url:`${origin}/i/demo-token`});
+  await until(`document.querySelector('.invitation-seal-cta')`);
+  await wait(200);
+  const entryFailures=await evaluate(`(()=>{${contrastSrc};return inspectContrast().failures;})()`);
+  assert.deepEqual(entryFailures,[],'Màn hình mở phong thư mời không được có lỗi tương phản');
+  await screenshot('05-mobile-token-entry-cta');
+
   assert.equal(errors.length,0,`Uncaught runtime errors: ${JSON.stringify(errors)}`);
 
   console.log('PASS: luxury-upgrade-qa — Envelope 3D, Cá nhân hóa URL, Chân dung & Cột mốc tình yêu, Lọc Nhà Trai/Nhà Gái, Cẩm nang khách mời, RSVP Care Tags & Thẻ hẹn, Lưu bút Live & Contrast Mobile 390px đều PASS!');
