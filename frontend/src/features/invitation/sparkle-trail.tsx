@@ -126,7 +126,7 @@ export function SparkleTrail({ active = true }: { active?: boolean }) {
     function resize() {
       if (!canvas || !ctx) return;
       const rect = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, rect.width < 640 ? 1.5 : 2);
       width = rect.width;
       height = rect.height;
       const targetW = Math.round(width * ratio);

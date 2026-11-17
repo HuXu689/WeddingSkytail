@@ -25,7 +25,7 @@ export default function PublicWedding({params}:{params:Promise<{slug:string}>}) 
   .sort()[0]??null;
  return <main className="public-wedding-page">
   {data?<>
-   <WeddingCanvas design={data} calendar={<WeddingMonthCalendar items={calendarItems}/>} countdownTo={countdownTo} gift={<GiftBox scope={{kind:'public',slug}}/>} wishes={<ApprovedWishes slug={slug}/>}/>
+   <WeddingCanvas design={data} calendar={<WeddingMonthCalendar items={calendarItems}/>} countdownTo={countdownTo} gift={<GiftBox scope={{kind:'public',slug}}/>} wishes={<ApprovedWishes slug={slug}/>} publicMode/>
    <aside className="public-invitation-note" aria-label="Lưu ý dành cho khách mời">
     <span className="public-note-badge">Thiệp mời chung</span>
     <p>Thông tin buổi tiệc, giờ đón tiếp và mục xác nhận tham dự nằm trong đường link hoặc mã QR lời mời riêng được gửi tới bạn.</p>

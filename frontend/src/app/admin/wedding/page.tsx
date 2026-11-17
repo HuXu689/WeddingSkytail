@@ -25,7 +25,11 @@ export default function WeddingPage(){
  const [liveLayout,setLiveLayout]=useState<LayoutItem[]|undefined>(undefined);
  const [liveSections,setLiveSections]=useState<ContentSection[]|undefined>(undefined);
 
- useEffect(()=>{void api<Me>('/auth/me').then(setMe).catch(()=>setMe(null));},[]);
+ useEffect(()=>{
+  void api<Me>('/auth/me').then(setMe).catch(()=>setMe(null));
+  const q=new URLSearchParams(window.location.search).get('tab');
+  if(q==='design'||q==='layout'||q==='sections'||q==='access')setTab(q);
+ },[]);
 
  const isOwner=me?.role==='OWNER';
  const dirty=designDirty||sectionDirty||layoutDirty;

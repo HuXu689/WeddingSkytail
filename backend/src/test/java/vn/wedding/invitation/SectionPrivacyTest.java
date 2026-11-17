@@ -61,4 +61,22 @@ class SectionPrivacyTest {
   assertEquals(1,rows.size());
   assertNull(rows.getFirst().get("payload"));
  }
+ @Test void publishedIntroRewritesAdminMediaPathsToPublicMediaUrls(){
+  var db=mock(JdbcTemplate.class);
+  String uuid="9b927137-c773-4109-8adf-583350322917";
+  var introRow=new HashMap<String,Object>();
+  introRow.put("kind","INTRO");introRow.put("audience","PUBLIC");introRow.put("enabled",true);
+  introRow.put("title","Giới thiệu");introRow.put("body","");introRow.put("startsAt",null);introRow.put("color",null);
+  introRow.put("payload",JSON.writeValueAsString(map(
+   "people",List.of(map("name","An","avatarUrl","/api/v1/admin/media/"+uuid+"/content")),
+   "milestones",List.of(map("dateLabel","2022","title","Gặp gỡ","photoUrl","/api/v1/admin/media/"+uuid+"/thumb"))
+  )));
+  when(db.queryForList(anyString(),eq("PUBLISHED"))).thenReturn(List.of(introRow));
+  var rows=SectionService.list(db,false,false);
+  var payload=(Map<?,?>)rows.getFirst().get("payload");
+  var firstPerson=(Map<?,?>)((List<?>)payload.get("people")).get(0);
+  var firstMilestone=(Map<?,?>)((List<?>)payload.get("milestones")).get(0);
+  assertEquals("/media/"+uuid+".jpg",firstPerson.get("avatarUrl"));
+  assertEquals("/media/"+uuid+".jpg",firstMilestone.get("photoUrl"));
+ }
 }

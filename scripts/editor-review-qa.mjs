@@ -53,8 +53,9 @@ try{
    return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});
   };
  `});
- await command('Page.navigate',{url:`${origin}/admin/wedding`});
+ await command('Page.navigate',{url:`${origin}/admin/wedding?tab=sections`});
  await until(`document.querySelectorAll('.section-editor-item').length>=7`);
+ await evaluate(`(()=>{const btn=[...document.querySelectorAll('.wedding-workspace-tabs button')].find(b=>b.textContent.includes('Nội dung chi tiết'));btn?.click();return true;})()`);
 
  const report={};
  /** Khối theo đúng thứ tự fixture (heading hiển thị loại nên không dùng tiêu đề để định vị). */
@@ -112,34 +113,35 @@ try{
  await screenshot('editor-after-reorder');
 
  // 5. Xem trước theo ngữ cảnh: mốc PRIVATE chỉ hiện ở lời mời riêng.
- await evaluate(`(()=>{const details=document.querySelector('.section-editor details');details.open=true;return true;})()`);
+ const previewDetailsSel=`.section-editor > .editor-group:last-of-type details`;
+ await evaluate(`(()=>{const details=document.querySelector('${previewDetailsSel}');details.open=true;return true;})()`);
  await wait(150);
- const guestPreview=await evaluate(`document.querySelector('.section-editor details').textContent.includes('Lễ gia tiên')`);
+ const guestPreview=await evaluate(`document.querySelector('${previewDetailsSel}').textContent.includes('Lễ gia tiên')`);
  report.guestPreviewHasPrivate=guestPreview;
  assert.equal(guestPreview,true,'Xem trước lời mời riêng phải có mốc PRIVATE');
  // Hàng cũ chỉ có startsAt vẫn phải hiển thị ngày giờ cũ sau khi bỏ mốc gốc khỏi payload.
- const legacyRendered=await evaluate(`Boolean(document.querySelector('.section-editor details .timeline-legacy-time'))`);
+ const legacyRendered=await evaluate(`Boolean(document.querySelector('${previewDetailsSel} .timeline-legacy-time'))`);
  report.legacyTimelineRendered=legacyRendered;
  assert.equal(legacyRendered,true,'Hàng cũ phải tiếp tục hiển thị ngày giờ cũ trên thiệp');
  // Đối chứng: ngữ cảnh lời mời riêng phải render phần nội dung, nếu không thì phép đếm 0 ở ngữ cảnh
  // link sai phía dưới sẽ rỗng nghĩa (luôn bằng 0 vì lý do khác).
- const guestPreviewSections=await evaluate(`document.querySelector('.section-editor details').querySelectorAll('.content-section').length`);
+ const guestPreviewSections=await evaluate(`document.querySelector('${previewDetailsSel}').querySelectorAll('.content-section').length`);
  report.guestPreviewSections=guestPreviewSections;
  assert.ok(guestPreviewSections>0,'Đối chứng: ngữ cảnh lời mời riêng phải render phần nội dung');
- await evaluate(`(()=>{const button=document.querySelector('.section-editor details .preview-segmented button[data-context="public"]');button.click();return true;})()`);
+ await evaluate(`(()=>{const button=document.querySelector('${previewDetailsSel} .preview-segmented button[data-context="public"]');button.click();return true;})()`);
  await wait(250);
- const publicPreview=await evaluate(`document.querySelector('.section-editor details').textContent.includes('Lễ gia tiên')`);
+ const publicPreview=await evaluate(`document.querySelector('${previewDetailsSel}').textContent.includes('Lễ gia tiên')`);
  report.publicPreviewHasPrivate=publicPreview;
  assert.equal(publicPreview,false,'Thiệp chung không được hiện mốc PRIVATE');
  await screenshot('editor-preview-public');
 
  // 5b. Ngữ cảnh thứ ba "link không hợp lệ": không render phần nào và dùng câu chữ chung của trang thiệp.
- const contextOptions=await evaluate(`[...document.querySelectorAll('.section-editor details .preview-segmented button')].map(button=>button.dataset.context)`);
+ const contextOptions=await evaluate(`[...document.querySelectorAll('${previewDetailsSel} .preview-segmented button')].map(button=>button.dataset.context)`);
  report.previewContextOptions=contextOptions;
  assert.deepEqual(contextOptions,['guest','public','invalid'],'Xem trước phải có đủ ba ngữ cảnh');
- await evaluate(`(()=>{const button=document.querySelector('.section-editor details .preview-segmented button[data-context="invalid"]');button.click();return true;})()`);
+ await evaluate(`(()=>{const button=document.querySelector('${previewDetailsSel} .preview-segmented button[data-context="invalid"]');button.click();return true;})()`);
  await wait(250);
- const deniedPreview=await evaluate(`(()=>{const details=document.querySelector('.section-editor details');const panel=details.querySelector('.preview-denied');return {panel:Boolean(panel),sections:details.querySelectorAll('.content-section').length,text:panel?panel.textContent:''};})()`);
+ const deniedPreview=await evaluate(`(()=>{const details=document.querySelector('${previewDetailsSel}');const panel=details.querySelector('.preview-denied');return {panel:Boolean(panel),sections:details.querySelectorAll('.content-section').length,text:panel?panel.textContent:''};})()`);
  report.invalidPreview={panel:deniedPreview.panel,sections:deniedPreview.sections,sharesEntryCopy:deniedPreview.text.includes('Thiệp hiện không khả dụng hoặc phiên đã hết hạn')};
  assert.equal(deniedPreview.panel,true,'Ngữ cảnh link không hợp lệ phải có khối giải thích');
  assert.equal(deniedPreview.sections,0,'Link không hợp lệ không được render phần nội dung nào');

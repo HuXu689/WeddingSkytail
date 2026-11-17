@@ -1,13 +1,65 @@
 'use client';
-import {useState} from 'react';
+import {useMemo,useState} from 'react';
 import {api,date} from '@/shared/api';
 import type {ResponseRow,RsvpHistoryRow,WeddingEvent} from '@/shared/admin-types';
 import {useAdmin} from '@/features/admin/use-admin';
 import {Heading,Feedback,Loading,Empty,Badge} from '@/features/admin/ui';
+
+type CareFilter='ALL'|'HAS_NOTE'|'VEG'|'CHILD'|'CAR';
+
+function matchCare(note:string|null|undefined,kind:CareFilter):boolean{
+ const lower=(note||'').toLowerCase();
+ if(kind==='ALL')return true;
+ if(kind==='HAS_NOTE')return lower.trim().length>0;
+ if(kind==='VEG')return lower.includes('chay');
+ if(kind==='CHILD')return lower.includes('trẻ nhỏ')||lower.includes('em bé')||lower.includes('ghế em bé');
+ if(kind==='CAR')return lower.includes('xe đưa đón')||lower.includes('ô tô');
+ return true;
+}
+
 export default function Responses(){
- const [page,setPage]=useState(0),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[eventId,setEventId]=useState(''),[editing,setEditing]=useState<ResponseRow|null>(null),[history,setHistory]=useState<{row:ResponseRow;items:RsvpHistoryRow[]}|null>(null),[notice,setNotice]=useState('');
+ const [page,setPage]=useState(0),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[eventId,setEventId]=useState(''),[careFilter,setCareFilter]=useState<CareFilter>('ALL'),[editing,setEditing]=useState<ResponseRow|null>(null),[history,setHistory]=useState<{row:ResponseRow;items:RsvpHistoryRow[]}|null>(null),[notice,setNotice]=useState('');
  const state=useAdmin<ResponseRow[]>(`/admin/responses?page=${page}${query?`&query=${encodeURIComponent(query)}`:''}${status?`&status=${status}`:''}${eventId?`&eventId=${eventId}`:''}`),events=useAdmin<WeddingEvent[]>('/admin/events');
- return <><Heading title="Lời hồi đáp cho ngày vui" description="Lọc toàn bộ phản hồi, chỉnh sửa thủ công khi cần và giữ lại lý do trong lịch sử."/><Feedback {...state} notice={notice} retry={()=>void state.reload().catch(()=>{})}/><div className="toolbar"><label>Tìm người nhận / buổi tiệc<input value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}} type="search" placeholder="Nhập tên hoặc buổi tiệc"/></label><label>Phản hồi<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0);}}><option value="">Tất cả</option><option value="ATTENDING">Sẽ tham dự</option><option value="DECLINED">Không thể tham dự</option></select></label><label>Buổi tiệc<select value={eventId} onChange={e=>{setEventId(e.target.value);setPage(0);}}><option value="">Tất cả buổi tiệc</option>{events.data?.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}</select></label></div>{!state.data&&!state.error&&<Loading/>}{state.data?.length===0&&<Empty>Chưa có phản hồi phù hợp.</Empty>}{!!state.data?.length&&<section className="card table"><table><caption>Trang {page+1} · tối đa 50 kết quả</caption><thead><tr>{['Người nhận','Buổi tiệc','Phản hồi','Số người','Lời nhắn riêng','Cập nhật lúc','Thao tác'].map(title=><th scope="col" key={title}>{title}</th>)}</tr></thead><tbody>{state.data.map(row=><tr key={`${row.invitation_id}-${row.event_id}`}><td>{row.display_name}</td><td>{row.title}</td><td><Badge value={row.status}/></td><td>{row.total_people}</td><td className="note-cell">{row.note||'—'}</td><td>{date(row.updated_at)}</td><td><button className="secondary" onClick={()=>setEditing(row)}>Sửa</button> <button className="secondary" onClick={async()=>{try{setHistory({row,items:await api<RsvpHistoryRow[]>(`/admin/responses/${row.invitation_id}/${row.event_id}/history`)});}catch(e){setNotice((e as Error).message);}}}>Lịch sử</button></td></tr>)}</tbody></table></section>}<div className="pagination"><button className="secondary" disabled={page===0} onClick={()=>setPage(page-1)}>← Trang trước</button><span>Trang {page+1}</span><button className="secondary" disabled={!state.data||state.data.length<50} onClick={()=>setPage(page+1)}>Trang sau →</button></div>{editing&&<EditResponse key={`${editing.invitation_id}-${editing.event_id}-${editing.version}`} row={editing} busy={state.busy} close={()=>setEditing(null)} save={async body=>{const ok=await state.run(()=>api(`/admin/responses/${editing.invitation_id}/${editing.event_id}`,'PUT',body),'Đã cập nhật phản hồi và ghi lịch sử.');if(ok)setEditing(null);}}/>}{history&&<section className="card"><div className="section-heading"><h2>Lịch sử: {history.row.display_name} · {history.row.title}</h2><button className="secondary" onClick={()=>setHistory(null)}>Đóng</button></div>{history.items.map(item=><article className="history-item" key={item.id}><p><Badge value={item.status}/> · {item.total_people} người · {date(item.created_at)}</p><p>{item.changed_by==='OWNER'?'Chủ tiệc chỉnh sửa':'Khách gửi'}{item.change_reason&&` · Lý do: ${item.change_reason}`}</p>{item.note&&<p className="muted">{item.note}</p>}</article>)}</section>}</>;
+ const rows=state.data??[];
+ const careStats=useMemo(()=>{
+  const attending=rows.filter(r=>r.status==='ATTENDING');
+  return {
+   confirmedPeople:attending.reduce((sum,r)=>sum+Number(r.total_people||0),0),
+   vegetarian:attending.filter(r=>matchCare(r.note,'VEG')).length,
+   children:attending.filter(r=>matchCare(r.note,'CHILD')).length,
+   transport:attending.filter(r=>matchCare(r.note,'CAR')).length,
+   withNote:rows.filter(r=>matchCare(r.note,'HAS_NOTE')).length,
+  };
+ },[rows]);
+ const filteredRows=useMemo(()=>rows.filter(r=>matchCare(r.note,careFilter)),[rows,careFilter]);
+
+ return <><Heading title="Lời hồi đáp cho ngày vui" description="Lọc toàn bộ phản hồi, theo dõi nhu cầu đón tiếp (ăn chay, trẻ nhỏ, xe đưa đón), chỉnh sửa thủ công khi cần và giữ lại lý do trong lịch sử."/>
+  <Feedback {...state} notice={notice} retry={()=>void state.reload().catch(()=>{})}/>
+  {!!rows.length&&<section className="card response-care-summary" aria-label="Tổng hợp nhu cầu đón tiếp trên trang này">
+   <div className="stats-grid">
+    <div><strong>{careStats.confirmedPeople}</strong>Khách xác nhận (trang này)</div>
+    <div><strong>{careStats.vegetarian}</strong>Yêu cầu thực đơn chay</div>
+    <div><strong>{careStats.children}</strong>Có trẻ nhỏ / ghế em bé</div>
+    <div><strong>{careStats.transport}</strong>Xe gia đình / xe đưa đón</div>
+   </div>
+   <div className="row response-care-filters" role="group" aria-label="Lọc nhanh nhu cầu đón tiếp">
+    {([
+     ['ALL',`Tất cả (${rows.length})`],
+     ['HAS_NOTE',`Có lời nhắn (${careStats.withNote})`],
+     ['VEG',`Thực đơn chay (${careStats.vegetarian})`],
+     ['CHILD',`Có trẻ nhỏ (${careStats.children})`],
+     ['CAR',`Xe / Đưa đón (${careStats.transport})`],
+    ] as const).map(([key,label])=><button type="button" key={key} className={careFilter===key?'':'secondary'} aria-pressed={careFilter===key} onClick={()=>setCareFilter(key)}>{label}</button>)}
+   </div>
+  </section>}
+  <div className="toolbar"><label>Tìm người nhận / buổi tiệc<input value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}} type="search" placeholder="Nhập tên hoặc buổi tiệc"/></label><label>Phản hồi<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0);}}><option value="">Tất cả</option><option value="ATTENDING">Sẽ tham dự</option><option value="DECLINED">Không thể tham dự</option></select></label><label>Buổi tiệc<select value={eventId} onChange={e=>{setEventId(e.target.value);setPage(0);}}><option value="">Tất cả buổi tiệc</option>{events.data?.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}</select></label></div>
+  {!state.data&&!state.error&&<Loading/>}
+  {state.data&&filteredRows.length===0&&<Empty>Chưa có phản hồi phù hợp.</Empty>}
+  {!!filteredRows.length&&<section className="card table"><table><caption>Trang {page+1} · hiển thị {filteredRows.length}/{rows.length} kết quả</caption><thead><tr>{['Người nhận','Buổi tiệc','Phản hồi','Số người','Lời nhắn riêng','Cập nhật lúc','Thao tác'].map(title=><th scope="col" key={title}>{title}</th>)}</tr></thead><tbody>{filteredRows.map(row=><tr key={`${row.invitation_id}-${row.event_id}`}><td>{row.display_name}</td><td>{row.title}</td><td><Badge value={row.status}/></td><td>{row.total_people}</td><td className="note-cell">{row.note||'—'}</td><td>{date(row.updated_at)}</td><td><button className="secondary" onClick={()=>setEditing(row)}>Sửa</button> <button className="secondary" onClick={async()=>{try{setHistory({row,items:await api<RsvpHistoryRow[]>(`/admin/responses/${row.invitation_id}/${row.event_id}/history`)});}catch(e){setNotice((e as Error).message);}}}>Lịch sử</button></td></tr>)}</tbody></table></section>}
+  <div className="pagination"><button className="secondary" disabled={page===0} onClick={()=>setPage(page-1)}>← Trang trước</button><span>Trang {page+1}</span><button className="secondary" disabled={!state.data||state.data.length<50} onClick={()=>setPage(page+1)}>Trang sau →</button></div>
+  {editing&&<EditResponse key={`${editing.invitation_id}-${editing.event_id}-${editing.version}`} row={editing} busy={state.busy} close={()=>setEditing(null)} save={async body=>{const ok=await state.run(()=>api(`/admin/responses/${editing.invitation_id}/${editing.event_id}`,'PUT',body),'Đã cập nhật phản hồi và ghi lịch sử.');if(ok)setEditing(null);}}/>}
+  {history&&<section className="card"><div className="section-heading"><h2>Lịch sử: {history.row.display_name} · {history.row.title}</h2><button className="secondary" onClick={()=>setHistory(null)}>Đóng</button></div>{history.items.map(item=><article className="history-item" key={item.id}><p><Badge value={item.status}/> · {item.total_people} người · {date(item.created_at)}</p><p>{item.changed_by==='OWNER'?'Chủ tiệc chỉnh sửa':'Khách gửi'}{item.change_reason&&` · Lý do: ${item.change_reason}`}</p>{item.note&&<p className="muted">{item.note}</p>}</article>)}</section>}
+ </>;
 }
 function EditResponse({row,busy,close,save}:{row:ResponseRow;busy:boolean;close:()=>void;save:(body:unknown)=>Promise<void>}){
  const [error,setError]=useState(''),[status,setStatus]=useState(row.status),[people,setPeople]=useState(row.total_people);

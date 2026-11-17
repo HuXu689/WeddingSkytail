@@ -78,9 +78,89 @@ Invoke-WebRequest -Uri "$BaseUrl/api/v1/auth/login" -Method Post -WebSession $ow
 Write-Host "Đã đăng nhập Owner: $Username" -ForegroundColor Green
 
 $wedding = Invoke-Api $owner '/admin/wedding'
-$design = @{ names=$demo.Names; message=$demo.Message; theme=$demo.Theme; accent=$demo.Accent; story=$demo.Story; footer=$demo.Footer; showStory=$true; musicId=$wedding.draft_music_id; showCountdown=$wedding.draft_show_countdown; expectedVersion=[int64]$wedding.version }
+$design = @{ names=$demo.Names; message=$demo.Message; theme=$demo.Theme; accent=$demo.Accent; story=$demo.Story; footer=$demo.Footer; showStory=$true; musicId=$wedding.draft_music_id; musicAutoplay=$true; showCountdown=$true; expectedVersion=[int64]$wedding.version }
 Invoke-Api $owner '/admin/wedding/design' 'PUT' $design (Get-Csrf $owner) | Out-Null
-Write-Host 'Đã lưu nội dung và thiết kế demo.' -ForegroundColor Green
+
+$wedding = Invoke-Api $owner '/admin/wedding'
+$demoSections = @(
+  @{
+    kind = 'INTRO'; audience = 'PUBLIC'; enabled = $true
+    title = 'Chuyện của An & Bình'
+    body = 'Giữa hàng triệu người trên thế gian, thật may mắn vì chúng mình đã tìm thấy nhau và cùng viết nên chương đẹp nhất của cuộc đời.'
+    startsAt = $null; color = $null
+    payload = @{
+      people = @(
+        @{ name='Nguyễn Hoàng An'; role='Chú rể · Chàng kỹ sư ấm áp'; note='Điềm đạm, mê nhiếp ảnh phim và thích nấu những bữa cơm chiều ấm cúng.'; quote='Bình yên lớn nhất sau mỗi ngày dài là được trở về bên em.'; avatarUrl='/fallback/groom-portrait.jpg' },
+        @{ name='Trần Thanh Bình'; role='Cô dâu · Nàng thiết kế mộng mơ'; note='Yêu hoa cỏ, thích những buổi sáng cuối tuần đầy nắng và luôn tràn ngập năng lượng tích cực.'; quote='Hạnh phúc được vun đắp từ sự thấu hiểu và những cái ôm thật chặt mỗi ngày.'; avatarUrl='/fallback/bride-portrait.jpg' }
+      )
+      milestones = @(
+        @{ dateLabel='Mùa thu 2022'; title='Cơn mưa chiều trên phố Phan Đình Phùng'; description='Từ một tách trà nóng sẻ đôi dưới mái hiên nhỏ, hai ánh mắt chạm nhau mở đầu hành trình yêu thương.'; photoUrl='/fallback/love-story-1.jpg' },
+        @{ dateLabel='Tháng 06 · 2024'; title='Những chuyến tàu đêm khám phá miền đất mới'; description='Hơn một nghìn ngày đồng hành qua bao mùa nắng gió giúp tụi mình thêm thấu hiểu và bao dung.'; photoUrl='/fallback/hero.jpg' },
+        @{ dateLabel='Tháng 09 · 2026'; title='Lời cầu hôn ngọt ngào dưới ánh hoàng hôn'; description='Chiếc nhẫn nhỏ trao tay cùng lời hẹn ước nắm tay nhau đi hết cuộc đời.'; photoUrl='/fallback/love-story-2.jpg' }
+      )
+    }
+  },
+  @{
+    kind = 'FAMILY'; audience = 'PUBLIC'; enabled = $true
+    title = 'Gia đình hai bên'
+    body = 'Nơi khởi nguồn của yêu thương và là điểm tựa vững chắc cho tổ ấm mới của hai con.'
+    startsAt = $null; color = $null
+    payload = @{
+      groups = @(
+        @{ label='Nhà Trai'; side='GROOM'; location='Quận Ba Đình, Hà Nội'; welcomeNote='Gia đình Nhà Trai trân trọng đón tiếp quý khách.'; members=@(@{ name='Ông Nguyễn Văn Minh'; note='Thân phụ' }, @{ name='Bà Lê Thị Thu Hằng'; note='Thân mẫu' }) },
+        @{ label='Nhà Gái'; side='BRIDE'; location='Quận Đống Đa, Hà Nội'; welcomeNote='Gia đình Nhà Gái hân hạnh đón tiếp quý khách.'; members=@(@{ name='Ông Trần Quốc Tuấn'; note='Thân phụ' }, @{ name='Bà Phạm Thị Lan'; note='Thân mẫu' }) }
+      )
+    }
+  },
+  @{
+    kind = 'CEREMONY'; audience = 'PRIVATE'; enabled = $true
+    title = 'Nghi lễ truyền thống hai gia đình'
+    body = 'Trân trọng kính mời đại gia đình và người thân tham dự lễ gia tiên ấm cúng.'
+    startsAt = $null; color = $null
+    payload = @{
+      items = @(
+        @{ title='Lễ Ăn Hỏi & Nạp Tài'; side='BRIDE'; lead='Cử hành tại tư gia Nhà Gái'; time='2026-12-24T02:00:00Z'; venue='Tư gia Nhà Gái'; address='Số 45 Phố Thái Hà, Quận Đống Đa, Hà Nội'; mapsUrl='https://maps.google.com/?q=45+Thai+Ha+Dong+Da+Ha+Noi'; dressNote='Áo dài truyền thống hoặc trang phục lịch sự'; directions='Có đội bê tráp hướng dẫn gửi xe đầu ngõ 45 Thái Hà.' },
+        @{ title='Lễ Vu Quy & Rước Dâu'; side='GROOM'; lead='Đón dâu về tư gia Nhà Trai làm lễ gia tiên'; time='2026-12-25T01:30:00Z'; venue='Tư gia Nhà Trai'; address='Số 18 Phan Đình Phùng, Quận Ba Đình, Hà Nội'; mapsUrl='https://maps.google.com/?q=18+Phan+Dinh+Phung+Ba+Dinh+Ha+Noi'; dressNote='Trang phục trang trọng'; directions='Đoàn xe rước dâu khởi hành đúng giờ lành.' }
+      )
+    }
+  },
+  @{
+    kind = 'TIMELINE'; audience = 'PUBLIC'; enabled = $true
+    title = 'Chương trình ngày chung đôi'
+    body = 'Khung giờ chính thức để quý khách thuận tiện sắp xếp thời gian đến chung vui.'
+    startsAt = $null; color = $null
+    payload = @{
+      timeline = @(
+        @{ at='2026-12-25T03:30:00Z'; title='Đón khách & Chụp hình Photobooth'; note='Tiệc trà đón tiếp và chụp ảnh lưu niệm lấy ngay cùng cô dâu chú rể.'; venue='Sảnh Arabian (Tầng 2) — Forevermark'; side='JOINT'; mapsUrl='https://maps.google.com/?q=Forevermark+614+Lac+Long+Quan+Tay+Ho+Ha+Noi'; audience='PUBLIC'; tentative=$false },
+        @{ at='2026-12-25T04:15:00Z'; title='Nghi thức Lễ Thành Hôn'; note='Khoảnh khắc trao nhẫn cưới và nâng ly rượu hồng chúc phúc.'; venue='Khán phòng chính Sảnh Arabian'; side='JOINT'; audience='PUBLIC'; tentative=$false },
+        @{ at='2026-12-25T04:45:00Z'; title='Khai tiệc & Giao lưu âm nhạc'; note='Dùng bữa thân mật, tung hoa cưới và chia sẻ niềm vui.'; venue='Forevermark — 614 Lạc Long Quân'; side='JOINT'; audience='PUBLIC'; tentative=$false }
+      )
+    }
+  },
+  @{
+    kind = 'DRESS_CODE'; audience = 'PUBLIC'; enabled = $true
+    title = 'Gợi ý trang phục & Cẩm nang dự tiệc'
+    body = 'Quý khách vui lòng lựa chọn trang phục lịch sự theo các gam màu Trắng kem, Be cát sáng, Hồng đất hoặc Xanh lá Sage để hòa điệu cùng không gian buổi lễ.'
+    startsAt = $null; color = $null
+    payload = @{
+      palette = @(
+        @{ name='Trắng kem (Cream White)'; color='#f5f2eb' },
+        @{ name='Be cát sáng (Warm Beige)'; color='#dfd3c3' },
+        @{ name='Hồng đất (Dusty Rose)'; color='#c89d94' },
+        @{ name='Xanh lá Sage (Sage Green)'; color='#a3b19b' },
+        @{ name='Đen lịch lãm (Classic Black)'; color='#2c2c2c' }
+      )
+      avoid = 'Khách nữ vui lòng hạn chế mặc váy trắng tinh dáng xòe dài trùng váy lễ chính của Cô dâu.'
+      tips = @(
+        @{ title='Đón khách & Photobooth'; detail='Quầy chụp hình lấy liền mở cửa từ 10:30 sáng tại tiền sảnh tầng 2.' },
+        @{ title='Bãi đỗ xe rộng rãi'; detail='Miễn phí gửi ô tô và xe máy tại khuôn viên Forevermark (rẽ cổng số 2 hướng Võ Chí Công).' },
+        @{ title='Thực đơn chay & Trẻ nhỏ'; detail='Gia đình có chuẩn bị cỗ chay riêng và ghế trẻ em — quý khách có thể chọn nhanh trong mục Xác nhận tham dự.' }
+      )
+    }
+  }
+)
+Invoke-Api $owner '/admin/wedding/sections' 'PUT' @{ sections=$demoSections; templateVersion=1; contentSchemaVersion=2; expectedVersion=[int64]$wedding.version } (Get-Csrf $owner) | Out-Null
+Write-Host 'Đã lưu nội dung, câu chuyện cột mốc và thiết kế demo.' -ForegroundColor Green
 
 function Get-EventByTitle($title, $venue) {
   $raw = Invoke-Api $owner '/admin/events'

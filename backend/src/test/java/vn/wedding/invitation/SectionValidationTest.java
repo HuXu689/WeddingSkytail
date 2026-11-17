@@ -99,4 +99,35 @@ class SectionValidationTest {
         assertEquals("An",first.get("name"));
         assertNull(SectionService.normalized("INTRO",Map.of()));
     }
+
+    @Test void acceptsExtendedStoryMilestonesCeremonySidesAndGuestTips(){
+        var person=map("name","Nguyễn Hoàng An","role","Chú rể","quote","Bình yên là có em.","avatarUrl","/fallback/portrait.jpg");
+        var loveMilestone=map("dateLabel","Mùa thu 2022","title","Lần đầu gặp gỡ","description","Cơn mưa chiều trên phố Phan Đình Phùng.","photoUrl","/media/9b927137-c773-4109-8adf-583350322917.jpg");
+        assertDoesNotThrow(()->SectionService.validate(structured(payloadSection("INTRO",map("people",List.of(person),"milestones",List.of(loveMilestone))))));
+
+        var familyGroup=map("label","Nhà trai","side","GROOM","location","Quận Ba Đình, Hà Nội","welcomeNote","Rất hân hạnh đón tiếp quý khách.","members",List.of(map("name","Ông Nguyễn Văn Bình","note","Thân phụ")));
+        assertDoesNotThrow(()->SectionService.validate(structured(payloadSection("FAMILY",map("groups",List.of(familyGroup))))));
+
+        var ceremony=map("title","Lễ Thành Hôn","side","JOINT","lead","Trân trọng kính mời","time","2026-12-25T04:00:00Z","venue","Forevermark","address","614 Lạc Long Quân","mapsUrl","[Forevermark](https://maps.google.com/?q=Forevermark)","dressNote","Trang phục lịch sự tông sáng");
+        assertDoesNotThrow(()->SectionService.validate(structured(payloadSection("CEREMONY",map("items",List.of(ceremony))))));
+        var normalizedCeremony=SectionService.normalized("CEREMONY",map("items",List.of(ceremony)));
+        var firstCeremony=(Map<?,?>)((List<?>)normalizedCeremony.get("items")).get(0);
+        assertEquals("https://maps.google.com/?q=Forevermark",firstCeremony.get("mapsUrl"));
+        assertEquals("JOINT",firstCeremony.get("side"));
+
+        var timelineItem=map("at","2026-12-25T03:30:00Z","title","Đón khách chụp hình","side","BRIDE","mapsUrl","https://maps.google.com/?q=Ha+Noi","audience","PUBLIC");
+        assertDoesNotThrow(()->SectionService.validate(structured(payloadSection("TIMELINE",map("timeline",List.of(timelineItem))))));
+
+        var dressPayload=map("palette",List.of(map("name","Trắng kem","color","#f5f2eb")),"avoid","Tránh màu neon","tips",List.of(map("title","Gửi xe miễn phí","detail","Khuôn viên sảnh chính có bãi đỗ ô tô rộng rãi.")));
+        assertDoesNotThrow(()->SectionService.validate(structured(payloadSection("DRESS_CODE",dressPayload))));
+    }
+
+    @Test void rejectsUnsafeMediaPathsInvalidSidesAndNonHttpsMaps(){
+        var unsafeAvatar=map("name","An","avatarUrl","https://evil.example.com/track.jpg");
+        assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("INTRO",map("people",List.of(unsafeAvatar))))));
+        var badSide=map("title","Lễ","side","UNKNOWN");
+        assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("CEREMONY",map("items",List.of(badSide))))));
+        var httpMaps=map("title","Lễ","mapsUrl","http://maps.google.com/?q=Ha+Noi");
+        assertThrows(RuntimeException.class,()->SectionService.validate(structured(payloadSection("CEREMONY",map("items",List.of(httpMaps))))));
+    }
 }

@@ -70,7 +70,7 @@ export function GoldenDust({ count = 24, active = true }: { count?: number; acti
       const rect = canvas.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, width < 640 ? 1.5 : 2);
       const targetW = Math.round(width * ratio);
       const targetH = Math.round(height * ratio);
       if (canvas.width !== targetW || canvas.height !== targetH) {
@@ -78,8 +78,9 @@ export function GoldenDust({ count = 24, active = true }: { count?: number; acti
         canvas.height = targetH;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
+      const effectiveCount = width > 0 && width < 640 ? Math.max(6, Math.ceil(count * 0.5)) : count;
       if (!particlesRef.current.length && width > 0) {
-        particlesRef.current = Array.from({ length: count }, (_, i) => {
+        particlesRef.current = Array.from({ length: effectiveCount }, (_, i) => {
           const p = createParticle(width, height);
           p.life = -i * 60;
           return p;

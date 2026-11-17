@@ -25,7 +25,12 @@ public class SectionService {
     private static final JsonMapper JSON=JsonMapper.builder().build();
     private static final Set<String> KINDS=Set.of("INTRO","FAMILY","CEREMONY","TIMELINE","DRESS_CODE");
     private static final Set<String> AUDIENCES=Set.of("PUBLIC","PRIVATE");
+    private static final Set<String> SIDES=Set.of("GROOM","BRIDE","JOINT");
     private static final String HEX="^#[0-9a-fA-F]{6}$";
+    private static final java.util.regex.Pattern SAFE_MEDIA_PATH=java.util.regex.Pattern.compile(
+        "^(?:/media/[0-9a-fA-F-]{36}(?:-thumb)?\\.jpg|/api/v1/admin/media/[0-9a-fA-F-]{36}/(?:content|thumb)|/fallback/[a-zA-Z0-9_-]+\\.(?:jpg|jpeg|png|svg))$");
+    private static final java.util.regex.Pattern ADMIN_MEDIA_CONTENT=java.util.regex.Pattern.compile(
+        "^/api/v1/admin/media/([0-9a-fA-F-]{36})/(?:content|thumb)$");
     private final JdbcTemplate db;
     public SectionService(JdbcTemplate db){this.db=db;}
 
@@ -100,6 +105,26 @@ public class SectionService {
         }
     }
 
+    private static String optionalMediaPath(Map<String,Object> node,String name,String label){
+        String value=str(node,name);
+        if(value==null||value.isBlank()) return null;
+        String trimmed=value.trim();
+        ApiErrors.require(trimmed.length()<=240&&SAFE_MEDIA_PATH.matcher(trimmed).matches(),label+" phải chọn từ thư viện ảnh nội bộ hoặc ảnh dự phòng.");
+        return trimmed;
+    }
+    private static String optionalSide(Map<String,Object> node,String label){
+        String value=str(node,"side");
+        if(value==null||value.isBlank()) return null;
+        String trimmed=value.trim();
+        ApiErrors.require(SIDES.contains(trimmed),label+" không hợp lệ.");
+        return trimmed;
+    }
+    private static String optionalMapsUrl(Map<String,Object> node){
+        String value=str(node,"mapsUrl");
+        if(value==null||value.isBlank()) return null;
+        return vn.wedding.invitation.admin.AdminService.cleanMapsUrl(value);
+    }
+
     /** Whitelist từng loại: khoá lạ, số lượng vượt giới hạn và mã màu sai đều bị từ chối. */
     private static void validatePayload(String kind,Map<String,Object> payload){
         if(absent(payload)) return;
@@ -107,7 +132,23 @@ public class SectionService {
             case "INTRO" -> {
                 var people=items(payload.get("people"));
                 ApiErrors.require(people.size()<=4,"Tối đa 4 người trong phần giới thiệu.");
-                for(var row:people){ var person=obj(row); requireObject(person,"Thông tin người không hợp lệ."); requiredText(person,"name",200,"Tên hiển thị"); optionalText(person,"role",80,"Cách gọi"); optionalText(person,"note",600,"Mô tả ngắn"); }
+                for(var row:people){
+                    var person=obj(row); requireObject(person,"Thông tin người không hợp lệ.");
+                    requiredText(person,"name",200,"Tên hiển thị");
+                    optionalText(person,"role",80,"Cách gọi");
+                    optionalText(person,"note",600,"Mô tả ngắn");
+                    optionalText(person,"quote",300,"Câu trích dẫn");
+                    optionalMediaPath(person,"avatarUrl","Ảnh chân dung");
+                }
+                var milestones=items(payload.get("milestones"));
+                ApiErrors.require(milestones.size()<=12,"Tối đa 12 cột mốc kỷ niệm tình yêu.");
+                for(var row:milestones){
+                    var item=obj(row); requireObject(item,"Cột mốc kỷ niệm không hợp lệ.");
+                    requiredText(item,"dateLabel",80,"Thời gian cột mốc");
+                    requiredText(item,"title",200,"Tên cột mốc");
+                    optionalText(item,"description",800,"Câu chuyện cột mốc");
+                    optionalMediaPath(item,"photoUrl","Ảnh cột mốc");
+                }
             }
             case "FAMILY" -> {
                 var groups=items(payload.get("groups"));
@@ -115,6 +156,9 @@ public class SectionService {
                 for(var row:groups){
                     var group=obj(row); requireObject(group,"Nhóm gia đình không hợp lệ.");
                     optionalText(group,"label",80,"Nhãn nhóm");
+                    optionalSide(group,"Phân nhánh gia đình");
+                    optionalText(group,"location",240,"Địa chỉ tư gia");
+                    optionalText(group,"welcomeNote",400,"Lời đón tiếp gia đình");
                     var members=items(group.get("members"));
                     ApiErrors.require(members.size()<=12,"Tối đa 12 thành viên mỗi nhóm.");
                     for(var memberRow:members){ var member=obj(memberRow); requireObject(member,"Thành viên không hợp lệ."); requiredText(member,"name",200,"Tên thành viên"); optionalText(member,"note",200,"Quan hệ hoặc ghi chú"); }
@@ -123,7 +167,18 @@ public class SectionService {
             case "CEREMONY" -> {
                 var ceremonies=items(payload.get("items"));
                 ApiErrors.require(ceremonies.size()<=6,"Tối đa 6 nghi lễ.");
-                for(var row:ceremonies){ var item=obj(row); requireObject(item,"Nghi lễ không hợp lệ."); requiredText(item,"title",200,"Tên nghi lễ"); optionalText(item,"lead",600,"Lời dẫn"); instant(item,"time","Thời điểm nghi lễ"); optionalText(item,"venue",200,"Địa điểm"); optionalText(item,"address",500,"Địa chỉ"); optionalText(item,"directions",500,"Hướng dẫn di chuyển"); }
+                for(var row:ceremonies){
+                    var item=obj(row); requireObject(item,"Nghi lễ không hợp lệ.");
+                    requiredText(item,"title",200,"Tên nghi lễ");
+                    optionalSide(item,"Phân nhánh nghi lễ");
+                    optionalText(item,"lead",600,"Lời dẫn");
+                    instant(item,"time","Thời điểm nghi lễ");
+                    optionalText(item,"venue",200,"Địa điểm");
+                    optionalText(item,"address",500,"Địa chỉ");
+                    optionalText(item,"directions",500,"Hướng dẫn di chuyển");
+                    optionalMapsUrl(item);
+                    optionalText(item,"dressNote",240,"Ghi chú trang phục nghi lễ");
+                }
             }
             case "TIMELINE" -> {
                 var rows=items(payload.get("timeline"));
@@ -134,6 +189,8 @@ public class SectionService {
                     requiredText(item,"title",200,"Tên mốc");
                     optionalText(item,"note",600,"Mô tả mốc");
                     optionalText(item,"venue",200,"Địa điểm mốc");
+                    optionalSide(item,"Phân nhánh mốc lịch trình");
+                    optionalMapsUrl(item);
                     var audience=str(item,"audience");
                     ApiErrors.require(audience==null||AUDIENCES.contains(audience),"Quyền xem của mốc không hợp lệ.");
                 }
@@ -143,6 +200,13 @@ public class SectionService {
                 ApiErrors.require(palette.size()<=8,"Tối đa 8 màu trong bảng màu.");
                 for(var row:palette){ var color=obj(row); requireObject(color,"Màu không hợp lệ."); requiredText(color,"name",80,"Tên màu"); var hex=str(color,"color"); ApiErrors.require(hex!=null&&hex.matches(HEX),"Mã màu phải theo dạng #RRGGBB."); }
                 optionalText(payload,"avoid",600,"Danh sách nên tránh");
+                var tips=items(payload.get("tips"));
+                ApiErrors.require(tips.size()<=8,"Tối đa 8 mục lưu ý khách mời.");
+                for(var row:tips){
+                    var tip=obj(row); requireObject(tip,"Lưu ý khách mời không hợp lệ.");
+                    requiredText(tip,"title",120,"Tiêu đề lưu ý");
+                    requiredText(tip,"detail",500,"Nội dung lưu ý");
+                }
             }
             default -> throw new IllegalStateException("Loại nội dung không hợp lệ.");
         }
@@ -160,15 +224,33 @@ public class SectionService {
                     target.put("name",Texts.oneLine(str(person,"name")));
                     putOptional(target,"role",str(person,"role"),80);
                     putOptional(target,"note",str(person,"note"),600);
+                    putOptional(target,"quote",str(person,"quote"),300);
+                    String avatarUrl=optionalMediaPath(person,"avatarUrl","Ảnh chân dung");
+                    if(avatarUrl!=null) target.put("avatarUrl",avatarUrl);
                     people.add(target);
                 }
                 result.put("people",people);
+                var milestones=new ArrayList<Object>();
+                for(var row:items(payload.get("milestones"))){
+                    var item=obj(row); var target=new LinkedHashMap<String,Object>();
+                    target.put("dateLabel",Texts.oneLine(str(item,"dateLabel")));
+                    target.put("title",Texts.oneLine(str(item,"title")));
+                    putOptional(target,"description",str(item,"description"),800);
+                    String photoUrl=optionalMediaPath(item,"photoUrl","Ảnh cột mốc");
+                    if(photoUrl!=null) target.put("photoUrl",photoUrl);
+                    milestones.add(target);
+                }
+                if(!milestones.isEmpty()) result.put("milestones",milestones);
             }
             case "FAMILY" -> {
                 var groups=new ArrayList<Object>();
                 for(var row:items(payload.get("groups"))){
                     var group=obj(row); var target=new LinkedHashMap<String,Object>();
                     putOptional(target,"label",str(group,"label"),80);
+                    String side=optionalSide(group,"Phân nhánh gia đình");
+                    if(side!=null) target.put("side",side);
+                    putOptional(target,"location",str(group,"location"),240);
+                    putOptional(target,"welcomeNote",str(group,"welcomeNote"),400);
                     var members=new ArrayList<Object>();
                     for(var memberRow:items(group.get("members"))){
                         var member=obj(memberRow); var entry=new LinkedHashMap<String,Object>();
@@ -186,12 +268,17 @@ public class SectionService {
                 for(var row:items(payload.get("items"))){
                     var item=obj(row); var target=new LinkedHashMap<String,Object>();
                     target.put("title",Texts.oneLine(str(item,"title")));
+                    String side=optionalSide(item,"Phân nhánh nghi lễ");
+                    if(side!=null) target.put("side",side);
                     putOptional(target,"lead",str(item,"lead"),600);
                     var time=instant(item,"time","Thời điểm nghi lễ");
                     if(time!=null) target.put("time",time.toString());
                     putOptional(target,"venue",str(item,"venue"),200);
                     putOptional(target,"address",str(item,"address"),500);
                     putOptional(target,"directions",str(item,"directions"),500);
+                    String mapsUrl=optionalMapsUrl(item);
+                    if(mapsUrl!=null) target.put("mapsUrl",mapsUrl);
+                    putOptional(target,"dressNote",str(item,"dressNote"),240);
                     ceremonies.add(target);
                 }
                 result.put("items",ceremonies);
@@ -204,6 +291,10 @@ public class SectionService {
                     target.put("title",Texts.oneLine(str(item,"title")));
                     putOptional(target,"note",str(item,"note"),600);
                     putOptional(target,"venue",str(item,"venue"),200);
+                    String side=optionalSide(item,"Phân nhánh mốc lịch trình");
+                    if(side!=null) target.put("side",side);
+                    String mapsUrl=optionalMapsUrl(item);
+                    if(mapsUrl!=null) target.put("mapsUrl",mapsUrl);
                     target.put("audience","PRIVATE".equals(str(item,"audience"))?"PRIVATE":"PUBLIC");
                     if(flag(item,"tentative")) target.put("tentative",true);
                     milestones.add(target);
@@ -220,6 +311,14 @@ public class SectionService {
                 }
                 result.put("palette",palette);
                 putOptional(result,"avoid",str(payload,"avoid"),600);
+                var tips=new ArrayList<Object>();
+                for(var row:items(payload.get("tips"))){
+                    var tip=obj(row); var target=new LinkedHashMap<String,Object>();
+                    target.put("title",Texts.oneLine(str(tip,"title")));
+                    target.put("detail",Texts.text(str(tip,"detail")).strip());
+                    tips.add(target);
+                }
+                if(!tips.isEmpty()) result.put("tips",tips);
             }
             default -> throw new IllegalStateException("Loại nội dung không hợp lệ.");
         }
@@ -272,10 +371,45 @@ public class SectionService {
                     if(visible.isEmpty()) continue;
                 }
             }
+            if(!draft&&"INTRO".equals(copy.get("kind"))){
+                projectIntroMediaUrls(payload);
+            }
             copy.put("payload",payload);
             result.add(copy);
         }
         return result;
+    }
+    private static void projectIntroMediaUrls(Map<String,Object> payload){
+        var people=items(payload.get("people"));
+        if(!people.isEmpty()){
+            var mapped=new ArrayList<Object>(people.size());
+            for(var entry:people){
+                var person=obj(entry);
+                if(person!=null){
+                    String avatar=str(person,"avatarUrl");
+                    if(avatar!=null) person.put("avatarUrl",toPublicMediaUrl(avatar));
+                    mapped.add(person);
+                }
+            }
+            payload.put("people",mapped);
+        }
+        var milestones=items(payload.get("milestones"));
+        if(!milestones.isEmpty()){
+            var mapped=new ArrayList<Object>(milestones.size());
+            for(var entry:milestones){
+                var item=obj(entry);
+                if(item!=null){
+                    String photo=str(item,"photoUrl");
+                    if(photo!=null) item.put("photoUrl",toPublicMediaUrl(photo));
+                    mapped.add(item);
+                }
+            }
+            payload.put("milestones",mapped);
+        }
+    }
+    private static String toPublicMediaUrl(String url){
+        var matcher=ADMIN_MEDIA_CONTENT.matcher(url.trim());
+        return matcher.matches()?"/media/"+matcher.group(1)+".jpg":url.trim();
     }
     private static Map<String,Object> parseMap(Object raw){
         if(raw==null) return null;

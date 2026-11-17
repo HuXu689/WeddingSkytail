@@ -2,13 +2,21 @@
 import {useEffect,useState} from 'react';
 import {api} from '@/shared/api';
 import {useUnsavedChanges} from './use-unsaved-changes';
-import {ContentSections,type ContentSection,type SectionPayload,type CeremonyItem,type TimelineItem,type PaletteColor,type FamilyGroup} from '@/features/invitation/sections';
+import {ContentSections,type ContentSection,type SectionPayload,type CeremonyItem,type TimelineItem,type PaletteColor,type FamilyGroup,type LoveMilestone,type GuestTip,type WeddingSide} from '@/features/invitation/sections';
 import {INVITATION_UNAVAILABLE} from '@/features/invitation/access-copy';
+import {cleanMapUrlInput} from '@/features/invitation/media-fallback';
 import {toVietnamInput,fromVietnamInput} from '@/shared/time';
 
 const kinds={INTRO:'Giới thiệu hai bạn',FAMILY:'Gia đình',CEREMONY:'Nghi lễ riêng',TIMELINE:'Mốc lịch trình',DRESS_CODE:'Trang phục'};
 const bodyLabel:Record<ContentSection['kind'],string>={INTRO:'Lời dẫn ngắn',FAMILY:'Lời mở đầu',CEREMONY:'Lời nhắn chung (tùy chọn)',TIMELINE:'Ghi chú chung (tùy chọn)',DRESS_CODE:'Hướng dẫn trang phục'};
 const hexPattern=/^#[0-9a-fA-F]{6}$/;
+
+const FALLBACK_PORTRAIT_OPTIONS=[
+ {label:'Ảnh chân dung mẫu — Chú rể',url:'/fallback/groom-portrait.jpg'},
+ {label:'Ảnh chân dung mẫu — Cô dâu',url:'/fallback/bride-portrait.jpg'},
+ {label:'Ảnh kỷ niệm mẫu — Hoàng hôn',url:'/fallback/love-story-1.jpg'},
+ {label:'Ảnh kỷ niệm mẫu — Nhẫn cưới',url:'/fallback/love-story-2.jpg'},
+];
 
 /**
  * Payload rỗng theo loại. Hàng cũ (không có payload) được nâng cấp trong bộ nhớ khi mở editor —
@@ -16,11 +24,11 @@ const hexPattern=/^#[0-9a-fA-F]{6}$/;
  */
 function defaultPayload(kind:ContentSection['kind'],section?:Partial<ContentSection>):SectionPayload{
   switch(kind){
-    case 'INTRO': return {people:[]};
+    case 'INTRO': return {people:[],milestones:[]};
     case 'FAMILY': return {groups:[]};
     case 'CEREMONY': return {items:[]};
     case 'TIMELINE': return {timeline:[]};
-    case 'DRESS_CODE': return {palette:section?.color?[{name:'',color:section.color}]:[],avoid:''};
+    case 'DRESS_CODE': return {palette:section?.color?[{name:'',color:section.color}]:[],avoid:'',tips:[]};
     default: return {};
   }
 }
@@ -88,14 +96,110 @@ function firstProblem(sections:ContentSection[]):string|null{
     const section=sections[index],label=`Mục ${index+1} (${kinds[section.kind]})`;
     if(!section.title.trim()) return `${label}: nhập tiêu đề.`;
     if(section.payload?.people?.some(person=>!person.name.trim())) return `${label}: mỗi người cần tên hiển thị.`;
+    if(section.payload?.milestones?.some(ms=>!ms.dateLabel.trim()||!ms.title.trim())) return `${label}: mỗi cột mốc kỷ niệm cần mốc thời gian và tiêu đề.`;
     if(section.payload?.groups?.some(group=>group.members.some(member=>!member.name.trim()))) return `${label}: mỗi thành viên cần tên.`;
     if(section.payload?.items?.some(item=>!item.title.trim())) return `${label}: mỗi nghi lễ cần tên.`;
     if(section.payload?.timeline?.some(item=>!isLegacyMilestone(section,item)&&(!item.at||!item.title.trim()))) return `${label}: mỗi mốc cần ngày giờ và tên.`;
     if(section.kind==='TIMELINE'&&!(section.payload?.timeline??[]).some(item=>item.at&&item.title.trim())&&!section.startsAt) return `${label}: cần ít nhất một mốc có ngày giờ và tên.`;
     if(section.payload?.palette?.some(color=>!color.name.trim()||!hexPattern.test(color.color))) return `${label}: mỗi màu cần tên và mã dạng #RRGGBB.`;
+    if(section.payload?.tips?.some(tip=>!tip.title.trim()||!tip.detail.trim())) return `${label}: mỗi lưu ý khách mời cần tiêu đề và nội dung.`;
     if(section.kind==='DRESS_CODE'&&section.enabled&&!section.body.trim()) return `${label}: hướng dẫn trang phục cần tên màu bằng chữ.`;
   }
   return null;
+}
+
+function buildStarterSections():ContentSection[]{
+  return [
+    {
+      kind:'INTRO',
+      audience:'PUBLIC',
+      enabled:true,
+      title:'Chuyện của hai đứa mình',
+      body:'Giữa hàng triệu người trên thế gian, thật may mắn vì chúng mình đã tìm thấy nhau và cùng nắm tay bước vào chương đẹp nhất của cuộc đời.',
+      startsAt:null,
+      color:null,
+      payload:{
+        people:[
+          {name:'Nguyễn Hoàng An',role:'Chú rể · Chàng kỹ sư ấm áp',note:'Điềm đạm, yêu nhiếp ảnh phim và thích nấu những bữa cơm chiều ấm cúng.',quote:'Bình yên lớn nhất sau mỗi ngày dài là được trở về bên em.',avatarUrl:'/fallback/groom-portrait.jpg'},
+          {name:'Trần Thanh Bình',role:'Cô dâu · Nàng thiết kế mộng mơ',note:'Yêu hoa cỏ, thích nắng sớm cuối tuần và luôn giữ nụ cười dịu dàng.',quote:'Hạnh phúc là cùng nhau đi qua những điều giản dị nhất.',avatarUrl:'/fallback/bride-portrait.jpg'},
+        ],
+        milestones:[
+          {dateLabel:'Mùa thu 2022',title:'Cơn mưa chiều trên phố Phan Đình Phùng',description:'Từ một tách trà nóng sẻ đôi dưới mái hiên nhỏ, câu chuyện của hai đứa bắt đầu thật tự nhiên.',photoUrl:'/fallback/love-story-1.jpg'},
+          {dateLabel:'Tháng 06 · 2024',title:'Chuyến tàu đêm và ngàn dặm bên nhau',description:'Những hành trình khám phá miền đất mới giúp tụi mình thêm thấu hiểu và gắn bó.',photoUrl:'/fallback/hero.jpg'},
+          {dateLabel:'Tháng 09 · 2026',title:'Lời cầu hôn dưới ánh hoàng hôn',description:'Khoảnh khắc chiếc nhẫn nhỏ trao tay cùng lời hứa đồng hành trọn đời.',photoUrl:'/fallback/love-story-2.jpg'},
+        ],
+      },
+    },
+    {
+      kind:'FAMILY',
+      audience:'PUBLIC',
+      enabled:true,
+      title:'Gia đình hai bên',
+      body:'Nơi khởi nguồn của yêu thương và là điểm tựa vững chắc cho tổ ấm mới của hai con.',
+      startsAt:null,
+      color:null,
+      payload:{
+        groups:[
+          {label:'Nhà Trai',side:'GROOM',location:'Quận Ba Đình, Hà Nội',welcomeNote:'Gia đình Nhà Trai trân trọng đón tiếp quý khách.',members:[{name:'Ông Nguyễn Văn Minh',note:'Thân phụ'},{name:'Bà Lê Thị Thu Hằng',note:'Thân mẫu'}]},
+          {label:'Nhà Gái',side:'BRIDE',location:'Quận Đống Đa, Hà Nội',welcomeNote:'Gia đình Nhà Gái hân hạnh đón tiếp quý khách.',members:[{name:'Ông Trần Quốc Tuấn',note:'Thân phụ'},{name:'Bà Phạm Thị Lan',note:'Thân mẫu'}]},
+        ],
+      },
+    },
+    {
+      kind:'CEREMONY',
+      audience:'PRIVATE',
+      enabled:true,
+      title:'Nghi lễ truyền thống hai gia đình',
+      body:'Kính mời đại gia đình và người thân tham dự nghi thức truyền thống ấm cúng.',
+      startsAt:null,
+      color:null,
+      payload:{
+        items:[
+          {title:'Lễ Ăn Hỏi & Nạp Tài',side:'BRIDE',lead:'Nghi thức truyền thống tại tư gia Nhà Gái',time:'2026-12-24T02:00:00.000Z',venue:'Tư gia Nhà Gái',address:'Số 45 Phố Thái Hà, Quận Đống Đa, Hà Nội',directions:'Có đội bê tráp hướng dẫn gửi xe đầu ngõ 45 Thái Hà.',mapsUrl:'https://maps.google.com/?q=45+Thai+Ha+Dong+Da+Ha+Noi',dressNote:'Áo dài truyền thống hoặc trang phục lịch sự'},
+          {title:'Lễ Vu Quy & Rước Dâu',side:'GROOM',lead:'Đón dâu về tư gia Nhà Trai làm lễ gia tiên',time:'2026-12-25T01:30:00.000Z',venue:'Tư gia Nhà Trai',address:'Số 18 Phan Đình Phùng, Quận Ba Đình, Hà Nội',directions:'Đoàn xe khởi hành đúng giờ lành.',mapsUrl:'https://maps.google.com/?q=18+Phan+Dinh+Phung+Ba+Dinh+Ha+Noi',dressNote:'Trang phục trang trọng'},
+        ],
+      },
+    },
+    {
+      kind:'TIMELINE',
+      audience:'PUBLIC',
+      enabled:true,
+      title:'Chương trình ngày chung đôi',
+      body:'Các mốc thời gian chính để quý khách thuận tiện sắp xếp thời gian chung vui.',
+      startsAt:null,
+      color:null,
+      payload:{
+        timeline:[
+          {at:'2026-12-25T03:30:00.000Z',title:'Đón khách & Chụp hình lưu niệm',note:'Khu vực Photobooth hoa tươi và tiệc trà nhẹ đón khách.',venue:'Sảnh Arabian (Tầng 2) — Forevermark',side:'JOINT',mapsUrl:'https://maps.google.com/?q=Forevermark+614+Lac+Long+Quan+Tay+Ho+Ha+Noi',audience:'PUBLIC',tentative:false},
+          {at:'2026-12-25T04:15:00.000Z',title:'Cử hành Nghi thức Lễ Thành Hôn',note:'Khoảnh khắc trao nhẫn cưới và nâng ly chúc mừng hạnh phúc.',venue:'Khán phòng chính Sảnh Arabian',side:'JOINT',audience:'PUBLIC',tentative:false},
+          {at:'2026-12-25T04:45:00.000Z',title:'Khai tiệc thân mật & Giao lưu âm nhạc',note:'Thưởng thức ẩm thực và chia sẻ niềm vui cùng hai gia đình.',venue:'Forevermark — 614 Lạc Long Quân',side:'JOINT',audience:'PUBLIC',tentative:false},
+        ],
+      },
+    },
+    {
+      kind:'DRESS_CODE',
+      audience:'PUBLIC',
+      enabled:true,
+      title:'Gợi ý trang phục & Lưu ý nhỏ',
+      body:'Quý khách vui lòng diện trang phục lịch sự theo tông Trắng kem, Be cát sáng, Hồng đất hoặc Xanh lá Sage để hòa điệu cùng không gian buổi lễ.',
+      startsAt:null,
+      color:null,
+      payload:{
+        palette:[
+          {name:'Trắng kem',color:'#f5f2eb'},
+          {name:'Be cát sáng',color:'#dfd3c3'},
+          {name:'Hồng đất',color:'#c89d94'},
+          {name:'Xanh Sage',color:'#8fa387'},
+        ],
+        avoid:'Khách nữ vui lòng hạn chế váy trắng tinh dáng dài trùng váy lễ chính của Cô dâu.',
+        tips:[
+          {title:'Đón khách & Chụp hình',detail:'Sảnh mở đón khách từ 10:30 sáng với khu chụp ảnh kỷ niệm lấy liền.'},
+          {title:'Bãi đỗ xe miễn phí',detail:'Khuôn viên trung tâm có hầm và sân đỗ ô tô, xe máy rộng rãi (cổng số 2).'},
+          {title:'Thực đơn chay & Trẻ nhỏ',detail:'Gia đình có chuẩn bị mâm chay riêng và ghế trẻ em — bạn có thể chọn nhanh trong mục Xác nhận tham dự.'},
+        ],
+      },
+    },
+  ];
 }
 
 /**
@@ -110,14 +214,21 @@ const previewContexts:{id:PreviewContext;label:string;note:string}[]=[
  {id:'invalid',label:'Link hỏng',note:'Link sai, đã thu hồi hoặc hết hạn — không trả về phần nội dung nào.'}
 ];
 
+interface MediaOption { id:string; original_name:string }
+
 export function SectionEditor({busy,onDirty,onChangeDraft,save}:{busy:boolean;onDirty:(value:boolean)=>void;onChangeDraft?:(sections:ContentSection[])=>void;save:(sections:ContentSection[])=>Promise<boolean>}){
   const [rows,setRows]=useState<ContentSection[]|null>(null),[original,setOriginal]=useState(''),[error,setError]=useState(''),[context,setContext]=useState<PreviewContext>('guest');
+  const [mediaOptions,setMediaOptions]=useState<MediaOption[]>([]);
   const dirty=rows!==null&&JSON.stringify(rows)!==original;
   useEffect(()=>{let active=true;void api<ContentSection[]>('/admin/wedding/sections').then(items=>{
     if(!active)return;
     const upgraded=items.map(upgrade);
     setRows(upgraded);setOriginal(JSON.stringify(upgraded));
-  }).catch(()=>{if(active)setError('Không tải được cấu hình. Không thể lưu để tránh ghi đè dữ liệu.');});return()=>{active=false;};},[]);
+  }).catch(()=>{if(active)setError('Không tải được cấu hình. Không thể lưu để tránh ghi đè dữ liệu.');});
+  void api<{id:string;original_name:string;kind:string}[]>('/admin/media').then(list=>{
+    if(active)setMediaOptions(list.filter(item=>item.kind==='IMAGE').map(item=>({id:item.id,original_name:item.original_name})));
+  }).catch(()=>{});
+  return()=>{active=false;};},[]);
   useEffect(()=>{onDirty(dirty);},[dirty,onDirty]);
   useEffect(()=>{if(rows)onChangeDraft?.(rows);},[rows,onChangeDraft]);
   useUnsavedChanges(dirty,'Nội dung tùy chọn chưa lưu. Rời trang và bỏ thay đổi?');
@@ -130,7 +241,7 @@ export function SectionEditor({busy,onDirty,onChangeDraft,save}:{busy:boolean;on
   const previewSections=context==='invalid'?[]:(rows??[]).filter(row=>context==='guest'||row.audience==='PUBLIC').map(row=>context==='guest'?row:{...row,payload:publicPayload(row)});
   return <section className="card section-editor"><h2>Nội dung tùy chọn và thứ tự</h2><p>Mặc định mục mới tắt và chỉ dành cho lời mời riêng. “Công khai” sẽ xuất hiện trên thiệp chung sau khi phát hành. Không nhập dữ liệu gia đình nếu chưa được đồng ý. Nghi lễ riêng không tạo thêm sự kiện hay quyền RSVP.</p>{error&&<p role="alert" className="error">{error}</p>}
   {rows===null?<p>Đang tải cấu hình…</p>:<form onSubmit={async event=>{event.preventDefault();const problem=firstProblem(rows);if(problem){setError(problem);return;}setError('');if(await save(rows.map(forSave)))setOriginal(JSON.stringify(rows));}}>
-  <div className="editor-group"><h3 className="editor-group-title">Nội dung &amp; thứ tự</h3>
+  <div className="editor-group"><div className="section-heading"><h3 className="editor-group-title">Nội dung &amp; thứ tự</h3>{rows.length===0&&<button type="button" className="secondary" disabled={busy} onClick={()=>setRows(buildStarterSections())}>Điền bộ mẫu 5 mục gợi ý</button>}</div>
   <fieldset disabled={busy}>{rows.map((row,index)=><details className="section-editor-item" key={`${row.kind}-${index}`} open={index===0||!hasVisibleContent(row)}>
     <summary className="section-editor-summary">
      <span>{index+1}. {kinds[row.kind]} — <strong>{row.title||'Chưa đặt tiêu đề'}</strong></span>
@@ -142,7 +253,7 @@ export function SectionEditor({busy,onDirty,onChangeDraft,save}:{busy:boolean;on
      <label>Tiêu đề<input required maxLength={200} value={row.title} onChange={e=>update(index,{title:e.target.value})}/></label>
      <label>{bodyLabel[row.kind]}{row.kind==='DRESS_CODE'?' (ghi rõ tên màu bằng chữ)':''}<textarea maxLength={2000} value={row.body} onChange={e=>update(index,{body:e.target.value})}/></label>
      <label>Quyền xem<select value={row.audience} onChange={e=>update(index,{audience:e.target.value as ContentSection['audience']})}><option value="PRIVATE">Chỉ lời mời riêng đã mở</option><option value="PUBLIC">Công khai trên thiệp chung</option></select></label>
-     <KindFields row={row} index={index} updatePayload={updatePayload} updateRow={update}/>
+     <KindFields row={row} index={index} mediaOptions={mediaOptions} updatePayload={updatePayload} updateRow={update}/>
      <div className="row">
       <button type="button" className="secondary" disabled={index===0} onClick={()=>move(index,-1)}>Lên</button>
       <button type="button" className="secondary" disabled={index===rows.length-1} onClick={()=>move(index,1)}>Xuống</button>
@@ -179,7 +290,7 @@ function PublicExposurePanel({rows}:{rows:ContentSection[]}){
   </div>;
 }
 
-type FieldProps={row:ContentSection;index:number;updatePayload:(index:number,patch:SectionPayload)=>void;updateRow:(index:number,patch:Partial<ContentSection>)=>void};
+type FieldProps={row:ContentSection;index:number;mediaOptions:MediaOption[];updatePayload:(index:number,patch:SectionPayload)=>void;updateRow:(index:number,patch:Partial<ContentSection>)=>void};
 function KindFields(props:FieldProps){
   switch(props.row.kind){
     case 'INTRO': return <IntroFields {...props}/>;
@@ -191,24 +302,54 @@ function KindFields(props:FieldProps){
   }
 }
 
-function IntroFields({row,index,updatePayload}:FieldProps){
+function MediaSelect({label,value,mediaOptions,onChange}:{label:string;value:string;mediaOptions:MediaOption[];onChange:(next:string)=>void}){
+  return <label>{label}
+    <select value={value} onChange={e=>onChange(e.target.value)}>
+      <option value="">Không chọn ảnh (chỉ hiển thị chữ)</option>
+      <optgroup label="Ảnh mẫu nghệ thuật có sẵn">
+        {FALLBACK_PORTRAIT_OPTIONS.map(opt=><option key={opt.url} value={opt.url}>{opt.label}</option>)}
+      </optgroup>
+      {mediaOptions.length>0&&<optgroup label="Ảnh đã tải trong Thư viện">
+        {mediaOptions.map(m=><option key={m.id} value={`/api/v1/admin/media/${m.id}/content`}>{m.original_name}</option>)}
+      </optgroup>}
+      {value&&!FALLBACK_PORTRAIT_OPTIONS.some(o=>o.url===value)&&!mediaOptions.some(m=>`/api/v1/admin/media/${m.id}/content`===value)&&<option value={value}>Ảnh đang lưu ({value})</option>}
+    </select>
+  </label>;
+}
+
+function IntroFields({row,index,mediaOptions,updatePayload}:FieldProps){
   const people=row.payload?.people??[];
+  const milestones=row.payload?.milestones??[];
   const setPeople=(next:SectionPayload['people'])=>updatePayload(index,{people:next});
-  const patch=(position:number,change:Partial<{name:string;role:string;note:string}>)=>setPeople(people.map((item,i)=>i===position?{...item,...change}:item));
+  const setMilestones=(next:LoveMilestone[])=>updatePayload(index,{milestones:next});
+  const patch=(position:number,change:Partial<{name:string;role:string;note:string;quote:string;avatarUrl:string|null}>)=>setPeople(people.map((item,i)=>i===position?{...item,...change}:item));
+  const patchMilestone=(position:number,change:Partial<LoveMilestone>)=>setMilestones(milestones.map((item,i)=>i===position?{...item,...change}:item));
   return <div className="section-payload">
-    <p className="field-hint">Mỗi người một khối: tên hiển thị, cách gọi (tùy chọn) và một đoạn giới thiệu ngắn. Không có ảnh thì bố cục chữ vẫn đẹp; không bắt buộc nhập danh xưng.</p>
+    <p className="field-hint">Mỗi người một khối: tên hiển thị, vai trò, ảnh chân dung vòm, giới thiệu ngắn và câu trích dẫn yêu thích. Bên dưới có thể thêm các cột mốc kỷ niệm tình yêu.</p>
     {people.map((person,position)=><fieldset className="section-payload-item" key={position}>
       <legend>Người {position+1}</legend>
       <label>Tên hiển thị<input required maxLength={200} value={person.name} onChange={e=>patch(position,{name:e.target.value})}/></label>
       <label>Cách gọi hoặc vai trò (tùy chọn)<input maxLength={80} value={person.role??''} onChange={e=>patch(position,{role:e.target.value})}/></label>
+      <MediaSelect label="Ảnh chân dung (tùy chọn)" value={person.avatarUrl??''} mediaOptions={mediaOptions} onChange={url=>patch(position,{avatarUrl:url||null})}/>
       <label>Giới thiệu ngắn (tùy chọn)<textarea maxLength={600} value={person.note??''} onChange={e=>patch(position,{note:e.target.value})}/></label>
+      <label>Câu trích dẫn tâm đắc (tùy chọn)<input maxLength={300} value={person.quote??''} onChange={e=>patch(position,{quote:e.target.value})} placeholder="Ví dụ: Bình yên lớn nhất là có em bên cạnh."/></label>
       <div className="row">
         <button type="button" className="secondary" disabled={position===0} aria-label={`Đưa người ${position+1} lên`} onClick={()=>setPeople(moveItem(people,position,position-1))}>↑ Lên</button>
         <button type="button" className="secondary" disabled={position===people.length-1} aria-label={`Đưa người ${position+1} xuống`} onClick={()=>setPeople(moveItem(people,position,position+1))}>↓ Xuống</button>
         <button type="button" className="secondary" onClick={()=>setPeople(people.filter((_,i)=>i!==position))}>Xóa người này</button>
       </div>
     </fieldset>)}
-    {people.length<4&&<button type="button" className="secondary" onClick={()=>setPeople([...people,{name:'',role:'',note:''}])}>Thêm người</button>}
+    {people.length<4&&<button type="button" className="secondary" onClick={()=>setPeople([...people,{name:'',role:'',note:'',quote:'',avatarUrl:null}])}>Thêm người</button>}
+    <h4>Cột mốc kỷ niệm tình yêu (tùy chọn)</h4>
+    {milestones.map((ms,position)=><fieldset className="section-payload-item" key={`ms-${position}`}>
+      <legend>Cột mốc {position+1}</legend>
+      <label>Thời gian kỷ niệm<input required maxLength={80} value={ms.dateLabel} onChange={e=>patchMilestone(position,{dateLabel:e.target.value})} placeholder="Ví dụ: Mùa thu 2022 hoặc 14/02/2024"/></label>
+      <label>Tên cột mốc<input required maxLength={200} value={ms.title} onChange={e=>patchMilestone(position,{title:e.target.value})} placeholder="Ví dụ: Lần đầu gặp gỡ"/></label>
+      <label>Câu chuyện ngắn (tùy chọn)<textarea maxLength={800} value={ms.description??''} onChange={e=>patchMilestone(position,{description:e.target.value})}/></label>
+      <MediaSelect label="Ảnh cột mốc (tùy chọn)" value={ms.photoUrl??''} mediaOptions={mediaOptions} onChange={url=>patchMilestone(position,{photoUrl:url||null})}/>
+      <button type="button" className="secondary" onClick={()=>setMilestones(milestones.filter((_,i)=>i!==position))}>Xóa cột mốc</button>
+    </fieldset>)}
+    {milestones.length<12&&<button type="button" className="secondary" onClick={()=>setMilestones([...milestones,{dateLabel:'',title:'',description:'',photoUrl:null}])}>+ Thêm cột mốc kỷ niệm</button>}
   </div>;
 }
 
@@ -217,10 +358,13 @@ function FamilyFields({row,index,updatePayload}:FieldProps){
   const setGroups=(next:SectionPayload['groups'])=>updatePayload(index,{groups:next});
   const patchGroup=(position:number,change:Partial<FamilyGroup>)=>setGroups(groups.map((item,i)=>i===position?{...item,...change}:item));
   return <div className="section-payload">
-    <p className="field-hint">Mỗi nhóm là một khối riêng: nhãn tự đặt (ví dụ “Nhà gái”) và thành viên kèm quan hệ nếu muốn. Chỉ một nhóm cũng hợp lệ; không cần đủ cha và mẹ.</p>
+    <p className="field-hint">Mỗi nhóm là một khối riêng: phân nhánh Nhà Trai / Nhà Gái, nhãn tự đặt, địa chỉ tư gia và thành viên kèm quan hệ nếu muốn.</p>
     {groups.map((group,position)=><fieldset className="section-payload-item" key={position}>
       <legend>Nhóm {position+1}</legend>
+      <label>Phân nhánh gia đình<select value={group.side??''} onChange={e=>patchGroup(position,{side:(e.target.value||undefined) as WeddingSide|undefined})}><option value="">Không gắn nhãn nhánh</option><option value="GROOM">Nhà Trai</option><option value="BRIDE">Nhà Gái</option><option value="JOINT">Hai gia đình</option></select></label>
       <label>Nhãn nhóm (tùy chọn)<input maxLength={80} value={group.label??''} onChange={e=>patchGroup(position,{label:e.target.value})}/></label>
+      <label>Khu vực / Địa chỉ tư gia (tùy chọn)<input maxLength={240} value={group.location??''} onChange={e=>patchGroup(position,{location:e.target.value})} placeholder="Ví dụ: Quận Đống Đa, Hà Nội"/></label>
+      <label>Lời đón tiếp của gia đình (tùy chọn)<input maxLength={400} value={group.welcomeNote??''} onChange={e=>patchGroup(position,{welcomeNote:e.target.value})} placeholder="Ví dụ: Hân hạnh được đón tiếp quý khách"/></label>
       {group.members.map((member,memberPosition)=><div className="section-payload-row" key={memberPosition}>
         <label>Tên thành viên<input required maxLength={200} value={member.name} onChange={e=>patchGroup(position,{members:group.members.map((entry,j)=>j===memberPosition?{...entry,name:e.target.value}:entry)})}/></label>
         <label>Quan hệ hoặc ghi chú<input maxLength={200} value={member.note??''} onChange={e=>patchGroup(position,{members:group.members.map((entry,j)=>j===memberPosition?{...entry,note:e.target.value}:entry)})}/></label>
@@ -246,14 +390,17 @@ function CeremonyFields({row,index,updatePayload}:FieldProps){
   const setItems=(next:SectionPayload['items'])=>updatePayload(index,{items:next});
   const patch=(position:number,change:Partial<CeremonyItem>)=>setItems(items.map((item,i)=>i===position?{...item,...change}:item));
   return <div className="section-payload">
-    <p className="field-hint">Mỗi nghi lễ một khối: tên, lời dẫn và ngày giờ/địa điểm nếu có. Giờ và RSVP của từng buổi được quản lý ở mục Buổi tiệc; phần này chỉ giới thiệu thêm.</p>
+    <p className="field-hint">Mỗi nghi lễ một khối: tên, phân nhánh Nhà Trai / Nhà Gái, ngày giờ, địa điểm và link bản đồ chỉ đường. Khách có thể lưu lịch điện thoại ngay trên từng nghi lễ.</p>
     {items.map((item,position)=><fieldset className="section-payload-item" key={position}>
       <legend>Nghi lễ {position+1}</legend>
+      <label>Phân nhánh nghi lễ<select value={item.side??''} onChange={e=>patch(position,{side:(e.target.value||undefined) as WeddingSide|undefined})}><option value="">Không phân nhánh</option><option value="GROOM">Lễ Nhà Trai</option><option value="BRIDE">Lễ Nhà Gái</option><option value="JOINT">Lễ Chung Hai Gia Đình</option></select></label>
       <label>Tên nghi lễ<input required maxLength={200} value={item.title} onChange={e=>patch(position,{title:e.target.value})}/></label>
       <label>Lời dẫn (tùy chọn)<textarea maxLength={600} value={item.lead??''} onChange={e=>patch(position,{lead:e.target.value})}/></label>
       <label>Thời điểm (giờ Việt Nam, tùy chọn)<input type="datetime-local" value={item.time?toVietnamInput(item.time):''} onChange={e=>patch(position,{time:e.target.value?fromVietnamInput(e.target.value):null})}/></label>
       <label>Địa điểm (tùy chọn)<input maxLength={200} value={item.venue??''} onChange={e=>patch(position,{venue:e.target.value})}/></label>
       <label>Địa chỉ (tùy chọn)<input maxLength={500} value={item.address??''} onChange={e=>patch(position,{address:e.target.value})}/></label>
+      <label>Liên kết bản đồ https:// (tùy chọn)<input maxLength={500} value={item.mapsUrl??''} onChange={e=>patch(position,{mapsUrl:cleanMapUrlInput(e.target.value)||null})} placeholder="https://maps.google.com/?q=..."/></label>
+      <label>Ghi chú trang phục nghi lễ (tùy chọn)<input maxLength={240} value={item.dressNote??''} onChange={e=>patch(position,{dressNote:e.target.value})} placeholder="Ví dụ: Áo dài truyền thống"/></label>
       <label>Hướng dẫn di chuyển (tùy chọn)<textarea maxLength={500} value={item.directions??''} onChange={e=>patch(position,{directions:e.target.value})}/></label>
       <button type="button" className="secondary" onClick={()=>setItems(items.filter((_,i)=>i!==position))}>Xóa nghi lễ này</button>
     </fieldset>)}
@@ -280,8 +427,10 @@ function TimelineFields({row,index,updatePayload,updateRow}:FieldProps){
       {legacy&&<p className="field-hint section-legacy-note">Mốc này đang lấy ngày giờ cũ của mục và chưa có tên. Đặt tên để lưu thành mốc chi tiết; để trống thì thiệp vẫn hiển thị ngày giờ cũ như trước.</p>}
       <label>Ngày giờ (giờ Việt Nam)<input type="datetime-local" required value={item.at?toVietnamInput(item.at):''} onChange={e=>patch(position,{at:e.target.value?fromVietnamInput(e.target.value):''})}/></label>
       <label>Tên mốc<input required={!legacy} maxLength={200} value={item.title} onChange={e=>patch(position,{title:e.target.value})}/></label>
+      <label>Phân nhánh gia đình (tùy chọn)<select value={item.side??''} onChange={e=>patch(position,{side:(e.target.value||undefined) as WeddingSide|undefined})}><option value="">Chung / Không chọn</option><option value="GROOM">Nhà Trai</option><option value="BRIDE">Nhà Gái</option><option value="JOINT">Chung Hai Gia Đình</option></select></label>
       <label>Mô tả (tùy chọn)<textarea maxLength={600} value={item.note??''} onChange={e=>patch(position,{note:e.target.value})}/></label>
       <label>Địa điểm (tùy chọn)<input maxLength={200} value={item.venue??''} onChange={e=>patch(position,{venue:e.target.value})}/></label>
+      <label>Liên kết bản đồ https:// (tùy chọn)<input maxLength={500} value={item.mapsUrl??''} onChange={e=>patch(position,{mapsUrl:cleanMapUrlInput(e.target.value)||null})} placeholder="https://maps.google.com/?q=..."/></label>
       <label>Quyền xem của mốc<select value={item.audience} onChange={e=>patch(position,{audience:e.target.value as TimelineItem['audience']})}><option value="PUBLIC">Hiện cả trên thiệp chung</option><option value="PRIVATE">Chỉ lời mời riêng</option></select></label>
       <label><input type="checkbox" checked={item.tentative??false} onChange={e=>patch(position,{tentative:e.target.checked})}/>Giờ chưa chốt (hiện nhãn “Dự kiến”)</label>
       {legacy?<p className="field-hint">Mốc cũ không có nút xóa vì ngày giờ nằm ở dữ liệu gốc của mục; đặt tên để thay bằng mốc chi tiết.</p>:<button type="button" className="secondary" onClick={()=>setItems(items.filter((_,i)=>i!==position))}>Xóa mốc này</button>}
@@ -292,10 +441,13 @@ function TimelineFields({row,index,updatePayload,updateRow}:FieldProps){
 
 function DressFields({row,index,updatePayload}:FieldProps){
   const palette=row.payload?.palette??[];
+  const tips=row.payload?.tips??[];
   const setPalette=(next:SectionPayload['palette'])=>updatePayload(index,{palette:next});
+  const setTips=(next:GuestTip[])=>updatePayload(index,{tips:next});
   const patch=(position:number,change:Partial<PaletteColor>)=>setPalette(palette.map((item,i)=>i===position?{...item,...change}:item));
+  const patchTip=(position:number,change:Partial<GuestTip>)=>setTips(tips.map((item,i)=>i===position?{...item,...change}:item));
   return <div className="section-payload">
-    <p className="field-hint">Mỗi màu cần tên bằng chữ đi kèm ô màu để khách đọc được ngay cả khi khó phân biệt màu. Không đặt quy định cấm mặc ngoài nội dung bạn nhập.</p>
+    <p className="field-hint">Mỗi màu cần tên bằng chữ đi kèm ô màu để khách đọc được ngay cả khi khó phân biệt màu. Có thể bổ sung thêm Cẩm nang lưu ý nhỏ cho khách mời.</p>
     {palette.map((color,position)=><div className="section-payload-row" key={position}>
       <label>Tên màu<input required maxLength={80} value={color.name} onChange={e=>patch(position,{name:e.target.value})}/></label>
       <label>Mã màu<input type="color" value={/^#[0-9a-fA-F]{6}$/.test(color.color)?color.color:'#ffffff'} onChange={e=>patch(position,{color:e.target.value})}/></label>
@@ -303,5 +455,13 @@ function DressFields({row,index,updatePayload}:FieldProps){
     </div>)}
     {palette.length<8&&<button type="button" className="secondary" onClick={()=>setPalette([...palette,{name:'',color:'#f6f1e7'}])}>Thêm màu</button>}
     <label>Nên tránh (tùy chọn)<textarea maxLength={600} value={row.payload?.avoid??''} onChange={e=>updatePayload(index,{avoid:e.target.value})}/></label>
+    <h4>Cẩm nang lưu ý cho khách mời (tùy chọn)</h4>
+    {tips.map((tip,position)=><fieldset className="section-payload-item" key={`tip-${position}`}>
+      <legend>Lưu ý {position+1}</legend>
+      <label>Tiêu đề lưu ý<input required maxLength={120} value={tip.title} onChange={e=>patchTip(position,{title:e.target.value})} placeholder="Ví dụ: Bãi đỗ xe miễn phí / Thực đơn chay"/></label>
+      <label>Chi tiết hướng dẫn<textarea required maxLength={500} value={tip.detail} onChange={e=>patchTip(position,{detail:e.target.value})}/></label>
+      <button type="button" className="secondary" onClick={()=>setTips(tips.filter((_,i)=>i!==position))}>Xóa lưu ý</button>
+    </fieldset>)}
+    {tips.length<8&&<button type="button" className="secondary" onClick={()=>setTips([...tips,{title:'',detail:''}])}>+ Thêm lưu ý khách mời</button>}
   </div>;
 }

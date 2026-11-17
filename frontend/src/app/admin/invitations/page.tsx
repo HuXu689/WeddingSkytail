@@ -10,6 +10,7 @@ import {GuestForm} from '@/features/admin/guest-form';
 import {GuestEditForm} from '@/features/admin/guest-edit-form';
 import {BulkPolicyPanel} from '@/features/admin/bulk-policy-panel';
 import {PinPanel} from '@/features/admin/pin-panel';
+import {QuickPublicSharePanel} from '@/features/admin/quick-public-share';
 const ACCESS_STATES=['OPEN','NOT_YET_OPEN','CLOSED_SCHEDULE','CLOSED_MANUAL','CLOSED_GLOBAL','REVOKED'] as const;
 export default function Invitations(){
  const {isOwner,isEditor}=useAdminRole();
@@ -36,6 +37,7 @@ export default function Invitations(){
   {isEditor&&<p className="field-hint card">Bạn đang ở vai trò <strong>Trợ lý nội dung</strong>: có thể thêm/sửa thông tin khách và đánh dấu đã gửi; chỉ <strong>Chủ tiệc</strong> mới xem được link riêng, mã QR, mã PIN và chính sách truy cập.</p>}
   <Feedback {...state} retry={()=>void state.reload().catch(()=>{})}/>
   <section className="card"><details id="add-guest" open={addOpen} onToggle={e=>setAddOpen(e.currentTarget.open)}><summary>＋ Thêm khách / gia đình</summary><Feedback error={events.error} notice="" retry={()=>void events.reload().catch(()=>{})}/>{events.data?<GuestForm events={events.data} busy={state.busy} save={body=>state.run(()=>api('/admin/guests','POST',body),'Đã tạo lời mời. Bạn có thể lấy link và QR bên dưới.')}/>:<Loading/>}</details></section>
+  <QuickPublicSharePanel/>
   {link&&<section ref={linkPanelRef} className="card link-panel">
    <div className="section-heading"><div><p className="eyebrow">Liên kết và QR riêng</p><h2>Lời mời: {link.name}</h2></div><Badge value={link.accessState}/></div>
    {link.accessState!=='OPEN'&&<p className="warning">Trạng thái hiện tại là <strong>{label(link.accessState)}</strong> — khách có thể chưa mở được thiệp cho tới khi lời mời hoặc chính sách chung chuyển sang Đang mở.</p>}

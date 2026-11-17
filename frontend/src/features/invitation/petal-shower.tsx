@@ -139,7 +139,7 @@ export function PetalShower({
       const rect = canvas.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, width < 640 ? 1.5 : 2);
       const targetW = Math.round(width * ratio);
       const targetH = Math.round(height * ratio);
       if (canvas.width !== targetW || canvas.height !== targetH) {
@@ -147,8 +147,9 @@ export function PetalShower({
         canvas.height = targetH;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
-      if (!petalsRef.current.length && count > 0 && width > 0 && height > 0) {
-        petalsRef.current = Array.from({ length: count }, () => makePetal(width, height, true));
+      const mobileCap = width > 0 && width < 640 ? Math.ceil(count * 0.5) : count;
+      if (!petalsRef.current.length && mobileCap > 0 && width > 0 && height > 0) {
+        petalsRef.current = Array.from({ length: mobileCap }, () => makePetal(width, height, true));
       }
     };
 
@@ -156,9 +157,10 @@ export function PetalShower({
       const dt = lastTime ? Math.min(time - lastTime, 40) : 16;
       lastTime = time;
       ctx.clearRect(0, 0, width, height);
+      const activeLimit = width > 0 && width < 640 ? Math.ceil(count * 0.5) : count;
 
-      if (petalsRef.current.length < count && width > 0) {
-        while (petalsRef.current.length < count) {
+      if (petalsRef.current.length < activeLimit && width > 0) {
+        while (petalsRef.current.length < activeLimit) {
           petalsRef.current.push(makePetal(width, height, true));
         }
       }
@@ -171,7 +173,7 @@ export function PetalShower({
         draw(ctx, petal, time);
 
         if (petal.y > height + 36) {
-          if (i >= count) {
+          if (i >= activeLimit) {
             petalsRef.current.splice(i, 1);
             i--;
             continue;

@@ -15,6 +15,12 @@ const WISH_SUGGESTIONS=[
  'Thật hạnh phúc khi được chứng kiến hành trình đẹp của hai bạn!',
 ];
 
+const WISH_EMOTIONS=[
+ {label:'Trăm năm hạnh phúc',stamp:'🥂 Chúc hai bạn trăm năm hạnh phúc!'},
+ {label:'Vĩnh kết đồng tâm',stamp:'💍 Chúc đôi trẻ vĩnh kết đồng tâm!'},
+ {label:'Ngập tràn tiếng cười',stamp:'🌸 Mong tổ ấm nhỏ luôn rộn rã tiếng cười!'},
+] as const;
+
 /** T24: guests write wishes, the owner approves them, and only approved ones are shown to everyone. */
 export function WishBook({id,reload}:{id:string;reload:()=>Promise<void>}){
  const submitting=useRef(false);
@@ -29,6 +35,7 @@ export function WishBook({id,reload}:{id:string;reload:()=>Promise<void>}){
    if(typeof window!=='undefined'){
     window.dispatchEvent(new CustomEvent('wedding:fireworks'));
     window.dispatchEvent(new CustomEvent('wedding:hearts'));
+    window.dispatchEvent(new CustomEvent('wedding:petals'));
    }
    await loadMine();await reload();
   }
@@ -52,6 +59,9 @@ export function WishBook({id,reload}:{id:string;reload:()=>Promise<void>}){
     <span className="field-hint">Gợi ý nhanh:</span>
     <div className="wish-suggestion-list">
      {WISH_SUGGESTIONS.map(sample=><button type="button" key={sample} className="secondary wish-suggestion-chip" disabled={busy} onClick={()=>setMessage(sample)}>{sample}</button>)}
+    </div>
+    <div className="wish-emotion-row">
+     {WISH_EMOTIONS.map(emo=><button type="button" key={emo.label} className="secondary wish-emotion-chip" disabled={busy} onClick={()=>setMessage(cur=>{const next=cur.trim()?`${cur.trim()} ${emo.stamp}`:emo.stamp;return next.slice(0,600);})}>{emo.label}</button>)}
     </div>
    </div>
    <label><span>Lời chúc <small className="char-counter">{message.length}/600</small></span><textarea value={message} onChange={event=>setMessage(event.target.value)} rows={4} maxLength={600} required placeholder="Ví dụ: Chúc hai bạn trăm năm hạnh phúc!"/></label>

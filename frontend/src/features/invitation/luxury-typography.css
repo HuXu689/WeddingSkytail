@@ -1,0 +1,62 @@
+/* ============================================================================
+   LUXURY-TYPOGRAPHY.CSS — Bộ font chữ cưới sang trọng tự lưu trữ (Self-hosted)
+   - Cormorant Garamond (Serif biên tập cao cấp, hỗ trợ trọn vẹn dấu tiếng Việt)
+   - Be Vietnam Pro (Sans-serif thiết kế chuyên biệt cho tiếng Việt hiện đại)
+   - Tích hợp fallback hệ thống tức thì, giữ text-rendering:auto chống lệch dấu.
+   ============================================================================ */
+
+:root {
+  --font-serif: 'Cormorant Garamond', 'Times New Roman', Times, serif;
+  --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-heading: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.wedding-canvas {
+  --inv-serif: var(--font-serif);
+  --inv-sans: var(--font-body);
+}
+
+.wedding-canvas h1,
+.wedding-canvas h2,
+.wedding-canvas h3,
+.welcome-card h1,
+.invitation-entry h1 {
+  text-rendering: auto;
+  font-kerning: normal;
+  letter-spacing: normal;
+}
+
+.welcome-card h1,
+.invitation-entry h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+.wedding-canvas:not(.theme-modern) .wedding-cover h1.couple-names {
+  font-weight: 600;
+  line-height: 1.12;
+}
+
+.wedding-canvas .couple-join {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.wedding-canvas .invitation-section-heading h2,
+.wedding-canvas .section-intro h2,
+.wedding-canvas .wedding-story h2,
+.wedding-canvas .wedding-album h2,
+.wedding-canvas .gift-box h2,
+.wedding-canvas .wedding-month-calendar h2,
+.wedding-canvas .wish-book h2 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: normal;
+}

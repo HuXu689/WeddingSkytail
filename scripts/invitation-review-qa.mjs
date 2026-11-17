@@ -365,7 +365,11 @@ fixture.wedding.sections=sectionsLong;
   const {nodeId}=await command('DOM.querySelector',{nodeId:fontRoot.nodeId,selector});
   const {fonts}=await command('CSS.getPlatformFontsForNode',{nodeId});
   assert.ok(fonts.length,`${selector}: cần có font thực tế`);
-  if(process.platform==='win32')assert.deepEqual(fonts.map(font=>font.familyName),['Times New Roman'],`${selector}: toàn bộ chữ Việt phải dùng cùng font, không ghép dấu từ font khác`);
+  if(process.platform==='win32'){
+   const uniqueFamilies=[...new Set(fonts.map(font=>font.familyName))];
+   assert.equal(uniqueFamilies.length,1,`${selector}: toàn bộ chữ Việt phải dùng cùng một họ font, không ghép dấu từ font khác (${uniqueFamilies.join(', ')})`);
+   assert.ok(['Cormorant Garamond','Be Vietnam Pro','Times New Roman'].some(allowed=>uniqueFamilies[0].startsWith(allowed)),`${selector}: họ font không mong đợi (${uniqueFamilies[0]})`);
+  }
   assert.ok(fonts.every(font=>!font.familyName.includes('Georgia')),`${selector}: không dùng Georgia thiếu glyph Việt`);
   const content=await evaluate(`document.querySelector(${JSON.stringify(selector)}).textContent`);
   assert.equal(content,content.normalize('NFC'),`${selector}: dữ liệu phải được NFC trước render`);
