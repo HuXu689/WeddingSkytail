@@ -1,6 +1,8 @@
 import {Fragment,useEffect,useRef,useState} from 'react';
 import type {CSSProperties,ReactNode} from 'react';
-import {Check,MailOpen,Share2} from 'lucide-react';
+import {Check,Heart,MailOpen,Share2} from 'lucide-react';
+import {api} from '@/shared/api';
+import {cardHeartPath,type WishFeedScope} from '@/shared/invitation-features';
 import {ContentSections,type ContentSection} from './sections';
 import {normalizedLayout,type LayoutItem,type LayoutKey} from './layout';
 import {WeddingAlbum} from './album';
@@ -24,7 +26,7 @@ import {parsePublicGuestGreeting,type PublicGuestGreeting} from './guest-greetin
 
 export type Theme='ELEGANT'|'TRADITIONAL'|'MODERN';
 export type Accent='OLIVE'|'BURGUNDY'|'NAVY';
-export interface WeddingDesign {layout?:LayoutItem[];sections?:ContentSection[];templateVersion?:number;contentSchemaVersion?:number;names:string;message:string;theme:Theme;accent:Accent;story:string;footer:string;show_story:boolean;heroUrl?:string|null;albumUrls?:string[];heroPosition?:string|null;musicUrl?:string|null;music_autoplay?:boolean;show_countdown?:boolean}
+export interface WeddingDesign {slug?:string;heart_count?:number;layout?:LayoutItem[];sections?:ContentSection[];templateVersion?:number;contentSchemaVersion?:number;names:string;message:string;theme:Theme;accent:Accent;story:string;footer:string;show_story:boolean;heroUrl?:string|null;albumUrls?:string[];heroPosition?:string|null;musicUrl?:string|null;music_autoplay?:boolean;show_countdown?:boolean}
 export const themes:{id:Theme;name:string;description:string}[]=[
  {id:'ELEGANT',name:'Thanh lịch',description:'Giấy kem ngà, đường chỉ vàng champagne và bố cục biên tập tinh tế.'},
  {id:'TRADITIONAL',name:'Truyền thống',description:'Phong vị Á Đông trang trọng, dấu ấn Song Hỷ ấm áp.'},
@@ -69,8 +71,9 @@ function ScrollProgressBar(){
  </div>;
 }
 
-export function WeddingCanvas({design,recipient,salutation,children,calendar,gift,wishes,initiallyOpen=true,ceremonyEntrance=false,countdownTo=null,preview=false,publicMode=false}:{design:WeddingDesign;recipient?:string;salutation?:string;children?:ReactNode;calendar?:ReactNode;gift?:ReactNode;wishes?:ReactNode;initiallyOpen?:boolean;ceremonyEntrance?:boolean;countdownTo?:string|null;preview?:boolean;publicMode?:boolean}){
+export function WeddingCanvas({design,recipient,salutation,children,calendar,gift,wishes,initiallyOpen=true,ceremonyEntrance=false,countdownTo=null,preview=false,publicMode=false,heartScope}:{design:WeddingDesign;recipient?:string;salutation?:string;children?:ReactNode;calendar?:ReactNode;gift?:ReactNode;wishes?:ReactNode;initiallyOpen?:boolean;ceremonyEntrance?:boolean;countdownTo?:string|null;preview?:boolean;publicMode?:boolean;heartScope?:WishFeedScope}){
  const color=accents.find(a=>a.id===design.accent)?.color??accents[0].color;
+ const resolvedHeartScope:WishFeedScope|null=heartScope??(publicMode&&design.slug?{kind:'public',slug:design.slug}:null);
  const [opened,setOpened]=useState(initiallyOpen),[curtain,setCurtain]=useState(ceremonyEntrance);
  const [atmosphere,setAtmosphere]=useState<AtmosphereMode>(design.theme==='TRADITIONAL'?'crimson':'royal');
  const [effectsEnabled,setEffectsEnabled]=useState(true);
@@ -78,7 +81,75 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
  const [publicGreeting,setPublicGreeting]=useState<PublicGuestGreeting|null>(null);
  const [showEnvelopeOverlay,setShowEnvelopeOverlay]=useState(false);
  const [sharedNotice,setSharedNotice]=useState(false);
+ const [cardHearts,setCardHearts]=useState(()=>Math.max(0,Number(design.heart_count??0)));
+ const [cardHearted,setCardHearted]=useState(false);
+ const [heartPulse,setHeartPulse]=useState(false);
+ const pendingHeartsRef=useRef(0);
+ const flushTimerRef=useRef(0);
  const canvasRef=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  const incoming=Number(design.heart_count??0);
+  if(Number.isFinite(incoming)&&incoming>0){
+   setCardHearts(prev=>Math.max(prev,incoming));
+  }
+ },[design.heart_count]);
+ useEffect(()=>{
+  if(preview||typeof window==='undefined')return;
+  try{
+   if(window.localStorage.getItem('wedding-card-hearted')==='1')setCardHearted(true);
+  }catch{}
+  let ch:BroadcastChannel|null=null;
+  try{
+   if(typeof BroadcastChannel!=='undefined'){
+    ch=new BroadcastChannel('wedding-hearts-live');
+    ch.onmessage=ev=>{
+     const next=Number((ev.data as {heart_count?:number}|null)?.heart_count??0);
+     if(Number.isFinite(next)&&next>0)setCardHearts(prev=>Math.max(prev,next));
+    };
+   }
+  }catch{}
+  return()=>{
+   if(flushTimerRef.current)window.clearTimeout(flushTimerRef.current);
+   ch?.close();
+  };
+ },[preview]);
+ function sendCardHeart(){
+  if(!effectsEnabled)setEffectsEnabled(true);
+  setCardHearts(prev=>prev+1);
+  setCardHearted(true);
+  setHeartPulse(true);
+  if(typeof window!=='undefined'){
+   window.setTimeout(()=>setHeartPulse(false),460);
+   window.dispatchEvent(new CustomEvent('wedding:hearts'));
+   try{window.localStorage.setItem('wedding-card-hearted','1');}catch{}
+  }
+  if(preview||!resolvedHeartScope||typeof window==='undefined')return;
+  const endpoint=cardHeartPath(resolvedHeartScope);
+  pendingHeartsRef.current+=1;
+  if(flushTimerRef.current)return;
+  flushTimerRef.current=window.setTimeout(async()=>{
+   flushTimerRef.current=0;
+   while(pendingHeartsRef.current>0){
+    const batch=Math.min(10,pendingHeartsRef.current);
+    pendingHeartsRef.current-=batch;
+    try{
+     const res=await api<{heart_count:number}>(endpoint,'POST',{count:batch});
+     if(typeof res.heart_count==='number'){
+      setCardHearts(prev=>Math.max(prev,Number(res.heart_count)));
+      try{
+       if(typeof BroadcastChannel!=='undefined'){
+        const ch=new BroadcastChannel('wedding-hearts-live');
+        ch.postMessage({heart_count:res.heart_count});
+        ch.close();
+       }
+      }catch{}
+     }
+    }catch{
+     setCardHearts(prev=>Math.max(0,prev-batch));
+    }
+   }
+  },240);
+ }
  useEffect(()=>{if(!initiallyOpen)setCurtain(false);},[initiallyOpen]);
  useEffect(()=>{
   if(!ceremonyEntrance||preview||typeof window==='undefined')return;
@@ -185,11 +256,11 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
    <div className="wedding-effects-viewport" aria-hidden="true">
     <CelebrationOrnaments/>
     <FallingRibbons count={3} active={effectsEnabled}/>
-    <PetalShower intensity={atmosphere==='sakura'?'normal':'light'} active={effectsEnabled}/>
+    <PetalShower intensity={atmosphere==='sakura'?'dense':'normal'} active={effectsEnabled}/>
     <GoldenDust count={atmosphere==='starlight'?22:16} active={effectsEnabled}/>
     <ButterflyFlight count={atmosphere==='starlight'?1:2} active={effectsEnabled}/>
     {opened && <FloatingHearts count={0} active={effectsEnabled}/>}
-    {opened && <Fireworks mode="burst" active={effectsEnabled}/>}
+    {opened && <Fireworks mode={preview?'burst':'continuous'} active={effectsEnabled}/>}
     {effectsEnabled && <SparkleTrail/>}
    </div>
    <div className={`wedding-inner ${opened?'is-open':''}`}>
@@ -207,15 +278,19 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
       <div className="wedding-rule"/>
       <p className="wedding-message reveal">{text(design.message)}</p>
       {!opened&&<button className="open-invitation reveal" onClick={openCanvas} aria-label="Mở thiệp">Mở thiệp <span aria-hidden="true">♡</span></button>}
-      {publicMode&&!preview&&opened&&<div className="cover-ceremony-replay">
-       <button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>setShowEnvelopeOverlay(true)}>
+      {!preview&&opened&&(publicMode||resolvedHeartScope)&&<div className="cover-ceremony-replay">
+       {resolvedHeartScope&&<button type="button" className={`secondary cover-heart-pill-btn${cardHearted||cardHearts>0?' is-liked':''}${heartPulse?' is-pulsing':''}`} onClick={sendCardHeart} aria-label={`Thả tim chúc phúc thiệp cưới (${cardHearts} lượt thả tim)`}>
+        <Heart size={15} aria-hidden="true"/>
+        <span>{cardHearts>0?`${cardHearts.toLocaleString('vi-VN')} lượt thả tim`:'Thả tim chúc phúc'}</span>
+       </button>}
+       {publicMode&&<button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>setShowEnvelopeOverlay(true)}>
         <MailOpen size={15} aria-hidden="true"/>
         <span>Mở nghi thức phong thư</span>
-       </button>
-       <button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>void sharePublicInvitation()}>
+       </button>}
+       {publicMode&&<button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>void sharePublicInvitation()}>
         {sharedNotice?<Check size={15} aria-hidden="true"/>:<Share2 size={15} aria-hidden="true"/>}
         <span>{sharedNotice?'Đã chép liên kết ✓':'Chia sẻ thiệp hồng'}</span>
-       </button>
+       </button>}
       </div>}
       <span className="cover-caption reveal">Một ngày · Một đời · Một tình yêu</span>
       <div className="cover-royal-footer" aria-hidden="true">
@@ -244,7 +319,7 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
      {normalizedLayout(design.layout).filter(item=>item.enabled).map(item=><Fragment key={item.section}>{optional[item.section]}</Fragment>)}
      {gift&&<div id="inv-gift">{gift}</div>}
      {wishes&&<div id="inv-wishes">{wishes}</div>}
-     <CelebrationBar atmosphere={atmosphere} onAtmosphereChange={setAtmosphere} effectsEnabled={effectsEnabled} onToggleEffects={()=>setEffectsEnabled(v=>!v)}/>
+     <CelebrationBar atmosphere={atmosphere} onAtmosphereChange={setAtmosphere} effectsEnabled={effectsEnabled} onToggleEffects={()=>setEffectsEnabled(v=>!v)} heartCount={resolvedHeartScope?cardHearts:undefined} hearted={cardHearted} onSendHeart={resolvedHeartScope?sendCardHeart:undefined}/>
     </div>}
    </div>
    {opened&&design.musicUrl&&normalizedLayout(design.layout).some(item=>item.section==='MUSIC'&&item.enabled)&&<MusicControl key={design.musicUrl} src={design.musicUrl} autoplay={design.music_autoplay??false} preview={preview} color={color}/>}

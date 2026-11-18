@@ -16,4 +16,5 @@ DELETE FROM events WHERE title IN (
   'Lễ Thành Hôn & Tiệc Cưới Chính Thức',
   'Tiệc Tối Thân Mật Cùng Hội Bạn Thân'
 ) AND NOT EXISTS (SELECT 1 FROM assignments a WHERE a.event_id = events.id);
+UPDATE wedding SET heart_count = 0 WHERE id = 1;
 COMMIT;

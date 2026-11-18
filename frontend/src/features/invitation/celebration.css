@@ -1,13 +1,12 @@
 .wedding-canvas{--celebration-paint-1:rgba(195,162,107,.07);--celebration-paint-2:rgba(195,162,107,.04);--celebration-paint-3:rgba(195,162,107,.6);--celebration-paint-4:rgba(43,42,38,.12);--celebration-paint-5:rgba(195,162,107,.08);--celebration-paint-6:transparent;--celebration-paint-7:rgba(43,42,38,.04);--celebration-paint-8:rgba(195,162,107,.12);--celebration-paint-9:rgba(195,162,107,.1);--celebration-paint-10:rgba(255,255,255,.3);--celebration-paint-11:rgba(43,42,38,.16);}
 /* Finite, compositor-friendly flourishes: the invitation remains readable at every frame. */
 .wedding-canvas .celebration-ornaments{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;color:var(--inv-champagne);contain:paint}
-.celebration-corner{position:absolute;width:clamp(72px,15%,180px);height:auto;stroke:currentColor;stroke-width:1;opacity:.8}
-.celebration-corner.corner-start{left:8px;top:8px}
-.celebration-corner.corner-end{right:8px;bottom:8px;transform:rotate(180deg)}
-.celebration-corner.corner-top-right{right:8px;top:8px;opacity:.6;width:clamp(56px,12%,140px)}
-.celebration-corner.corner-bottom-left{left:8px;bottom:8px;opacity:.6;width:clamp(56px,12%,140px)}
-.celebration-halo{position:absolute;width:300px;height:300px;right:-160px;top:-160px;border:1px solid currentColor;border-radius:50%;box-shadow:0 0 0 16px var(--celebration-paint-1),0 0 0 38px var(--celebration-paint-2);opacity:.6}
-.celebration-halo-alt{left:-160px;bottom:-160px;right:auto;top:auto;width:260px;height:260px;opacity:.4}
+.celebration-corner{position:absolute;width:clamp(68px,9.5vw,124px);height:auto;stroke:currentColor;stroke-width:1;opacity:.48;transform-origin:center}
+.celebration-corner.corner-start{left:12px;top:12px;transform:none}
+.celebration-corner.corner-end{right:12px;bottom:12px;transform:scale(-1,-1)}
+.celebration-corner.corner-top-right{right:12px;top:12px;transform:scaleX(-1)}
+.celebration-corner.corner-bottom-left{left:12px;bottom:12px;transform:scaleY(-1)}
+.celebration-halo,.celebration-halo-alt{display:none}
 /* Golden chain decorations */
 .celebration-chain{position:absolute;height:1px;background:repeating-linear-gradient(90deg,var(--inv-champagne,#c3a26b) 0 4px,transparent 4px 12px);opacity:.2}
 .celebration-chain.chain-top{top:4px;left:10%;right:10%}

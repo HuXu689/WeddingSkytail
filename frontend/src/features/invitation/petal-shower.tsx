@@ -28,12 +28,12 @@ type Petal = {
 };
 
 const COLORS = [
-  'rgba(248, 198, 210, 0.72)',
-  'rgba(244, 182, 198, 0.68)',
-  'rgba(238, 208, 152, 0.66)',
-  'rgba(252, 222, 208, 0.74)',
-  'rgba(255, 238, 208, 0.72)',
-  'rgba(240, 172, 188, 0.64)',
+  'rgba(244, 166, 186, 0.84)',
+  'rgba(238, 146, 170, 0.8)',
+  'rgba(232, 194, 128, 0.78)',
+  'rgba(250, 196, 182, 0.82)',
+  'rgba(248, 220, 176, 0.8)',
+  'rgba(226, 132, 156, 0.76)',
 ];
 
 function makePetal(w: number, h: number, scatter = false): Petal {
@@ -42,15 +42,15 @@ function makePetal(w: number, h: number, scatter = false): Petal {
   return {
     x: Math.random() * w,
     y: scatter ? Math.random() * h : -24 - Math.random() * 90,
-    size: type === 'sparkle' ? 3 + Math.random() * 3.5 : 8 + Math.random() * 11,
+    size: type === 'sparkle' ? 3.5 + Math.random() * 3.5 : 8.5 + Math.random() * 11.5,
     rotation: Math.random() * 360,
     rotationSpeed: (Math.random() - 0.5) * 1.8,
     flipPhase: Math.random() * Math.PI * 2,
     flipSpeed: 0.0018 + Math.random() * 0.0025,
-    fallSpeed: 0.36 + Math.random() * 0.62,
+    fallSpeed: 0.44 + Math.random() * 0.68,
     swayAmplitude: 18 + Math.random() * 38,
     swaySpeed: 0.0011 + Math.random() * 0.0018,
-    opacity: 0.18 + Math.random() * 0.12,
+    opacity: 0.28 + Math.random() * 0.22,
     type,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     delay: scatter ? 0 : Math.random() * 1400,
@@ -124,7 +124,7 @@ export function PetalShower({
   const rafRef = useRef(0);
   const runningRef = useRef(false);
   const [motionOk, setMotionOk] = useState(false);
-  const counts = { burst: 0, light: 16, normal: 30, dense: 48 };
+  const counts = { burst: 0, light: 18, normal: 26, dense: 38 };
   const count = counts[intensity];
 
   useEffect(() => {
@@ -146,6 +146,7 @@ export function PetalShower({
     let width = 0;
     let height = 0;
     let lastTime = 0;
+    let lastBreeze = 0;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -159,7 +160,7 @@ export function PetalShower({
         canvas.height = targetH;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
-      const mobileCap = width > 0 && width < 640 ? Math.ceil(count * 0.5) : count;
+      const mobileCap = width > 0 && width < 640 ? Math.ceil(count * 0.62) : count;
       if (!petalsRef.current.length && mobileCap > 0 && width > 0 && height > 0) {
         petalsRef.current = Array.from({ length: mobileCap }, () => makePetal(width, height, true));
       }
@@ -169,7 +170,21 @@ export function PetalShower({
       const dt = lastTime ? Math.min(time - lastTime, 40) : 16;
       lastTime = time;
       ctx.clearRect(0, 0, width, height);
-      const activeLimit = width > 0 && width < 640 ? Math.ceil(count * 0.5) : count;
+      const activeLimit = width > 0 && width < 640 ? Math.ceil(count * 0.62) : count;
+
+      if (count > 0 && width > 0 && time - lastBreeze > 9500) {
+        lastBreeze = time;
+        const gust = width < 640 ? 5 : 8;
+        for (let g = 0; g < gust; g++) {
+          const p = makePetal(width, height, false);
+          p.delay = time + g * 65;
+          p.fallSpeed *= 1.18;
+          petalsRef.current.push(p);
+        }
+        if (petalsRef.current.length > activeLimit + 24) {
+          petalsRef.current = petalsRef.current.slice(-(activeLimit + 24));
+        }
+      }
 
       if (petalsRef.current.length < activeLimit && width > 0) {
         while (petalsRef.current.length < activeLimit) {

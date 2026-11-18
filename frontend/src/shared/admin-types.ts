@@ -5,6 +5,8 @@ export interface Wedding extends Policy {
   sections?:import('@/features/invitation/sections').ContentSection[];
   has_unpublished_changes?:boolean;
   published_album_count?:number;
+  heart_count?:number;
+  wish_hearts_total?:number;
   draft_names: string; draft_message: string; names: string; message: string; published: boolean; tracking: boolean;
   draft_theme: import('@/features/invitation/design').Theme; draft_accent: import('@/features/invitation/design').Accent;
   draft_story: string; draft_footer: string; draft_show_story: boolean;
@@ -21,8 +23,8 @@ export interface ReminderEvent { id:string; title:string; start_at:string; deadl
 export interface ReminderRow { invitation_id:string; display_name:string; group_name:string; salutation:string; internal_note:string; assigned_events:string|null; first_opened_at:string|null; last_opened_at:string|null; open_count:number; reminder_note:string; contacted_at:string|null; contacted_by:string|null; message:string }
 export interface ReminderWorklist { event:ReminderEvent; events:ReminderEvent[]; filter:string; generatedAt:string; counts:{unanswered:number;no_open:number;opened_no_response:number;contacted:number}; rows:ReminderRow[] }
 /** Wish book moderation (T24): guests write, the owner decides, only approved wishes become public. */
-export interface WishRow { pinned:boolean; id:string; display_name:string; message:string; state:'PENDING'|'APPROVED'|'REJECTED'; created_at:string; moderated_at:string|null; moderated_by:string|null; revision:number; invitation_id:string; invitation_name:string; group_name:string; assigned_events:string|null }
-export interface WishQueue { counts:{pending:number;approved:number;rejected:number}; rows:WishRow[]; total:number }
+export interface WishRow { pinned:boolean; heart_count?:number; id:string; display_name:string; message:string; state:'PENDING'|'APPROVED'|'REJECTED'; created_at:string; moderated_at:string|null; moderated_by:string|null; revision:number; invitation_id:string; invitation_name:string; group_name:string; assigned_events:string|null }
+export interface WishQueue { counts:{pending:number;approved:number;rejected:number;wish_hearts?:number;wedding_hearts?:number}; rows:WishRow[]; total:number }
 /** T25: two roles. OWNER keeps every right; EDITOR never sees credentials, link/PIN secrets or exports. */
 export type AdminRole = 'OWNER'|'EDITOR';
 export interface AdminUser { username:string; role:AdminRole; display_name:string; enabled:boolean; created_at:string; created_by:string|null }

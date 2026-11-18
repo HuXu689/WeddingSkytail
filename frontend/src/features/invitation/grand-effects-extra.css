@@ -39,36 +39,54 @@
   pointer-events: none;
 }
 
-/* === 2. ATMOSPHERE MODES (4 CHẾ ĐỘ BẦU TRỜI LỘNG LẪY) === */
-.wedding-canvas.atmosphere-royal {
-  --atmosphere-glow: rgba(212, 175, 55, 0.14);
-  --atmosphere-tint: rgba(255, 246, 224, 0.45);
+/* === 2. ATMOSPHERE MODES (4 CHẾ ĐỘ KHÔNG KHÍ DỊU NHẸ, PHỦ TOÀN MÀN HÌNH) === */
+.wedding-canvas.atmosphere-royal,
+body:has(.wedding-canvas.atmosphere-royal) {
+  --atmosphere-paper: #fcfaf4;
+  --atmosphere-glow: rgba(198, 166, 104, 0.06);
 }
 
-.wedding-canvas.atmosphere-sakura {
-  --atmosphere-glow: rgba(235, 145, 168, 0.16);
-  --atmosphere-tint: rgba(255, 240, 244, 0.5);
+.wedding-canvas.atmosphere-sakura,
+body:has(.wedding-canvas.atmosphere-sakura) {
+  --atmosphere-paper: #fdf9f9;
+  --atmosphere-glow: rgba(216, 154, 168, 0.055);
 }
 
-.wedding-canvas.atmosphere-starlight {
-  --atmosphere-glow: rgba(185, 200, 235, 0.16);
-  --atmosphere-tint: rgba(248, 250, 255, 0.45);
+.wedding-canvas.atmosphere-starlight,
+body:has(.wedding-canvas.atmosphere-starlight) {
+  --atmosphere-paper: #f9fafc;
+  --atmosphere-glow: rgba(164, 180, 212, 0.055);
 }
 
-.wedding-canvas.atmosphere-crimson {
-  --atmosphere-glow: rgba(185, 45, 62, 0.14);
-  --atmosphere-tint: rgba(255, 242, 236, 0.5);
+.wedding-canvas.atmosphere-crimson,
+body:has(.wedding-canvas.atmosphere-crimson) {
+  --atmosphere-paper: #fcf9f5;
+  --atmosphere-glow: rgba(176, 84, 94, 0.05);
+}
+
+body:has(.wedding-canvas),
+.preview-stage .wedding-canvas {
+  background-color: var(--atmosphere-paper, #fcfaf5) !important;
+  background-image:
+    radial-gradient(ellipse 75% 560px at 12% 10%, var(--atmosphere-glow, rgba(198,166,104,.045)) 0%, transparent 74%),
+    radial-gradient(ellipse 75% 560px at 88% 48%, var(--atmosphere-glow, rgba(198,166,104,.045)) 0%, transparent 74%),
+    radial-gradient(ellipse 80% 560px at 50% 90%, var(--atmosphere-glow, rgba(198,166,104,.04)) 0%, transparent 76%) !important;
+}
+
+main.public-wedding-page,
+main.invitation-open,
+.public-wedding-page .wedding-canvas,
+.invitation-open .wedding-canvas {
+  background: transparent !important;
+  background-image: none !important;
 }
 
 .wedding-canvas.atmosphere-sakura .wedding-body,
 .wedding-canvas.atmosphere-crimson .wedding-body,
 .wedding-canvas.atmosphere-starlight .wedding-body,
 .wedding-canvas.atmosphere-royal .wedding-body {
-  background-image:
-    radial-gradient(circle at 12% 15%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%),
-    radial-gradient(circle at 88% 35%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%),
-    radial-gradient(circle at 18% 68%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 45%),
-    radial-gradient(circle at 85% 88%, var(--atmosphere-glow, rgba(212,175,55,.12)) 0%, transparent 42%);
+  background: transparent !important;
+  background-image: none !important;
 }
 
 /* === 3. WEDDING STICKERS & CORNER BOUQUETS === */

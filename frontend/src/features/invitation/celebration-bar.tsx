@@ -34,24 +34,35 @@ export function CelebrationBar({
   onAtmosphereChange,
   effectsEnabled = true,
   onToggleEffects,
+  heartCount,
+  hearted = false,
+  onSendHeart,
 }: {
   atmosphere: AtmosphereMode;
   onAtmosphereChange: (mode: AtmosphereMode) => void;
   effectsEnabled?: boolean;
   onToggleEffects?: () => void;
+  heartCount?: number;
+  hearted?: boolean;
+  onSendHeart?: () => void;
 }) {
-  const [heartsSent, setHeartsSent] = useState(0);
+  const [localHearts, setLocalHearts] = useState(0);
   const [activeBurst, setActiveBurst] = useState<'fireworks' | 'petals' | 'hearts' | null>(null);
+  const displayedHearts = typeof heartCount === 'number' ? heartCount : localHearts;
 
   function trigger(eventName: string, kind: 'fireworks' | 'petals' | 'hearts') {
     if (!effectsEnabled && onToggleEffects) {
       onToggleEffects();
     }
-    if (typeof window !== 'undefined') {
-      window.setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), effectsEnabled ? 0 : 40);
-    }
-    if (kind === 'hearts') {
-      setHeartsSent(value => value + 1);
+    if (kind === 'hearts' && onSendHeart) {
+      onSendHeart();
+    } else {
+      if (typeof window !== 'undefined') {
+        window.setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), effectsEnabled ? 0 : 40);
+      }
+      if (kind === 'hearts') {
+        setLocalHearts(value => value + 1);
+      }
     }
     setActiveBurst(kind);
     window.setTimeout(() => setActiveBurst(current => (current === kind ? null : current)), 700);
@@ -89,11 +100,11 @@ export function CelebrationBar({
         </button>
         <button
           type="button"
-          className={`celebration-action-btn${activeBurst === 'hearts' ? ' is-bursting' : ''}`}
+          className={`celebration-action-btn${hearted || displayedHearts > 0 ? ' is-hearted' : ''}${activeBurst === 'hearts' ? ' is-bursting' : ''}`}
           onClick={() => trigger('wedding:hearts', 'hearts')}
         >
           <span className="celebration-btn-icon" aria-hidden="true"><BarIcon kind="heart"/></span>
-          <span className="celebration-btn-text">{heartsSent > 0 ? `Thả tim (${heartsSent})` : 'Thả tim'}</span>
+          <span className="celebration-btn-text">{displayedHearts > 0 ? `Thả tim (${displayedHearts.toLocaleString('vi-VN')})` : 'Thả tim'}</span>
         </button>
         <button
           type="button"

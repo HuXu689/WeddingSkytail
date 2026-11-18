@@ -37,6 +37,7 @@ public class AdminService {
         var publishedMedia=media.published();
         Object pubAlbum=publishedMedia.get("albumUrls");
         result.put("published_album_count",pubAlbum instanceof List<?> list?list.size():0);
+        result.put("wish_hearts_total",db.queryForObject("SELECT coalesce(sum(heart_count),0) FROM wishes WHERE state='APPROVED'",Long.class));
         result.put("has_unpublished_changes",hasUnpublishedChanges(row));
         return result;
     }

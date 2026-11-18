@@ -182,9 +182,14 @@ export function Fireworks({
 
       ctx.clearRect(0, 0, width, height);
 
-      if (mode === 'continuous' && time - lastLaunch.current > 3200 + Math.random() * 2400) {
+      if (mode === 'continuous' && time - lastLaunch.current > 4200 + Math.random() * 2600) {
         lastLaunch.current = time;
         spawnRocket();
+        if (Math.random() < 0.3) {
+          spawnRocket('heart');
+          const twin = rocketsRef.current[rocketsRef.current.length - 1];
+          if (twin) twin.y += 42;
+        }
       }
 
       rocketsRef.current = rocketsRef.current.filter(r => {
@@ -234,7 +239,7 @@ export function Fireworks({
 
         const progress = p.life / p.maxLife;
         const flicker = p.twinkle ? 0.65 + 0.35 * Math.sin(time * 0.025 + p.x) : 1;
-        const alpha = Math.max(0, (1 - progress) * flicker * 0.82);
+        const alpha = Math.max(0, (1 - progress) * flicker * 0.68);
 
         for (let i = 0; i < p.trail.length; i++) {
           const t = p.trail[i];
@@ -284,7 +289,7 @@ export function Fireworks({
       ensureRunning();
     }
 
-    if (mode === 'continuous') launchSalvo(2);
+    if (mode === 'continuous') launchSalvo(3);
 
     const onCustomBurst = () => launchSalvo(4);
     window.addEventListener('wedding:fireworks', onCustomBurst);

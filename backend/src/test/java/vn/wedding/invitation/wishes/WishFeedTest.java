@@ -58,8 +58,22 @@ class WishFeedTest {
         assertEquals(12,page.items().size());
         assertEquals(new UUID(0,2),page.items().getLast().id());
         assertEquals(WishFeedService.encode(AT,new UUID(0,2)),page.nextCursor());
-        assertEquals(Set.of("id","display_name","message","created_at","pinned"),
+        assertEquals(Set.of("id","display_name","message","created_at","pinned","heart_count"),
             Arrays.stream(WishFeedService.Item.class.getRecordComponents()).map(c->c.getName()).collect(java.util.stream.Collectors.toSet()));
+    }
+    @Test void publicWishHeartRequiresPublishedSlugAndApprovedPublicWish(){
+        UUID wishId=UUID.randomUUID();
+        when(db.queryForList("SELECT id FROM wedding WHERE slug=? AND published=true","our-wedding")).thenReturn(List.of(Map.of("id",1)));
+        when(db.queryForList("UPDATE wishes SET heart_count=heart_count+? WHERE id=? AND state='APPROVED' AND event_id IS NULL RETURNING heart_count",1,wishId))
+            .thenReturn(List.of(Map.of("heart_count",25L)));
+        var res=feed.heartPublicWish("our-wedding",wishId,1);
+        assertEquals(25L,res.get("heart_count"));
+    }
+    @Test void guestWishHeartEnforcesAccessGateFirst(){
+        UUID wishId=UUID.randomUUID();
+        when(gate.check(invitationId,session,true)).thenThrow(new IllegalStateException("denied"));
+        assertThrows(IllegalStateException.class,()->feed.heartGuestWish(invitationId,wishId,1,session));
+        verifyNoInteractions(db);
     }
     @Test void cursorUsesStrictTupleComparisonForTiedTimestamps(){
         UUID last=new UUID(0,2);

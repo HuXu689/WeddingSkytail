@@ -282,12 +282,12 @@ Invoke-Api $owner '/admin/access-policy' 'PUT' @{ mode='MANUAL_OPEN'; openAt=$nu
 Write-Host 'Đã phát hành thiệp và mở chính sách truy cập demo.' -ForegroundColor Green
 
 $guestRows = @(
-  @{ Name='Gia đình anh Minh'; Group='DEMO · Gia đình'; Salutation='Trân trọng kính mời'; Assign=@(@{ eventId=$event1.id; maxPeople=4 },@{ eventId=$event2.id; maxPeople=4 }); Rsvp='ATTENDING'; People=3; Note='[Đi xe ô tô gia đình] Cả nhà rất mong đến chung vui cùng hai bạn.'; Wish='Chúc Hoàng An và Thanh Bình trăm năm hạnh phúc, tổ ấm nhỏ luôn rộn rã tiếng cười và vẹn tròn yêu thương!'; Pin=$true },
-  @{ Name='Lan & Huy'; Group='DEMO · Bạn thân'; Salutation='Thân mời'; Assign=@(@{ eventId=$event2.id; maxPeople=2 },@{ eventId=$event3.id; maxPeople=2 }); Rsvp='ATTENDING'; People=2; Note='Hẹn gặp hai bạn trong ngày thật đẹp nhé!'; Wish='Chứng kiến hành trình của hai đứa từ những ngày đầu tiên, tụi mình thực sự xúc động. Chúc đôi trẻ mãi nắm chặt tay nhau như hôm nay nhé! 🥂'; Pin=$true },
-  @{ Name='Chị Mai'; Group='DEMO · Đồng nghiệp'; Salutation='Trân trọng kính mời'; Assign=@(@{ eventId=$event2.id; maxPeople=1 }); Rsvp='DECLINED'; People=0; Note='Chị có chuyến công tác đột xuất, gửi lời chúc phúc nồng nhiệt nhất tới hai em!'; Wish='Chúc hai em tân hôn viên mãn, vạn sự hanh thông và sớm đón thiên thần nhỏ đáng yêu!'; Pin=$false },
-  @{ Name='Gia đình cô Hoa'; Group='DEMO · Gia đình'; Salutation='Kính mời'; Assign=@(@{ eventId=$event1.id; maxPeople=5 },@{ eventId=$event2.id; maxPeople=5 }); Rsvp='ATTENDING'; People=4; Note='[Thực đơn chay] Gia đình cô sẽ đến sớm chung vui cùng hai họ.'; Wish='Cô chú chúc hai con trăm năm hòa hợp, hiếu thảo thuận hòa, trọn đời bình an bên nhau.'; Pin=$false },
-  @{ Name='Anh Quân'; Group='DEMO · Bạn bè'; Salutation='Thân mời'; Assign=@(@{ eventId=$event2.id; maxPeople=1 },@{ eventId=$event3.id; maxPeople=1 }); Rsvp='ATTENDING'; People=1; Note='Rất vui được góp mặt trong ngày trọng đại của hai bạn.'; Wish='Chúc mừng chú rể Hoàng An đã rước được nàng thơ về dinh! Trăm năm hạnh phúc nhé hai bạn ơi!'; Pin=$false },
-  @{ Name='Phương & Nam'; Group='DEMO · Bạn thân'; Salutation='Thân mời'; Assign=@(@{ eventId=$event1.id; maxPeople=2 },@{ eventId=$event2.id; maxPeople=2 }); Rsvp='ATTENDING'; People=2; Note='[Có trẻ nhỏ (ghế em bé)] Chúc mừng chương mới rực rỡ của hai bạn!'; Wish='Mong mỗi ngày trôi qua trong ngôi nhà nhỏ của An & Bình đều ấm áp như nắng thu Hà Nội ngày hai bạn gặp nhau. 🌸'; Pin=$false }
+  @{ Name='Gia đình anh Minh'; Group='DEMO · Gia đình'; Salutation='Trân trọng kính mời'; Assign=@(@{ eventId=$event1.id; maxPeople=4 },@{ eventId=$event2.id; maxPeople=4 }); Rsvp='ATTENDING'; People=3; Note='[Đi xe ô tô gia đình] Cả nhà rất mong đến chung vui cùng hai bạn.'; Wish='Chúc Hoàng An và Thanh Bình trăm năm hạnh phúc, tổ ấm nhỏ luôn rộn rã tiếng cười và vẹn tròn yêu thương!'; Pin=$true; WishHearts=24; CardHearts=12 },
+  @{ Name='Lan & Huy'; Group='DEMO · Bạn thân'; Salutation='Thân mời'; Assign=@(@{ eventId=$event2.id; maxPeople=2 },@{ eventId=$event3.id; maxPeople=2 }); Rsvp='ATTENDING'; People=2; Note='Hẹn gặp hai bạn trong ngày thật đẹp nhé!'; Wish='Chứng kiến hành trình của hai đứa từ những ngày đầu tiên, tụi mình thực sự xúc động. Chúc đôi trẻ mãi nắm chặt tay nhau như hôm nay nhé! 🥂'; Pin=$true; WishHearts=19; CardHearts=10 },
+  @{ Name='Chị Mai'; Group='DEMO · Đồng nghiệp'; Salutation='Trân trọng kính mời'; Assign=@(@{ eventId=$event2.id; maxPeople=1 }); Rsvp='DECLINED'; People=0; Note='Chị có chuyến công tác đột xuất, gửi lời chúc phúc nồng nhiệt nhất tới hai em!'; Wish='Chúc hai em tân hôn viên mãn, vạn sự hanh thông và sớm đón thiên thần nhỏ đáng yêu!'; Pin=$false; WishHearts=11; CardHearts=8 },
+  @{ Name='Gia đình cô Hoa'; Group='DEMO · Gia đình'; Salutation='Kính mời'; Assign=@(@{ eventId=$event1.id; maxPeople=5 },@{ eventId=$event2.id; maxPeople=5 }); Rsvp='ATTENDING'; People=4; Note='[Thực đơn chay] Gia đình cô sẽ đến sớm chung vui cùng hai họ.'; Wish='Cô chú chúc hai con trăm năm hòa hợp, hiếu thảo thuận hòa, trọn đời bình an bên nhau.'; Pin=$false; WishHearts=16; CardHearts=10 },
+  @{ Name='Anh Quân'; Group='DEMO · Bạn bè'; Salutation='Thân mời'; Assign=@(@{ eventId=$event2.id; maxPeople=1 },@{ eventId=$event3.id; maxPeople=1 }); Rsvp='ATTENDING'; People=1; Note='Rất vui được góp mặt trong ngày trọng đại của hai bạn.'; Wish='Chúc mừng chú rể Hoàng An đã rước được nàng thơ về dinh! Trăm năm hạnh phúc nhé hai bạn ơi!'; Pin=$false; WishHearts=9; CardHearts=8 },
+  @{ Name='Phương & Nam'; Group='DEMO · Bạn thân'; Salutation='Thân mời'; Assign=@(@{ eventId=$event1.id; maxPeople=2 },@{ eventId=$event2.id; maxPeople=2 }); Rsvp='ATTENDING'; People=2; Note='[Có trẻ nhỏ (ghế em bé)] Chúc mừng chương mới rực rỡ của hai bạn!'; Wish='Mong mỗi ngày trôi qua trong ngôi nhà nhỏ của An & Bình đều ấm áp như nắng thu Hà Nội ngày hai bạn gặp nhau. 🌸'; Pin=$false; WishHearts=14; CardHearts=10 }
 )
 
 $linkLines = @("Dữ liệu demo: $($demo.Names)", "Thiệp chung: $BaseUrl/w/$($demo.Slug)", "Thiệp chung cá nhân hóa mẫu: $BaseUrl/w/$($demo.Slug)?guest=Anh%20Tu%E1%BA%A5n%20%26%20Gia%20%C4%91%C3%ACnh&salutation=Tr%C3%A2n%20tr%E1%BB%8Dng%20k%C3%ADnh%20m%E1%BB%9Di", '')
@@ -331,6 +331,20 @@ foreach ($guest in $guestRows) {
       if ($guest.Pin) {
         Invoke-Api $owner "/admin/wishes/$wishId/pin" 'PUT' @{ pinned=$true; expectedVersion=1 } (Get-Csrf $owner) | Out-Null
       }
+      $remWishHearts = [int]$guest.WishHearts
+      while ($remWishHearts -gt 0) {
+        $batch = [Math]::Min(10, $remWishHearts)
+        Invoke-Api $guestSession "/guest/invitations/$invitationId/approved-wishes/$wishId/hearts" 'POST' @{ count=$batch } (Get-Csrf $guestSession) | Out-Null
+        $remWishHearts -= $batch
+      }
+    }
+  }
+  if ([int]$guest.CardHearts -gt 0 -and [int]$view.wedding.heart_count -lt 100) {
+    $remCardHearts = [int]$guest.CardHearts
+    while ($remCardHearts -gt 0) {
+      $batch = [Math]::Min(10, $remCardHearts)
+      Invoke-Api $guestSession "/guest/invitations/$invitationId/hearts" 'POST' @{ count=$batch } (Get-Csrf $guestSession) | Out-Null
+      $remCardHearts -= $batch
     }
   }
   $linkLines += "$($guest.Name): $url"

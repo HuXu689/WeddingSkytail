@@ -44,14 +44,27 @@ public class GuestService {
     }
     public Map<String,Object> view(UUID id,HttpSession session) {
         var invitation=gate.check(id,session,true);
-        var wedding=db.queryForMap("SELECT names,message,theme,accent,story,footer,show_story,show_countdown,music_autoplay FROM wedding WHERE id=1");
+        var wedding=db.queryForMap("SELECT names,message,theme,accent,story,footer,show_story,heart_count,show_countdown,music_autoplay FROM wedding WHERE id=1");
         var events=db.queryForList("SELECT e.id,e.title,e.start_at,e.deadline,e.timezone,e.venue,e.address,e.maps_url,e.latitude,e.longitude,e.dress_code,e.parking,e.note AS event_note,e.change_notice,e.revision,e.state,a.max_people,r.status,r.total_people,r.note AS note,coalesce(r.version,0) response_version,(e.state='PUBLISHED' AND now()<e.deadline) rsvp_open FROM assignments a JOIN events e ON e.id=a.event_id LEFT JOIN responses r ON r.invitation_id=a.invitation_id AND r.event_id=a.event_id WHERE a.invitation_id=? AND e.state IN ('PUBLISHED','CANCELLED') ORDER BY e.start_at",id);
         var design=new HashMap<String,Object>(wedding); design.putAll(media.published()); design.put("sections",vn.wedding.invitation.wedding.SectionService.list(db,false,true)); design.put("layout",vn.wedding.invitation.wedding.LayoutService.list(db,false)); design.put("templateVersion",1); design.put("contentSchemaVersion",2);
         return Map.of("invitationId",id,"displayName",invitation.get("display_name"),"salutation",invitation.get("salutation"),"wedding",design,"events",events);
     }
     public Object publicWedding(String slug) {
-        var rows=db.queryForList("SELECT names,message,slug,theme,accent,story,footer,show_story,show_countdown,music_autoplay FROM wedding WHERE slug=? AND published=true",slug);
+        var rows=db.queryForList("SELECT names,message,slug,theme,accent,story,footer,show_story,heart_count,show_countdown,music_autoplay FROM wedding WHERE slug=? AND published=true",slug);
         if(rows.isEmpty()) throw ApiErrors.unavailable(); var result=new HashMap<String,Object>(rows.getFirst()); result.putAll(media.published()); result.put("sections",vn.wedding.invitation.wedding.SectionService.list(db,false,false)); result.put("layout",vn.wedding.invitation.wedding.LayoutService.list(db,false)); result.put("templateVersion",1); result.put("contentSchemaVersion",2); return result;
+    }
+    public Map<String,Object> sendPublicWeddingHearts(String slug,int count) {
+        int delta=Math.max(1,Math.min(10,count));
+        var rows=db.queryForList("UPDATE wedding SET heart_count=heart_count+? WHERE slug=? AND published=true RETURNING heart_count",delta,slug);
+        if(rows.isEmpty()) throw ApiErrors.unavailable();
+        return Map.of("heart_count",AccessGate.number(rows.getFirst(),"heart_count"));
+    }
+    public Map<String,Object> sendGuestWeddingHearts(UUID id,int count,HttpSession session) {
+        gate.check(id,session,true);
+        int delta=Math.max(1,Math.min(10,count));
+        var rows=db.queryForList("UPDATE wedding SET heart_count=heart_count+? WHERE id=1 RETURNING heart_count",delta);
+        if(rows.isEmpty()) throw ApiErrors.unavailable();
+        return Map.of("heart_count",AccessGate.number(rows.getFirst(),"heart_count"));
     }
     /** "Add to calendar" must pass exactly the same gate as the invitation itself: grant, open marker, access window and PIN (P1). */
     public CalendarFile.Event calendar(UUID id,UUID eventId,HttpSession session) {

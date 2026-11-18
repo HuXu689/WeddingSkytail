@@ -1,6 +1,7 @@
 /** F03 wire contract: deliberately excludes invitation/event/author and moderation metadata. */
 export interface ApprovedWishItem {
  pinned:boolean;
+ heart_count?:number;
  id:string;
  display_name:string;
  message:string;
@@ -39,4 +40,14 @@ export function approvedWishPath(scope:WishFeedScope,cursor:string|null=null):st
   ?`/public/weddings/${encodeURIComponent(scope.slug)}/wishes`
   :`/guest/invitations/${encodeURIComponent(scope.invitationId)}/approved-wishes`;
  return cursor===null?base:`${base}?cursor=${encodeURIComponent(cursor)}`;
+}
+export function cardHeartPath(scope:WishFeedScope):string{
+ return scope.kind==='public'
+  ?`/public/weddings/${encodeURIComponent(scope.slug)}/hearts`
+  :`/guest/invitations/${encodeURIComponent(scope.invitationId)}/hearts`;
+}
+export function wishHeartPath(scope:WishFeedScope,wishId:string):string{
+ return scope.kind==='public'
+  ?`/public/weddings/${encodeURIComponent(scope.slug)}/wishes/${encodeURIComponent(wishId)}/hearts`
+  :`/guest/invitations/${encodeURIComponent(scope.invitationId)}/approved-wishes/${encodeURIComponent(wishId)}/hearts`;
 }

@@ -136,3 +136,34 @@ test('ROYAL-CEREMONY-AND-ADMIN-GUARD: phong bì 3D đóng kín lúc nghỉ, mở
   assert.match(adminWishes, /Lưu & Duyệt/);
   assert.match(quickShare, /\/admin\/wedding/);
 });
+
+test('AUTO-EFFECTS-AND-REAL-HEARTS: pháo hoa & mưa hoa chạy tự động, thả tim thiệp và thả tim lời chúc ghi nhận số liệu thật từ máy chủ', () => {
+  const design = read('../src/features/invitation/design.tsx');
+  const petals = read('../src/features/invitation/petal-shower.tsx');
+  const fireworks = read('../src/features/invitation/fireworks.tsx');
+  const wishFeed = read('../src/features/invitation/wish-feed.tsx');
+  const bar = read('../src/features/invitation/celebration-bar.tsx');
+
+  assert.match(design, /<Fireworks mode=\{preview\?'burst':'continuous'\}/);
+  assert.match(design, /<PetalShower intensity=\{atmosphere==='sakura'\?'dense':'normal'\}/);
+  assert.match(design, /cover-heart-pill-btn/);
+  assert.match(design, /cardHeartPath\(resolvedHeartScope\)/);
+  assert.match(petals, /lastBreeze/);
+  assert.match(fireworks, /mode === 'continuous'/);
+  assert.match(wishFeed, /wishHeartPath\(scope,wishId\)/);
+  assert.match(wishFeed, /wish\.heart_count/);
+  assert.match(bar, /onSendHeart/);
+});
+
+test('SYMMETRIC-CORNERS-AND-SOFT-FULL-BLEED-ATMOSPHERE: 4 góc viền hoa đối xứng tuyệt đối và nền không khí phủ tràn màn hình dịu nhẹ', () => {
+  const ornaments = read('../src/features/invitation/celebration-ornaments.tsx');
+  const celebrationCss = read('../src/features/invitation/celebration.css');
+  const extraCss = read('../src/features/invitation/grand-effects-extra.css');
+  const luxuryCss = read('../src/features/invitation/luxury-experience.css');
+
+  assert.equal((ornaments.match(/M12 168V12h156/g) || []).length, 4, 'Cả 4 góc phải dùng chung một tọa độ gốc để đối xứng tuyệt đối');
+  assert.doesNotMatch(ornaments, /M168 12V168H12/);
+  assert.match(celebrationCss, /\.celebration-corner\.corner-bottom-left\{[^}]*transform:scaleY\(-1\)/);
+  assert.match(extraCss, /body:has\(\.wedding-canvas\.atmosphere-crimson\)/);
+  assert.match(luxuryCss, /\.wedding-canvas\s+\.wedding-body\s*\{[^}]*background:\s*transparent\s*!important/s);
+});

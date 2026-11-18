@@ -4,9 +4,13 @@ import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 const source=readFileSync(new URL('../src/shared/invitation-features.ts',import.meta.url),'utf8');
 const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022}}).outputText;
-const {approvedWishPath}=await import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+const {approvedWishPath,cardHeartPath,wishHeartPath}=await import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
 test('approved feed has separate public/guest paths and encodes identifiers and cursor',()=>{
  assert.equal(approvedWishPath({kind:'public',slug:'fixture/only'}),'/public/weddings/fixture%2Fonly/wishes');
  assert.equal(approvedWishPath({kind:'guest',invitationId:'fixture'}),'/guest/invitations/fixture/approved-wishes');
  assert.equal(approvedWishPath({kind:'guest',invitationId:'fixture'},'a+b/='),'/guest/invitations/fixture/approved-wishes?cursor=a%2Bb%2F%3D');
+ assert.equal(cardHeartPath({kind:'public',slug:'our-wedding'}),'/public/weddings/our-wedding/hearts');
+ assert.equal(cardHeartPath({kind:'guest',invitationId:'inv-01'}),'/guest/invitations/inv-01/hearts');
+ assert.equal(wishHeartPath({kind:'public',slug:'our-wedding'},'wish-01'),'/public/weddings/our-wedding/wishes/wish-01/hearts');
+ assert.equal(wishHeartPath({kind:'guest',invitationId:'inv-01'},'wish-01'),'/guest/invitations/inv-01/approved-wishes/wish-01/hearts');
 });

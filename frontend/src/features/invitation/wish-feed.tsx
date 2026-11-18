@@ -3,7 +3,9 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {ChevronDown,Heart,RefreshCw,RotateCcw} from 'lucide-react';
 import {api} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
-import {approvedWishPath,type ApprovedWishItem,type ApprovedWishPage,type WishFeedScope} from '@/shared/invitation-features';
+import {approvedWishPath,wishHeartPath,type ApprovedWishItem,type ApprovedWishPage,type WishFeedScope} from '@/shared/invitation-features';
+
+const LIKED_WISHES_STORAGE_KEY='wedding-wish-hearted-ids';
 
 /** dd/mm/yyyy ngắn cho caption lời chúc; trả chuỗi rỗng khi thiếu/không hợp lệ để không hiện ngày rỗng. */
 function wishStamp(value:string){const date=new Date(value);return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}).format(date);}
@@ -11,14 +13,29 @@ function wishStamp(value:string){const date=new Date(value);return Number.isNaN(
 /** A keyed scope prevents a late response from displaying another invitation's feed. */
 export function WishFeed({scope}:{scope:WishFeedScope}){
  const path=approvedWishPath(scope);
- return <ScopedWishFeed key={path} path={path}/>;
+ return <ScopedWishFeed key={path} path={path} scope={scope}/>;
 }
 
-function ScopedWishFeed({path}:{path:string}){
+function ScopedWishFeed({path,scope}:{path:string;scope:WishFeedScope}){
  const [items,setItems]=useState<ApprovedWishItem[]>([]),[cursor,setCursor]=useState<string|null>(null),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [query,setQuery]=useState(''),[pinnedOnly,setPinnedOnly]=useState(false),[liveNotice,setLiveNotice]=useState('');
- const [likedIds,setLikedIds]=useState<Record<string,number>>({});
+ const [likedIds,setLikedIds]=useState<Record<string,boolean>>({});
  const active=useRef(false),loading=useRef(false),sequence=useRef(0),retryCursor=useRef<string|null>(null);
+
+ useEffect(()=>{
+  if(typeof window==='undefined')return;
+  try{
+   const raw=window.localStorage.getItem(LIKED_WISHES_STORAGE_KEY);
+   if(raw){
+    const parsed=JSON.parse(raw) as unknown;
+    if(Array.isArray(parsed)){
+     const map:Record<string,boolean>={};
+     for(const id of parsed){if(typeof id==='string')map[id]=true;}
+     setLikedIds(map);
+    }
+   }
+  }catch{}
+ },[]);
 
  async function load(after:string|null){
   if(loading.current)return;
@@ -56,10 +73,10 @@ function ScopedWishFeed({path}:{path:string}){
       noticeTimer=window.setTimeout(()=>setLiveNotice(''),4200);
      }
      if(added.length===0&&fresh.items.length===previous.length){
-      const changed=fresh.items.some((item,idx)=>previous[idx]?.id!==item.id||previous[idx]?.pinned!==item.pinned||previous[idx]?.message!==item.message);
+      const changed=fresh.items.some((item,idx)=>previous[idx]?.id!==item.id||previous[idx]?.pinned!==item.pinned||previous[idx]?.message!==item.message||Number(previous[idx]?.heart_count??0)!==Number(item.heart_count??0));
       if(!changed)return previous;
      }
-     return Array.from(new Map([...fresh.items,...previous].map(item=>[item.id,item])).values());
+     return Array.from(new Map([...previous,...fresh.items].map(item=>[item.id,item])).values()).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||Date.parse(b.created_at)-Date.parse(a.created_at));
     });
    }catch{}
   }
@@ -88,10 +105,32 @@ function ScopedWishFeed({path}:{path:string}){
   });
  },[items,query,pinnedOnly]);
 
- function sendHeart(wishId:string){
-  setLikedIds(prev=>({...prev,[wishId]:(prev[wishId]??0)+1}));
+ async function sendHeart(wishId:string){
+  setLikedIds(prev=>{
+   const next={...prev,[wishId]:true};
+   try{window.localStorage.setItem(LIKED_WISHES_STORAGE_KEY,JSON.stringify(Object.keys(next).slice(-300)));}catch{}
+   return next;
+  });
+  setItems(prev=>prev.map(item=>item.id===wishId?{...item,heart_count:Number(item.heart_count??0)+1}:item));
   if(typeof window!=='undefined'){
    window.dispatchEvent(new CustomEvent('wedding:hearts'));
+  }
+  try{
+   const res=await api<{id:string;heart_count:number}>(wishHeartPath(scope,wishId),'POST',{count:1});
+   if(active.current&&typeof res.heart_count==='number'){
+    setItems(prev=>prev.map(item=>item.id===wishId?{...item,heart_count:Math.max(Number(item.heart_count??0),Number(res.heart_count))}:item));
+   }
+   try{
+    if(typeof BroadcastChannel!=='undefined'){
+     const ch=new BroadcastChannel('wedding-wishes-live');
+     ch.postMessage('heart');
+     ch.close();
+    }
+   }catch{}
+  }catch{
+   if(active.current){
+    setItems(prev=>prev.map(item=>item.id===wishId?{...item,heart_count:Math.max(0,Number(item.heart_count??1)-1)}:item));
+   }
   }
  }
 
@@ -105,15 +144,16 @@ function ScopedWishFeed({path}:{path:string}){
    <input className="wish-search-input" type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Tìm theo tên hoặc lời chúc…" aria-label="Tìm lời chúc"/>
   </div>}
   <div className="wish-list">{visibleItems.map(wish=>{
-   const hearts=likedIds[wish.id]??0;
+   const hearts=Number(wish.heart_count??0);
+   const isLiked=Boolean(likedIds[wish.id])||hearts>0;
    return <blockquote className="wish-item motion-fade" key={wish.id}>
     {wish.pinned&&<span className="field-hint">Được chủ tiệc ghim</span>}
     <p>{text(wish.message)}</p>
     <div className="wish-item-footer">
      <cite>{oneLine(wish.display_name)}{wishStamp(wish.created_at)&&<span className="wish-time"> · {wishStamp(wish.created_at)}</span>}</cite>
-     <button type="button" className={`secondary wish-heart-btn${hearts>0?' is-liked':''}`} onClick={()=>sendHeart(wish.id)} aria-label={`Thả tim lời chúc của ${oneLine(wish.display_name)}`}>
+     <button type="button" className={`secondary wish-heart-btn${isLiked?' is-liked':''}`} onClick={()=>void sendHeart(wish.id)} aria-label={`Thả tim lời chúc của ${oneLine(wish.display_name)} (${hearts} lượt thả tim)`}>
       <Heart size={13} aria-hidden="true"/>
-      <span>{hearts>0?hearts:'Thả tim'}</span>
+      <span>{hearts>0?hearts.toLocaleString('vi-VN'):'Thả tim'}</span>
      </button>
     </div>
    </blockquote>;
