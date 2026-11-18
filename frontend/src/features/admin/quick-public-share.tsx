@@ -1,19 +1,35 @@
 'use client';
 import {useEffect,useState} from 'react';
+import {api} from '@/shared/api';
 import {buildPersonalizedPublicUrl,buildQuickInviteMessage} from '@/features/invitation/guest-greeting';
 
-export function QuickPublicSharePanel({coupleNames='hai bạn',slug='our-wedding'}:{coupleNames?:string;slug?:string}){
+export function QuickPublicSharePanel({coupleNames,slug}:{coupleNames?:string;slug?:string}){
   const [origin,setOrigin]=useState('');
+  const [loadedWedding,setLoadedWedding]=useState<{names:string;slug:string}|null>(null);
   const [guestName,setGuestName]=useState('');
   const [salutation,setSalutation]=useState('Thân mời');
   const [copiedKind,setCopiedKind]=useState<'url'|'msg'|''>('');
 
   useEffect(()=>{
     if(typeof window!=='undefined')setOrigin(window.location.origin);
-  },[]);
+    if(!coupleNames||!slug){
+      let active=true;
+      void api<{names?:string;draft_names?:string;slug?:string}>('/admin/wedding')
+        .then(w=>{
+          if(active)setLoadedWedding({
+            names:(w.names?.trim()||w.draft_names?.trim()||'hai bạn'),
+            slug:(w.slug?.trim()||'our-wedding'),
+          });
+        })
+        .catch(()=>{});
+      return()=>{active=false;};
+    }
+  },[coupleNames,slug]);
 
-  const shareUrl=buildPersonalizedPublicUrl(origin||'http://localhost:8088',slug,guestName,salutation);
-  const shareMessage=buildQuickInviteMessage({coupleNames,guestName,salutation,url:shareUrl});
+  const resolvedNames=coupleNames||loadedWedding?.names||'hai bạn';
+  const resolvedSlug=slug||loadedWedding?.slug||'our-wedding';
+  const shareUrl=buildPersonalizedPublicUrl(origin||'http://localhost:8088',resolvedSlug,guestName,salutation);
+  const shareMessage=buildQuickInviteMessage({coupleNames:resolvedNames,guestName,salutation,url:shareUrl});
 
   async function copyText(val:string,kind:'url'|'msg'){
     try{

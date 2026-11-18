@@ -241,6 +241,7 @@
 .gift-editor form { display:grid; gap:16px; }
 .gift-editor .check { display:flex; align-items:flex-start; gap:10px; }
 .gift-editor .check input { width:auto; flex:none; margin-top:4px; }
+.warning { padding:12px 16px; margin:12px 0; border:1px solid var(--status-warning-border); border-left-width:4px; border-radius:var(--radius-sm); background:var(--status-warning-bg); color:var(--status-warning-fg); font-size:14px; }
 .gift-editor .warning { padding:12px 16px; border-left:3px solid currentColor; background:var(--compat-color-fbfaf7); }
 .gift-recipient-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
 .gift-recipient { min-width:0; margin:0; }

@@ -1,6 +1,6 @@
 import {Fragment,useEffect,useRef,useState} from 'react';
 import type {CSSProperties,ReactNode} from 'react';
-import {MailOpen} from 'lucide-react';
+import {Check,MailOpen,Share2} from 'lucide-react';
 import {ContentSections,type ContentSection} from './sections';
 import {normalizedLayout,type LayoutItem,type LayoutKey} from './layout';
 import {WeddingAlbum} from './album';
@@ -69,26 +69,76 @@ function ScrollProgressBar(){
  </div>;
 }
 
-export function WeddingCanvas({design,recipient,salutation,children,calendar,gift,wishes,initiallyOpen=true,countdownTo=null,preview=false,publicMode=false}:{design:WeddingDesign;recipient?:string;salutation?:string;children?:ReactNode;calendar?:ReactNode;gift?:ReactNode;wishes?:ReactNode;initiallyOpen?:boolean;countdownTo?:string|null;preview?:boolean;publicMode?:boolean}){
+export function WeddingCanvas({design,recipient,salutation,children,calendar,gift,wishes,initiallyOpen=true,ceremonyEntrance=false,countdownTo=null,preview=false,publicMode=false}:{design:WeddingDesign;recipient?:string;salutation?:string;children?:ReactNode;calendar?:ReactNode;gift?:ReactNode;wishes?:ReactNode;initiallyOpen?:boolean;ceremonyEntrance?:boolean;countdownTo?:string|null;preview?:boolean;publicMode?:boolean}){
  const color=accents.find(a=>a.id===design.accent)?.color??accents[0].color;
- const [opened,setOpened]=useState(initiallyOpen),[curtain,setCurtain]=useState(false);
+ const [opened,setOpened]=useState(initiallyOpen),[curtain,setCurtain]=useState(ceremonyEntrance);
  const [atmosphere,setAtmosphere]=useState<AtmosphereMode>(design.theme==='TRADITIONAL'?'crimson':'royal');
  const [effectsEnabled,setEffectsEnabled]=useState(true);
  const [failedHeroUrl,setFailedHeroUrl]=useState<string|null>(null);
  const [publicGreeting,setPublicGreeting]=useState<PublicGuestGreeting|null>(null);
  const [showEnvelopeOverlay,setShowEnvelopeOverlay]=useState(false);
+ const [sharedNotice,setSharedNotice]=useState(false);
  const canvasRef=useRef<HTMLDivElement>(null);
  useEffect(()=>{if(!initiallyOpen)setCurtain(false);},[initiallyOpen]);
+ useEffect(()=>{
+  if(!ceremonyEntrance||preview||typeof window==='undefined')return;
+  setCurtain(true);
+  const timer=window.setTimeout(()=>{
+   window.dispatchEvent(new CustomEvent('wedding:petals'));
+   window.dispatchEvent(new CustomEvent('wedding:hearts'));
+   window.dispatchEvent(new CustomEvent('wedding:fireworks'));
+  },180);
+  return()=>window.clearTimeout(timer);
+ },[ceremonyEntrance,preview]);
  useEffect(()=>{
   if(!publicMode||preview||typeof window==='undefined')return;
   const parsed=parsePublicGuestGreeting(window.location.search);
   if(parsed){
    setPublicGreeting(parsed);
-   if(parsed.openCeremony)setShowEnvelopeOverlay(true);
+   if(parsed.openCeremony){setShowEnvelopeOverlay(true);return;}
+  }
+  const isAutomated=typeof navigator!=='undefined'&&navigator.webdriver===true;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if(!isAutomated&&!reduced){
+   try{
+    const seenKey='wedding-ceremony-seen';
+    if(!window.sessionStorage.getItem(seenKey)){
+     window.sessionStorage.setItem(seenKey,'1');
+     setShowEnvelopeOverlay(true);
+    }
+   }catch{
+    setShowEnvelopeOverlay(true);
+   }
   }
  },[publicMode,preview]);
  useEffect(()=>{if(!opened||!canvasRef.current)return;return observeInvitation(canvasRef.current);},[opened,design.show_story,design.musicUrl,design.albumUrls?.length,design.show_countdown,design.layout,design.sections?.length]);
- const openCanvas=()=>{setCurtain(true);setOpened(true);};
+ const openCanvas=()=>{
+  setCurtain(true);
+  setOpened(true);
+  if(typeof window!=='undefined'){
+   window.dispatchEvent(new CustomEvent('wedding:petals'));
+   window.dispatchEvent(new CustomEvent('wedding:hearts'));
+   window.dispatchEvent(new CustomEvent('wedding:fireworks'));
+  }
+ };
+ async function sharePublicInvitation(){
+  if(typeof window==='undefined')return;
+  const cleanUrl=`${window.location.origin}${window.location.pathname}`;
+  const title=`Thiệp cưới ${oneLine(design.names||'Hoàng An & Thanh Bình')}`;
+  try{
+   if(typeof navigator!=='undefined'&&typeof navigator.share==='function'){
+    await navigator.share({title,text:`Trân trọng kính mời bạn cùng xem thiệp cưới trực tuyến của ${oneLine(design.names||'chúng mình')}.`,url:cleanUrl});
+    return;
+   }
+  }catch(err){
+   if((err as {name?:string}|null)?.name==='AbortError')return;
+  }
+  try{
+   await navigator.clipboard.writeText(cleanUrl);
+   setSharedNotice(true);
+   window.setTimeout(()=>setSharedNotice(false),2400);
+  }catch{}
+ }
  const effectiveRecipient=recipient||(publicGreeting?.guestName?publicGreeting.guestName:undefined);
  const effectiveSalutation=salutation||(publicGreeting?.salutation?publicGreeting.salutation:undefined);
  const heroPosition=design.heroPosition||'50% 50%';
@@ -130,14 +180,14 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
  };
  return <div ref={canvasRef} className={`wedding-canvas theme-${design.theme.toLowerCase()} atmosphere-${atmosphere}${curtain?' cinematic-opening':''}`} style={{'--wedding-accent':color} as CSSProperties}>
    {!preview&&opened&&<ScrollProgressBar/>}
-   {showEnvelopeOverlay&&!preview&&<EnvelopeCeremonyOverlay names={design.names} guestName={effectiveRecipient} salutation={effectiveSalutation} onComplete={()=>setShowEnvelopeOverlay(false)}/>}
+   {showEnvelopeOverlay&&!preview&&<EnvelopeCeremonyOverlay names={design.names} guestName={effectiveRecipient} salutation={effectiveSalutation} onComplete={()=>{setShowEnvelopeOverlay(false);setCurtain(true);}}/>}
    {/* Sân khấu hiệu ứng sticky full viewport — tiết chế sang trọng, tự ngủ đông khi nghỉ */}
    <div className="wedding-effects-viewport" aria-hidden="true">
     <CelebrationOrnaments/>
-    <FallingRibbons count={5} active={effectsEnabled}/>
-    <PetalShower intensity={atmosphere==='starlight'?'light':'normal'} active={effectsEnabled}/>
-    <GoldenDust count={atmosphere==='starlight'?30:24} active={effectsEnabled}/>
-    <ButterflyFlight count={atmosphere==='starlight'?1:3} active={effectsEnabled}/>
+    <FallingRibbons count={3} active={effectsEnabled}/>
+    <PetalShower intensity={atmosphere==='sakura'?'normal':'light'} active={effectsEnabled}/>
+    <GoldenDust count={atmosphere==='starlight'?22:16} active={effectsEnabled}/>
+    <ButterflyFlight count={atmosphere==='starlight'?1:2} active={effectsEnabled}/>
     {opened && <FloatingHearts count={0} active={effectsEnabled}/>}
     {opened && <Fireworks mode="burst" active={effectsEnabled}/>}
     {effectsEnabled && <SparkleTrail/>}
@@ -161,6 +211,10 @@ export function WeddingCanvas({design,recipient,salutation,children,calendar,gif
        <button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>setShowEnvelopeOverlay(true)}>
         <MailOpen size={15} aria-hidden="true"/>
         <span>Mở nghi thức phong thư</span>
+       </button>
+       <button type="button" className="secondary cover-envelope-replay-btn" onClick={()=>void sharePublicInvitation()}>
+        {sharedNotice?<Check size={15} aria-hidden="true"/>:<Share2 size={15} aria-hidden="true"/>}
+        <span>{sharedNotice?'Đã chép liên kết ✓':'Chia sẻ thiệp hồng'}</span>
        </button>
       </div>}
       <span className="cover-caption reveal">Một ngày · Một đời · Một tình yêu</span>

@@ -128,8 +128,9 @@ export function ButterflyFlight({ count = 2, active = true }: { count?: number; 
         canvas.height = targetH;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
+      const effectiveCount = width > 0 && width < 640 ? Math.min(1, count) : count;
       if (!butterfliesRef.current.length && width > 0) {
-        butterfliesRef.current = Array.from({ length: count }, () => {
+        butterfliesRef.current = Array.from({ length: effectiveCount }, () => {
           const b = createButterfly(width, height);
           b.x = Math.random() * width;
           return b;

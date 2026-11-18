@@ -99,6 +99,7 @@ export default function InvitationPage({params}:{params:Promise<{id:string}>}) {
 
 function InvitationContent({id}:{id:string}) {
  const [data,setData]=useState<Invitation|null>(null);
+ const [ceremonyEntrance,setCeremonyEntrance]=useState(false);
  const [copiedEventId,setCopiedEventId]=useState<string>('');
  /** Số thứ tự thật của buổi tiệc đang phát hành; không đưa index thô của mảng ra UI (L1). */
  const publishedIndex=new Map((data?.events??[]).filter(item=>item.state==='PUBLISHED').map((item,index)=>[item.id,index+1]));
@@ -111,7 +112,7 @@ function InvitationContent({id}:{id:string}) {
    window.setTimeout(()=>setCopiedEventId(cur=>cur===event.id?'':cur),2400);
   }catch{}
  }
- return <main className={`invitation-page ${data?'invitation-open':'invitation-gate'}`}>{!data?<InvitationEntry<Invitation> key={id} id={id} onOpened={setData}/>:<WeddingCanvas initiallyOpen calendar={<WeddingMonthCalendar items={guestCalendar(data.events,id)}/>} gift={<GiftBox scope={{kind:'guest',invitationId:id}}/>} wishes={<WishBook id={id} reload={load}/>} design={data.wedding} recipient={oneLine(data.displayName)} salutation={oneLine(data.salutation)} countdownTo={data.events.filter(item=>item.state==='PUBLISHED'&&new Date(item.start_at).getTime()>Date.now()).map(item=>item.start_at).sort()[0]??null}>{data.events.length>0?<>
+ return <main className={`invitation-page ${data?'invitation-open':'invitation-gate'}`}>{!data?<InvitationEntry<Invitation> key={id} id={id} onOpened={(val,fromSeal)=>{setCeremonyEntrance(Boolean(fromSeal));setData(val);}}/>:<WeddingCanvas initiallyOpen ceremonyEntrance={ceremonyEntrance} calendar={<WeddingMonthCalendar items={guestCalendar(data.events,id)}/>} gift={<GiftBox scope={{kind:'guest',invitationId:id}}/>} wishes={<WishBook id={id} reload={load}/>} design={data.wedding} recipient={oneLine(data.displayName)} salutation={oneLine(data.salutation)} countdownTo={data.events.filter(item=>item.state==='PUBLISHED'&&new Date(item.start_at).getTime()>Date.now()).map(item=>item.start_at).sort()[0]??null}>{data.events.length>0?<>
   {data.events.some(item=>item.state==='PUBLISHED')&&<section className="rsvp-summary reveal"><p className="eyebrow">Phản hồi của bạn</p><strong>Đã phản hồi {data.events.filter(item=>item.state==='PUBLISHED'&&item.status).length}/{data.events.filter(item=>item.state==='PUBLISHED').length} buổi tiệc</strong><div className="row">{data.events.filter(item=>item.state==='PUBLISHED').map(item=><a className="button secondary" key={item.id} href={`#response-${item.id}`} onClick={e=>{e.preventDefault();openResponse(item.id);}}>{item.status?'Sửa phản hồi':'Xác nhận tham dự'} · {oneLine(item.title)}</a>)}</div></section>}
   {data.events.map(event=><article className="event-card" key={event.id}>
    <div className="event-number" aria-hidden="true">{event.state==='CANCELLED'?'×':(publishedIndex.get(event.id)??'•')}</div>

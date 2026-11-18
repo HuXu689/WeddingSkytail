@@ -93,4 +93,20 @@ class MediaAlbumAndReadTest {
         assertFalse(Files.exists(root.resolve(id+".jpg")));
         assertFalse(Files.exists(root.resolve(id+"_thumb.jpg")));
     }
+
+    @Test void publishedSectionImageIsReadableAndProtectedFromDeletion() throws Exception {
+        var db=mock(JdbcTemplate.class);
+        UUID id=UUID.randomUUID();
+        Files.write(root.resolve(id+".jpg"),new byte[]{7,8,9});
+        when(db.queryForList(contains("s.surface='PUBLISHED'"),eq(id))).thenReturn(List.of());
+        when(db.queryForList(contains("FROM wedding_sections ws"),eq(id),eq("%"+id+"%")))
+            .thenReturn(List.of(Map.of("storage_name",id+".jpg")));
+        var service=new MediaService(db,root.toString(),"http://localhost:8088");
+        assertArrayEquals(new byte[]{7,8,9},service.readApproved(id));
+
+        when(db.queryForObject("SELECT count(*) FROM wedding_media_selection WHERE media_id=?",Integer.class,id)).thenReturn(0);
+        when(db.queryForObject("SELECT count(*) FROM wedding WHERE music_id=? OR draft_music_id=?",Integer.class,id,id)).thenReturn(0);
+        when(db.queryForObject("SELECT count(*) FROM wedding_sections WHERE payload IS NOT NULL AND payload::text LIKE ?",Integer.class,"%"+id+"%")).thenReturn(1);
+        assertThrows(ResponseStatusException.class,()->service.remove(id));
+    }
 }

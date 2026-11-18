@@ -17,4 +17,6 @@ export interface MediaAsset {
   published_album_order:number;
   draft_music:boolean;
   published_music:boolean;
+  draft_section?:boolean;
+  published_section?:boolean;
 }

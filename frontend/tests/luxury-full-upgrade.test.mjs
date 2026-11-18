@@ -104,3 +104,35 @@ test('STORYTELLING-AND-UX: đầy đủ cột mốc tình yêu, nghi thức phon
   assert.match(adminInv, /<QuickPublicSharePanel\/>/);
   assert.match(adminResp, /response-care-summary/);
 });
+
+test('ROYAL-CEREMONY-AND-ADMIN-GUARD: phong bì 3D đóng kín lúc nghỉ, mở màn đồng nhất thiệp chung/riêng, lightbox chân dung và bảo vệ ảnh section', () => {
+  const ceremony = read('../src/features/invitation/envelope-ceremony.tsx');
+  const luxuryCss = read('../src/features/invitation/luxury-experience.css');
+  const grandCss = read('../src/features/invitation/grand-effects.css');
+  const sections = read('../src/features/invitation/sections.tsx');
+  const entry = read('../src/features/invitation/invitation-entry.tsx');
+  const guestPage = read('../src/app/invitation/[id]/page.tsx');
+  const tokenPage = read('../src/app/i/[token]/page.tsx');
+  const adminMedia = read('../src/app/admin/media/page.tsx');
+  const adminWishes = read('../src/app/admin/wishes/page.tsx');
+  const quickShare = read('../src/features/admin/quick-public-share.tsx');
+
+  assert.match(ceremony, /luxury-seal-pulse/);
+  assert.match(ceremony, /wedding:fireworks/);
+  assert.match(luxuryCss, /\.luxury-envelope-flap\s*\{[^}]*transform:\s*rotateX\(0deg\)/s);
+  assert.match(luxuryCss, /\.luxury-3d-envelope\.is-unsealing\s+\.luxury-envelope-flap\s*\{[^}]*rotateX\(180deg\)/s);
+  assert.match(luxuryCss, /\.wedding-canvas\s+\.invitation-quick-nav\s*\{[^}]*position:\s*sticky/s);
+  assert.doesNotMatch(grandCss, /\.wedding-canvas::after/);
+
+  assert.match(entry, /onOpened:\s*\(data:\s*T,\s*fromSeal\?:\s*boolean\)\s*=>\s*void/);
+  assert.match(guestPage, /ceremonyEntrance=\{ceremonyEntrance\}/);
+  assert.match(tokenPage, /token-bridge-card/);
+  assert.match(tokenPage, /envelope-pocket/);
+
+  assert.match(sections, /IntroPhotoLightbox/);
+  assert.match(sections, /photo-zoom-trigger/);
+
+  assert.match(adminMedia, /row\.draft_section\s*\|\|\s*row\.published_section/);
+  assert.match(adminWishes, /Lưu & Duyệt/);
+  assert.match(quickShare, /\/admin\/wedding/);
+});

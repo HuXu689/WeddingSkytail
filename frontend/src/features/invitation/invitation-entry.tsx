@@ -10,7 +10,7 @@ import {SectionCornerStickers,StickerBadge,WeddingSticker} from './wedding-stick
 const openInvitation=createOpenIntent<unknown>(api);
 
 /** The envelope contains only generic copy: no recipient, design or event before authorization. */
-export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>void}){
+export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T,fromSeal?:boolean)=>void}){
  const [phase,setPhase]=useState<'loading'|'sealed'|'opening'|'pin'|'error'>('loading');
  const [error,setError]=useState(''),[pin,setPin]=useState(''),[busy,setBusy]=useState(false);
  const [decoration,setDecoration]=useState(false),[visible,setVisible]=useState(true);
@@ -25,7 +25,7 @@ export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>v
     const path=`/guest/invitations/${id}`;
     const state=await api<{opened:boolean}>(`${path}/state`);
     // Reduced motion skips the visual transition, not consent or the access gate.
-    if(state.opened){const data=await api<T>(path);if(active)deliver.current(data);}
+    if(state.opened){const data=await api<T>(path);if(active)deliver.current(data,false);}
     else if(active)setPhase('sealed');
    }catch(e){if(active){setPhase(e instanceof ApiError&&e.status===428?'pin':'error');if(!(e instanceof ApiError&&e.status===428))setError(unavailable);}}
    finally{if(active&&generation.current===current)locked.current=false;}
@@ -42,7 +42,7 @@ export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>v
    if(needsPin){await api(`/guest/invitations/${id}/pin`,'POST',{pin});if(current!==generation.current)return;setPin('');}
    setPhase('opening');
    const data=await openInvitation(id) as T;
-   if(current===generation.current)deliver.current(data);
+   if(current===generation.current)deliver.current(data,true);
   }catch(e){
    if(current!==generation.current)return;
    const pinFailure=e instanceof ApiError&&e.status===428;
@@ -56,7 +56,7 @@ export function InvitationEntry<T>({id,onOpened}:{id:string;onOpened:(data:T)=>v
    <WeddingSticker kind="royal-crest" size={92}/>
   </div>
   <StickerBadge sticker="wax-seal-song-hy" label="Thiệp hồng kính mời"/>
-  <div className={`invitation-envelope ${phase==='opening'?'is-opening':''}`} aria-hidden="true"><span className="envelope-letter"><WeddingIllustration kind="heart"/></span><span className="envelope-flap"/><span className="envelope-seal">♡</span></div>
+  <div className={`invitation-envelope${phase!=='pin'&&phase!=='loading'&&!busy?' is-interactive':''} ${phase==='opening'?'is-opening':''}`} onClick={()=>{if(phase!=='pin'&&phase!=='loading'&&!busy)void open();}} aria-hidden="true"><span className="envelope-letter"><WeddingIllustration kind="heart"/><small className="envelope-letter-caption">Lễ Thành Hôn</small></span><span className="envelope-pocket"/><span className="envelope-flap"/><span className="envelope-seal">囍</span></div>
   <p className="eyebrow">{phase==='pin'?'Bảo vệ bằng mã PIN':'Một lời mời dành cho bạn'}</p>
   <h1 ref={heading} tabIndex={-1}>{phase==='pin'?'Nhập mã PIN để mở thiệp':<>Hẹn gặp bạn<br/>ngày chung đôi.</>}</h1>
   <p>Website ghi nhận thời điểm mở thiệp để người gửi theo dõi lời mời; không công khai lịch sử của bạn.</p>

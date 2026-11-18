@@ -163,16 +163,17 @@ export default function MediaPage(){
  }
 
  const heroRow=images.find(row=>surface==='DRAFT'?row.draft_hero:row.published_hero)||null;
- const unusedImages=useMemo(()=>images.filter(row=>!row.draft_hero&&!row.draft_album&&!row.published_hero&&!row.published_album),[images]);
+ const isImageUsed=(row:MediaAsset)=>Boolean(row.draft_hero||row.draft_album||row.published_hero||row.published_album||row.draft_section||row.published_section);
+ const unusedImages=useMemo(()=>images.filter(row=>!isImageUsed(row)),[images]);
 
  const visibleImages=useMemo(()=>{
-  const base=surface==='PUBLISHED'?images.filter(row=>row.published_hero||row.published_album):images;
+  const base=surface==='PUBLISHED'?images.filter(row=>row.published_hero||row.published_album||row.published_section):images;
   const kw=query.trim().toLowerCase();
   return base.filter(row=>{
    if(kw&&!row.original_name.toLowerCase().includes(kw))return false;
    if(filter==='ALBUM')return surface==='DRAFT'?selected.includes(row.id):row.published_album;
    if(filter==='HERO')return surface==='DRAFT'?row.draft_hero:row.published_hero;
-   if(filter==='UNUSED')return !row.draft_hero&&!row.draft_album&&!row.published_hero&&!row.published_album;
+   if(filter==='UNUSED')return !isImageUsed(row);
    return true;
   });
  },[images,surface,query,filter,selected]);
@@ -344,9 +345,11 @@ export default function MediaPage(){
         {row.published_hero&&<span className="badge badge-published">Ảnh bìa đang phát hành</span>}
         {row.draft_album&&<span className="badge badge-active">Album nháp</span>}
         {row.published_album&&<span className="badge badge-ready">Album đang phát hành</span>}
-        {!row.draft_hero&&!row.draft_album&&!row.published_hero&&!row.published_album&&<span className="field-hint">Chưa dùng</span>}
+        {row.draft_section&&<span className="badge badge-preview">Nội dung nháp</span>}
+        {row.published_section&&<span className="badge badge-published">Nội dung đang phát hành</span>}
+        {!isImageUsed(row)&&<span className="field-hint">Chưa dùng</span>}
        </p>
-       {surface==='DRAFT'&&<button type="button" className="danger" disabled={state.busy||row.draft_hero||row.draft_album||row.published_hero||row.published_album} onClick={()=>setPending(row)}>Xóa ảnh</button>}
+       {surface==='DRAFT'&&<button type="button" className="danger" disabled={state.busy||isImageUsed(row)} onClick={()=>setPending(row)}>Xóa ảnh</button>}
       </div>
      </article>;
     })}

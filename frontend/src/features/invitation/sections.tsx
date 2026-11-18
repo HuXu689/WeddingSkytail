@@ -1,6 +1,7 @@
 'use client';
-import {useState} from 'react';
-import {CalendarPlus,Check,Compass,Copy,ExternalLink,Heart,MapPin,Sparkles} from 'lucide-react';
+import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
+import {CalendarPlus,Check,Compass,Copy,ExternalLink,Heart,MapPin,Sparkles,ZoomIn} from 'lucide-react';
 import {date} from '@/shared/api';
 import {oneLine,text} from '@/shared/text';
 import {WeddingIllustration} from './wedding-illustration';
@@ -74,10 +75,58 @@ function SectionHeading({title,mark,sticker,badge}:{title:string;mark:string;sti
   </header>;
 }
 
+function IntroPhotoLightbox({photo,onClose}:{photo:{src:string;fallback:string;title:string;subtitle?:string};onClose:()=>void}){
+  const dialogRef=useRef<HTMLDialogElement>(null);
+  const closeRef=useRef<HTMLButtonElement>(null);
+  useEffect(()=>{
+    const node=dialogRef.current;
+    if(!node)return;
+    node.showModal();
+    closeRef.current?.focus();
+    const prev=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return()=>{
+      node.close();
+      document.body.style.overflow=prev;
+    };
+  },[]);
+  return createPortal(
+    <dialog
+      ref={dialogRef}
+      className="lightbox album-lightbox intro-photo-lightbox"
+      aria-label={photo.title}
+      aria-modal="true"
+      onCancel={e=>{e.preventDefault();onClose();}}
+      onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+    >
+      <div className="lightbox-top-tools">
+        <button ref={closeRef} type="button" className="lightbox-close" onClick={onClose} aria-label="Đóng ảnh phóng to">×</button>
+      </div>
+      <figure>
+        <img
+          src={photo.src}
+          alt={photo.title}
+          decoding="async"
+          onError={e=>{
+            const img=e.currentTarget;
+            if(!img.src.endsWith(photo.fallback))img.src=photo.fallback;
+          }}
+        />
+        <figcaption>
+          <strong>{photo.title}</strong>
+          {photo.subtitle&&<span> · {photo.subtitle}</span>}
+        </figcaption>
+      </figure>
+    </dialog>,
+    document.body
+  );
+}
+
 /** Giới thiệu hai bạn: chân dung có khung vòm ảnh tùy chọn, trích dẫn riêng và cột mốc kỷ niệm tình yêu. */
 function IntroSection({section}:{section:ContentSection}){
   const people=(section.payload?.people??[]).filter(person=>oneLine(person.name));
   const milestones=(section.payload?.milestones??[]).filter(item=>oneLine(item.dateLabel)&&oneLine(item.title));
+  const [zoomPhoto,setZoomPhoto]=useState<{src:string;fallback:string;title:string;subtitle?:string}|null>(null);
   const lead=text(section.body).trim();
   if(!people.length&&!lead) return null;
   return <section className="content-section content-intro reveal">
@@ -87,8 +136,14 @@ function IntroSection({section}:{section:ContentSection}){
     {people.length>0&&<div className={`intro-people count-${Math.min(people.length,2)}`}>
       {people.map((person,index)=>{
         const avatar=person.avatarUrl?.trim()||null;
+        const fallback=fallbackPortraitUrl(person.role,index);
         return <article className={`intro-person${avatar?' has-portrait':''}`} key={`${index}-${person.name}`}>
-          {avatar&&<div className="intro-person-portrait">
+          {avatar&&<button
+            type="button"
+            className="intro-person-portrait photo-zoom-trigger"
+            onClick={()=>setZoomPhoto({src:avatar,fallback,title:oneLine(person.name),subtitle:person.role?oneLine(person.role):undefined})}
+            aria-label={`Phóng to ảnh chân dung ${oneLine(person.name)}`}
+          >
             <img
               src={avatar}
               alt={`Chân dung ${oneLine(person.name)}`}
@@ -96,11 +151,11 @@ function IntroSection({section}:{section:ContentSection}){
               decoding="async"
               onError={e=>{
                 const img=e.currentTarget;
-                const fallback=fallbackPortraitUrl(person.role,index);
                 if(!img.src.endsWith(fallback))img.src=fallback;
               }}
             />
-          </div>}
+            <span className="photo-zoom-pill" aria-hidden="true"><ZoomIn size={13}/></span>
+          </button>}
           {person.role&&<p className="intro-person-role">{oneLine(person.role)}</p>}
           <h3 className="intro-person-name">{oneLine(person.name)}</h3>
           {person.note&&<p className="intro-person-note">{text(person.note)}</p>}
@@ -116,6 +171,7 @@ function IntroSection({section}:{section:ContentSection}){
       <ol className="love-milestones-track">
         {milestones.map((milestone,index)=>{
           const photo=milestone.photoUrl?.trim()||null;
+          const fallback=fallbackMilestoneUrl(index);
           return <li className={`love-milestone-item${photo?' has-photo':''}`} key={`${index}-${milestone.dateLabel}-${milestone.title}`}>
             <span className="love-milestone-dot" aria-hidden="true">{index+1}</span>
             <article className="love-milestone-card">
@@ -124,7 +180,12 @@ function IntroSection({section}:{section:ContentSection}){
                 <h4>{oneLine(milestone.title)}</h4>
                 {milestone.description?.trim()&&<p>{text(milestone.description)}</p>}
               </div>
-              {photo&&<div className="love-milestone-photo">
+              {photo&&<button
+                type="button"
+                className="love-milestone-photo photo-zoom-trigger"
+                onClick={()=>setZoomPhoto({src:photo,fallback,title:oneLine(milestone.title),subtitle:oneLine(milestone.dateLabel)})}
+                aria-label={`Phóng to ảnh kỷ niệm ${oneLine(milestone.title)}`}
+              >
                 <img
                   src={photo}
                   alt={oneLine(milestone.title)}
@@ -132,16 +193,17 @@ function IntroSection({section}:{section:ContentSection}){
                   decoding="async"
                   onError={e=>{
                     const img=e.currentTarget;
-                    const fallback=fallbackMilestoneUrl(index);
                     if(!img.src.endsWith(fallback))img.src=fallback;
                   }}
                 />
-              </div>}
+                <span className="photo-zoom-pill" aria-hidden="true"><ZoomIn size={13}/></span>
+              </button>}
             </article>
           </li>;
         })}
       </ol>
     </div>}
+    {zoomPhoto&&<IntroPhotoLightbox photo={zoomPhoto} onClose={()=>setZoomPhoto(null)}/>}
   </section>;
 }
 

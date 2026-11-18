@@ -48,7 +48,9 @@ public class MediaService {
             "coalesce(min(s.sort_order) FILTER (WHERE s.surface='DRAFT' AND s.slot='ALBUM'),-1) draft_album_order," +
             "coalesce(min(s.sort_order) FILTER (WHERE s.surface='PUBLISHED' AND s.slot='ALBUM'),-1) published_album_order," +
             "coalesce((SELECT true FROM wedding w WHERE w.music_id=m.id),false) published_music," +
-            "coalesce((SELECT true FROM wedding w WHERE w.draft_music_id=m.id),false) draft_music " +
+            "coalesce((SELECT true FROM wedding w WHERE w.draft_music_id=m.id),false) draft_music," +
+            "coalesce((SELECT true FROM wedding_sections ws WHERE ws.surface='DRAFT' AND ws.payload IS NOT NULL AND ws.payload::text LIKE '%' || m.id::text || '%' LIMIT 1),false) draft_section," +
+            "coalesce((SELECT true FROM wedding_sections ws WHERE ws.surface='PUBLISHED' AND ws.payload IS NOT NULL AND ws.payload::text LIKE '%' || m.id::text || '%' LIMIT 1),false) published_section " +
             "FROM media_assets m LEFT JOIN wedding_media_selection s ON s.media_id=m.id " +
             "GROUP BY m.id ORDER BY m.kind,m.created_at DESC"
         );
@@ -199,9 +201,10 @@ public class MediaService {
 
     @Transactional
     public void remove(UUID id) {
-        var refs = db.queryForObject("SELECT count(*) FROM wedding_media_selection WHERE media_id=?", Integer.class, id);
-        var music = db.queryForObject("SELECT count(*) FROM wedding WHERE music_id=? OR draft_music_id=?", Integer.class, id, id);
-        ApiErrors.require(refs == 0 && music == 0, "Tệp đang được dùng trong bản nháp hoặc bản đã phát hành.");
+        int refs = Objects.requireNonNullElse(db.queryForObject("SELECT count(*) FROM wedding_media_selection WHERE media_id=?", Integer.class, id), 0);
+        int music = Objects.requireNonNullElse(db.queryForObject("SELECT count(*) FROM wedding WHERE music_id=? OR draft_music_id=?", Integer.class, id, id), 0);
+        int sectionRefs = Objects.requireNonNullElse(db.queryForObject("SELECT count(*) FROM wedding_sections WHERE payload IS NOT NULL AND payload::text LIKE ?", Integer.class, "%" + id + "%"), 0);
+        ApiErrors.require(refs == 0 && music == 0 && sectionRefs == 0, "Tệp đang được dùng trong bản nháp hoặc bản đã phát hành.");
         String storage = db.queryForObject("SELECT storage_name FROM media_assets WHERE id=?", String.class, id);
         db.update("DELETE FROM media_assets WHERE id=?", id);
         try {
@@ -227,10 +230,17 @@ public class MediaService {
         return thumbBytes((String) rows.getFirst().get("storage_name"));
     }
 
-    public byte[] read(UUID id, boolean published) {
-        if (!published) return readAdmin(id);
+    private List<Map<String, Object>> findPublishedStorage(UUID id) {
         String sql = "SELECT m.storage_name FROM media_assets m JOIN wedding_media_selection s ON s.media_id=m.id WHERE m.id=? AND s.surface='PUBLISHED' AND m.kind='IMAGE'";
         var rows = db.queryForList(sql, id);
+        if (!rows.isEmpty()) return rows;
+        String sectionSql = "SELECT m.storage_name FROM media_assets m WHERE m.id=? AND m.kind='IMAGE' AND EXISTS (SELECT 1 FROM wedding_sections ws WHERE ws.surface='PUBLISHED' AND ws.enabled=true AND ws.payload IS NOT NULL AND ws.payload::text LIKE ?)";
+        return db.queryForList(sectionSql, id, "%" + id + "%");
+    }
+
+    public byte[] read(UUID id, boolean published) {
+        if (!published) return readAdmin(id);
+        var rows = findPublishedStorage(id);
         if (rows.isEmpty()) throw ApiErrors.unavailable();
         return bytes(resolveSafe((String) rows.getFirst().get("storage_name")));
     }
@@ -238,8 +248,7 @@ public class MediaService {
     public byte[] readApproved(UUID id) { return read(id, true); }
 
     public byte[] readApprovedThumb(UUID id) {
-        String sql = "SELECT m.storage_name FROM media_assets m JOIN wedding_media_selection s ON s.media_id=m.id WHERE m.id=? AND s.surface='PUBLISHED' AND m.kind='IMAGE'";
-        var rows = db.queryForList(sql, id);
+        var rows = findPublishedStorage(id);
         if (rows.isEmpty()) throw ApiErrors.unavailable();
         return thumbBytes((String) rows.getFirst().get("storage_name"));
     }

@@ -22,7 +22,9 @@
   z-index: 5;
 }
 
-.wedding-canvas .celebration-vine {
+.wedding-canvas .celebration-vine,
+.wedding-canvas .celebration-chain,
+.wedding-canvas .celebration-diamonds {
   display: none !important;
 }
 
@@ -85,10 +87,13 @@
 }
 
 .wedding-canvas .invitation-quick-nav {
-  position: relative;
-  top: auto;
+  position: sticky;
+  top: max(10px, env(safe-area-inset-top));
+  z-index: 18;
   background: #fffdf9;
   backdrop-filter: none;
+  border: 1px solid rgba(195, 162, 107, 0.52);
+  box-shadow: 0 10px 28px rgba(37, 51, 41, 0.11);
 }
 
 .wedding-canvas .quick-nav-pill {
@@ -645,115 +650,179 @@ dialog.album-lightbox figure.is-zoomed img {
 
 .luxury-3d-envelope {
   position: relative;
-  width: min(310px, 100%);
-  height: 210px;
-  margin: 22px auto;
-  perspective: 900px;
+  width: min(324px, 100%);
+  height: 220px;
+  margin: 20px auto 22px;
+  perspective: 1100px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.luxury-3d-envelope:hover {
+  transform: translateY(-3px);
+}
+
+.luxury-envelope-glow {
+  position: absolute;
+  inset: 10px -12px -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.28) 0%, rgba(195, 162, 107, 0.08) 52%, transparent 74%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .luxury-envelope-back {
   position: absolute;
-  top: 44px;
+  top: 28px;
   right: 0;
   bottom: 0;
   left: 0;
-  border-radius: 8px 8px 14px 14px;
-  background: #eadcc4;
-  border: 1px solid #cdb791;
-  box-shadow: 0 18px 36px rgba(58, 42, 20, 0.18);
+  border-radius: 10px 10px 16px 16px;
+  background: linear-gradient(180deg, #e7d6b8 0%, #dcc59e 100%);
+  border: 1.5px solid #c9ae80;
+  box-shadow: 0 22px 44px rgba(42, 28, 14, 0.24);
+  z-index: 1;
 }
 
 .luxury-envelope-insert {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 8px;
-  bottom: 18px;
-  border-radius: 10px;
-  background: #fffdf9;
-  border: 1px solid rgba(195, 162, 107, 0.65);
-  box-shadow: 0 8px 20px rgba(58, 42, 20, 0.1);
+  left: 18px;
+  right: 18px;
+  top: 38px;
+  bottom: 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffefa 0%, #fbf3e4 100%);
+  border: 1px solid rgba(195, 162, 107, 0.72);
+  box-shadow: 0 10px 24px rgba(58, 42, 20, 0.14), inset 0 0 0 3px rgba(255, 253, 249, 0.85);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  padding: 13px 12px 10px;
+  justify-content: center;
+  gap: 5px;
+  padding: 14px 14px 12px;
   z-index: 2;
-  transition: transform 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(0) scale(0.98);
+  transition: transform 680ms cubic-bezier(0.2, 0.85, 0.2, 1) 140ms, box-shadow 500ms ease;
 }
 
 .luxury-insert-kicker {
   font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: #6b5324;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .luxury-envelope-insert strong {
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: clamp(19px, 4.6vw, 23px);
   font-weight: 600;
   color: var(--wedding-accent);
-  line-height: 1.2;
+  line-height: 1.22;
 }
 
 .luxury-insert-sub {
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 13px;
-  color: #596354;
+  font-size: 13.5px;
+  color: #4f584b;
 }
 
 .luxury-envelope-pocket {
   position: absolute;
-  top: 44px;
+  top: 28px;
   right: 0;
   bottom: 0;
   left: 0;
-  border-radius: 8px 8px 14px 14px;
-  background: linear-gradient(180deg, #f4ead7 0%, #ebd9bc 100%);
-  clip-path: polygon(0 28%, 50% 56%, 100% 28%, 100% 100%, 0 100%);
-  border-bottom: 1px solid #cdb791;
+  border-radius: 10px 10px 16px 16px;
+  background:
+    linear-gradient(150deg, rgba(255, 252, 244, 0.55) 0%, transparent 46%),
+    linear-gradient(210deg, rgba(255, 252, 244, 0.55) 0%, transparent 46%),
+    linear-gradient(180deg, #f6ecda 0%, #ead6b5 100%);
+  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
+  border: 1px solid #cdb58c;
+  box-shadow: inset 0 -10px 22px rgba(138, 104, 46, 0.12);
   z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.luxury-pocket-monogram {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #7a5c29;
+  padding: 2px 12px;
+  border-top: 1px solid rgba(195, 162, 107, 0.55);
+  border-bottom: 1px solid rgba(195, 162, 107, 0.55);
 }
 
 .luxury-envelope-flap {
   position: absolute;
-  top: 44px;
+  top: 28px;
   left: 0;
   right: 0;
-  height: 52px;
-  background: linear-gradient(180deg, #dfc9a2 0%, #f1e5ce 100%);
+  height: 110px;
+  background: linear-gradient(180deg, #fbf3e3 0%, #e6d1ae 92%, #d4b88c 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
-  transform: rotateX(160deg);
-  z-index: 1;
-  transition: transform 560ms cubic-bezier(0.3, 0.8, 0.2, 1);
+  transform: rotateX(0deg);
+  z-index: 4;
+  filter: drop-shadow(0 6px 10px rgba(62, 42, 18, 0.16));
+  transition: transform 620ms cubic-bezier(0.32, 0.82, 0.2, 1), z-index 0ms linear 260ms;
 }
 
 .luxury-wax-seal {
   position: absolute;
   left: 50%;
-  top: 67%;
+  top: 132px;
   transform: translate(-50%, -50%);
-  z-index: 5;
-  filter: drop-shadow(0 6px 14px rgba(80, 24, 28, 0.35));
-  transition: transform 420ms ease, opacity 320ms ease;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 8px 16px rgba(80, 20, 26, 0.38));
+  transition: transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 320ms ease;
+}
+
+.luxury-seal-pulse {
+  position: absolute;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.68);
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.42);
+  pointer-events: none;
+}
+
+@keyframes waxSealBreath {
+  0%, 100% { transform: scale(0.94); opacity: 0.55; }
+  50% { transform: scale(1.14); opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .luxury-seal-pulse {
+    animation: waxSealBreath 2.4s ease-in-out infinite;
+  }
 }
 
 .luxury-3d-envelope.is-unsealing .luxury-envelope-flap {
-  transform: rotateX(176deg);
+  transform: rotateX(180deg);
+  z-index: 1;
 }
 
 .luxury-3d-envelope.is-unsealing .luxury-wax-seal {
   opacity: 0;
-  transform: translate(-50%, -8px) scale(0.82);
+  transform: translate(-50%, -68%) scale(1.18);
 }
 
 .luxury-3d-envelope.is-unsealing .luxury-envelope-insert {
-  transform: translateY(-28px);
+  transform: translateY(-56px) scale(1.03);
+  z-index: 5;
+  box-shadow: 0 20px 38px rgba(42, 28, 14, 0.22), inset 0 0 0 3px rgba(255, 253, 249, 0.92);
 }
 
 .ceremony-envelope-lead {
@@ -789,7 +858,17 @@ dialog.album-lightbox figure.is-zoomed img {
 }
 
 .cover-ceremony-replay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
   margin-top: 18px;
+}
+
+.wedding-cover:not(:has(.cover-photo)) .cover-ceremony-replay,
+.theme-traditional .cover-ceremony-replay,
+.hero-split .cover-ceremony-replay {
+  justify-content: center;
 }
 
 .cover-envelope-replay-btn {
@@ -1180,10 +1259,132 @@ dialog.album-lightbox figure.is-zoomed img {
 }
 
 .invitation-entry .envelope-seal {
-  background: radial-gradient(circle at 35% 30%, #9e3f4a 0%, #6e2630 100%) !important;
-  border: 1.5px solid #dfbe7f !important;
+  background: radial-gradient(circle at 35% 30%, #b03a48 0%, #6e1c26 100%) !important;
+  border: 2px solid #e6c687 !important;
   color: #fff6dc !important;
-  box-shadow: 0 6px 16px rgba(96, 32, 40, 0.28) !important;
+  font-size: 22px !important;
+  font-weight: 700;
+  z-index: 5;
+  box-shadow: 0 8px 20px rgba(96, 24, 32, 0.35), 0 0 0 4px rgba(212, 175, 55, 0.22) !important;
+}
+
+.invitation-envelope {
+  perspective: 900px;
+  border-radius: 10px 10px 16px 16px !important;
+  background: linear-gradient(180deg, #ead8bc 0%, #dfc8a2 100%) !important;
+  border: 1.5px solid #cbb082 !important;
+  box-shadow: 0 20px 42px rgba(68, 46, 20, 0.18), inset 0 0 0 3px rgba(255, 252, 245, 0.45) !important;
+  overflow: visible;
+}
+
+.invitation-envelope.is-interactive {
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.invitation-envelope.is-interactive:hover {
+  transform: translateY(-3px);
+}
+
+.invitation-envelope .envelope-letter {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 14px;
+  bottom: 14px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffefa 0%, #faf1e0 100%);
+  border: 1px solid rgba(195, 162, 107, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8px;
+  z-index: 1;
+  transition: transform 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.invitation-envelope.is-opening .envelope-letter {
+  transform: translateY(-34px);
+}
+
+.envelope-letter-caption {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: #6b5324;
+  margin-top: -6px;
+}
+
+.invitation-envelope .envelope-pocket {
+  position: absolute;
+  inset: 0;
+  border-radius: 9px 9px 15px 15px;
+  background: linear-gradient(180deg, #f6ecda 0%, #ead7b7 100%);
+  clip-path: polygon(0 16%, 50% 58%, 100% 16%, 100% 100%, 0 100%);
+  z-index: 2;
+}
+
+.invitation-envelope .envelope-flap {
+  z-index: 3;
+  border-radius: 9px 9px 0 0;
+  background: linear-gradient(180deg, #fcf4e6 0%, #e5cfa9 100%) !important;
+  filter: drop-shadow(0 5px 8px rgba(58, 40, 18, 0.14));
+}
+
+/* Lightbox phóng to ảnh chân dung & cột mốc tình yêu */
+.photo-zoom-trigger {
+  position: relative;
+  padding: 0 !important;
+  min-height: 0 !important;
+  background: #f4efe4 !important;
+  cursor: zoom-in;
+  display: block;
+}
+
+.intro-person-portrait.photo-zoom-trigger {
+  border-radius: 120px 120px 18px 18px !important;
+  border: 4px solid #fffdf9 !important;
+  box-shadow: 0 12px 28px rgba(43, 42, 38, 0.12), 0 0 0 1px rgba(195, 162, 107, 0.55) !important;
+}
+
+.love-milestone-photo.photo-zoom-trigger {
+  width: 100%;
+  border-radius: 12px !important;
+  border: 3px solid #fffdf9 !important;
+  box-shadow: 0 6px 16px rgba(43, 42, 38, 0.1) !important;
+}
+
+.photo-zoom-trigger img {
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.photo-zoom-trigger:hover img {
+  transform: scale(1.045);
+}
+
+.photo-zoom-pill {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(24, 22, 19, 0.68);
+  border: 1px solid rgba(212, 175, 55, 0.7);
+  color: #fffdf5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+dialog.intro-photo-lightbox {
+  grid-template-columns: minmax(0, 820px);
+}
+
+dialog.intro-photo-lightbox figure {
+  grid-column: 1;
 }
 
 .intro-decoration-toggle {
@@ -1209,6 +1410,28 @@ dialog.album-lightbox figure.is-zoomed img {
 }
 
 .wedding-canvas .month-navigation button.secondary {
-  min-width: 44px;
-  padding: 8px 14px !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.wedding-canvas .wedding-month-calendar > button.secondary {
+  display: flex !important;
+  margin: 14px auto 0 !important;
+  text-decoration: none !important;
+}
+
+@media (max-width: 640px) {
+  .wedding-canvas .wedding-body {
+    padding-bottom: 96px;
+  }
+  .celebration-interactive-bar {
+    margin-bottom: 24px;
+  }
+  body > footer {
+    padding-bottom: 84px;
+  }
 }
