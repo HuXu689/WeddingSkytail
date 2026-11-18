@@ -154,6 +154,10 @@ nano .env
 chmod 600 .env
 ```
 
+
+> Có thể khai báo `DOMAIN=your-domain.com` để ghi nhớ domain. Compose hiện nhận trực tiếp URL tại `APP_PUBLIC_ORIGIN` và hostname tại `SITE_ADDRESS` (Caddy), nên điền cùng domain như ví dụ dưới đây; không đặt scheme trong `SITE_ADDRESS` và dùng `https://` trong `APP_PUBLIC_ORIGIN`.
+
+
 Giá trị cần dùng trên production:
 
 ```dotenv
