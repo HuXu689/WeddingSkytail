@@ -42,31 +42,31 @@
 /* === 2. ATMOSPHERE MODES (4 CHẾ ĐỘ KHÔNG KHÍ DỊU NHẸ, PHỦ TOÀN MÀN HÌNH) === */
 .wedding-canvas.atmosphere-royal,
 body:has(.wedding-canvas.atmosphere-royal) {
-  --atmosphere-paper: #fcfaf4;
-  --atmosphere-glow: rgba(198, 166, 104, 0.06);
+  --atmosphere-paper: #f3ede1;
+  --atmosphere-glow: rgba(182, 145, 78, 0.08);
 }
 
 .wedding-canvas.atmosphere-sakura,
 body:has(.wedding-canvas.atmosphere-sakura) {
-  --atmosphere-paper: #fdf9f9;
-  --atmosphere-glow: rgba(216, 154, 168, 0.055);
+  --atmosphere-paper: #f3eae8;
+  --atmosphere-glow: rgba(196, 132, 146, 0.075);
 }
 
 .wedding-canvas.atmosphere-starlight,
 body:has(.wedding-canvas.atmosphere-starlight) {
-  --atmosphere-paper: #f9fafc;
-  --atmosphere-glow: rgba(164, 180, 212, 0.055);
+  --atmosphere-paper: #eaeef4;
+  --atmosphere-glow: rgba(138, 158, 194, 0.08);
 }
 
 .wedding-canvas.atmosphere-crimson,
 body:has(.wedding-canvas.atmosphere-crimson) {
-  --atmosphere-paper: #fcf9f5;
-  --atmosphere-glow: rgba(176, 84, 94, 0.05);
+  --atmosphere-paper: #f3ebe2;
+  --atmosphere-glow: rgba(164, 78, 88, 0.075);
 }
 
 body:has(.wedding-canvas),
 .preview-stage .wedding-canvas {
-  background-color: var(--atmosphere-paper, #fcfaf5) !important;
+  background-color: var(--atmosphere-paper, #f3ede1) !important;
   background-image:
     radial-gradient(ellipse 75% 560px at 12% 10%, var(--atmosphere-glow, rgba(198,166,104,.045)) 0%, transparent 74%),
     radial-gradient(ellipse 75% 560px at 88% 48%, var(--atmosphere-glow, rgba(198,166,104,.045)) 0%, transparent 74%),

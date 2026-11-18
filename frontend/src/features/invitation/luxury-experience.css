@@ -6,8 +6,12 @@
 
 /* === 1. CÂU CHUYỆN TÌNH YÊU BIÊN TẬP & ĐIỀUƯỚNG CHƯƠNG TRANG NHÃ === */
 .wedding-canvas {
-  --inv-muted: #4b473f;
-  --cinematic-wash: color-mix(in srgb, var(--wedding-accent) 2.5%, #faf6ee);
+  --inv-paper: #f9f4ea;
+  --inv-paper-bright: #fbf6ed;
+  --inv-paper-deep: #f1e8d8;
+  --inv-ink: #181613;
+  --inv-muted: #36312a;
+  --cinematic-wash: color-mix(in srgb, var(--wedding-accent) 3%, #f3ebdd);
 }
 
 .wedding-canvas .wedding-inner {
@@ -39,30 +43,30 @@
 .wedding-canvas .content-section,
 .wedding-canvas .wedding-month-calendar {
   border-radius: 24px;
-  border: 1px solid rgba(195, 162, 107, 0.36);
-  background: linear-gradient(180deg, #fffefb 0%, #fbf7ef 100%);
-  box-shadow: 0 12px 34px rgba(58, 44, 24, 0.05);
+  border: 1px solid rgba(178, 142, 82, 0.46);
+  background: linear-gradient(180deg, #faf5eb 0%, #f3eadb 100%);
+  box-shadow: 0 14px 36px rgba(48, 36, 18, 0.07);
 }
 
 .wedding-canvas .intro-person,
 .wedding-canvas .family-group {
-  background: #faf6ee;
-  border: 1px solid rgba(195, 162, 107, 0.32);
-  box-shadow: inset 0 0 0 3px rgba(255, 253, 249, 0.72);
+  background: #f5ecde;
+  border: 1px solid rgba(178, 142, 82, 0.4);
+  box-shadow: inset 0 0 0 3px rgba(252, 248, 240, 0.65);
 }
 
 .wedding-canvas .gift-box {
   max-width: 760px;
   border-radius: 24px;
-  border: 1px solid rgba(195, 162, 107, 0.36);
-  background: linear-gradient(180deg, #fffefb 0%, #fbf7ef 100%);
-  box-shadow: 0 12px 34px rgba(58, 44, 24, 0.055);
+  border: 1px solid rgba(178, 142, 82, 0.46);
+  background: linear-gradient(180deg, #faf5eb 0%, #f3eadb 100%);
+  box-shadow: 0 14px 36px rgba(48, 36, 18, 0.07);
 }
 
 .wedding-canvas .gift-box-inner {
   max-width: 580px;
-  background: rgba(255, 253, 249, 0.55);
-  border: 1px dashed rgba(195, 162, 107, 0.42);
+  background: rgba(250, 244, 233, 0.72);
+  border: 1px dashed rgba(178, 142, 82, 0.5);
   box-shadow: none;
 }
 
@@ -70,34 +74,41 @@
   max-width: 760px;
   padding: clamp(24px, 4cqw, 38px) clamp(18px, 3.6cqw, 34px);
   border-radius: 24px;
-  border: 1px solid rgba(195, 162, 107, 0.36);
-  background: linear-gradient(180deg, #fffefb 0%, #fbf7ef 100%);
-  box-shadow: 0 12px 34px rgba(58, 44, 24, 0.055);
+  border: 1px solid rgba(178, 142, 82, 0.46);
+  background: linear-gradient(180deg, #faf5eb 0%, #f3eadb 100%);
+  box-shadow: 0 14px 36px rgba(48, 36, 18, 0.07);
 }
 
 .wedding-canvas .wedding-events {
-  background-color: rgba(250, 245, 236, 0.58) !important;
-  border-block: 1px solid rgba(195, 162, 107, 0.24);
+  background-color: rgba(242, 233, 218, 0.68) !important;
+  border-block: 1px solid rgba(178, 142, 82, 0.34);
 }
 
 .public-wedding-page .public-invitation-note {
   max-width: 760px;
   margin: 12px auto 36px;
   border-radius: 20px;
-  border: 1px solid rgba(195, 162, 107, 0.36);
-  background: linear-gradient(180deg, #fffefb 0%, #fbf7ef 100%);
-  box-shadow: 0 10px 28px rgba(58, 44, 24, 0.045);
+  border: 1px solid rgba(178, 142, 82, 0.46);
+  background: linear-gradient(180deg, #faf5eb 0%, #f3eadb 100%);
+  box-shadow: 0 12px 30px rgba(48, 36, 18, 0.06);
+}
+
+.public-wedding-page .public-invitation-note p {
+  color: #2f2a23;
+  font-weight: 500;
 }
 
 .public-wedding-page .public-note-badge {
-  background: #f6efe1;
-  color: #6b5324;
-  border: 1px solid rgba(195, 162, 107, 0.45);
+  background: #ede1ca;
+  color: #4f3b16;
+  border: 1px solid rgba(178, 142, 82, 0.55);
 }
 
 body:has(.wedding-canvas) > footer {
   background: transparent;
-  border-top: 1px solid rgba(195, 162, 107, 0.22);
+  border-top: 1px solid rgba(178, 142, 82, 0.3);
+  color: #352f27;
+  font-weight: 500;
 }
 
 .wedding-canvas .field-hint {
@@ -158,20 +169,34 @@ body:has(.wedding-canvas) > footer {
   position: sticky;
   top: max(10px, env(safe-area-inset-top));
   z-index: 18;
-  background: #fffdf9;
+  background: #f8f1e3;
   backdrop-filter: none;
-  border: 1px solid rgba(195, 162, 107, 0.52);
-  box-shadow: 0 10px 28px rgba(37, 51, 41, 0.11);
+  border: 1px solid rgba(178, 142, 82, 0.56);
+  box-shadow: 0 10px 28px rgba(38, 28, 16, 0.12);
 }
 
 .wedding-canvas .quick-nav-pill {
-  background: #fffdf9;
-  color: #253329;
+  background: transparent;
+  color: #191612;
+  font-weight: 700;
 }
 
 .wedding-canvas .quick-nav-pill.is-active {
   background: var(--wedding-accent);
   color: #ffffff;
+}
+
+.wedding-canvas .celebration-interactive-bar {
+  background: linear-gradient(180deg, #f8f1e3 0%, #efe5d2 100%);
+  border: 1px solid rgba(178, 142, 82, 0.52);
+  box-shadow: 0 12px 30px rgba(48, 36, 18, 0.09);
+}
+
+.wedding-canvas .celebration-action-btn:not(.celebration-mode-btn):not(.is-hearted) {
+  background: #fbf6ec !important;
+  color: #1d1813 !important;
+  border-color: rgba(178, 142, 82, 0.5) !important;
+  font-weight: 700;
 }
 
 .wedding-canvas .album-heading-meta span {
@@ -577,24 +602,609 @@ body:has(.wedding-canvas) > footer {
   color: #495347;
 }
 
-/* === 5. TRÌNH CHIẾU ALBUM TỰ ĐỘNG & LIGHTBOX ZOOM === */
-.album-slideshow-btn {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 6px;
-  border-radius: 999px !important;
-  padding: 9px 16px !important;
-  font-size: 13px !important;
+/* === 5. SÂN KHẤU TRÌNH CHIẾU ALBUM LỤA MƯỢT HIỆN ĐẠI & LIGHTBOX ĐIỆN ẢNH === */
+.wedding-album {
+  scroll-margin-top: 78px;
 }
 
-.album-slideshow-btn.is-playing {
-  background: var(--wedding-accent) !important;
-  color: #ffffff !important;
-  border-color: var(--wedding-accent) !important;
+.wedding-canvas .album-gallery {
+  gap: 14px !important;
+  padding: 0 !important;
+}
+
+.wedding-canvas .album-gallery button {
+  border: 1px solid rgba(186, 150, 90, 0.5) !important;
+  border-bottom-width: 1px !important;
+  border-radius: 22px !important;
+  background: #1d1915 !important;
+  box-shadow:
+    0 20px 46px rgba(34, 26, 16, 0.15),
+    inset 0 0 0 1px rgba(255, 248, 232, 0.14) !important;
+  overflow: hidden;
+}
+
+.wedding-canvas .album-gallery .album-main,
+.wedding-canvas .album-gallery .album-main:hover,
+.wedding-canvas .album-gallery .album-main:active {
+  transform: none;
 }
 
 .album-gallery.is-presenting .album-main {
-  box-shadow: 0 0 0 2px var(--wedding-accent), 0 18px 46px rgba(43, 42, 38, 0.16);
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    0 26px 60px rgba(34, 26, 16, 0.2),
+    0 0 0 1px rgba(195, 162, 107, 0.36) !important;
+  touch-action: pan-y pinch-zoom;
+}
+
+.album-stage-viewport {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.album-stage-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.album-stage-frame.is-standby {
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(3.5px) brightness(1.03);
+  transition: none;
+}
+
+.album-stage-frame.is-standby.standby-next {
+  transform: translate3d(3.8%, 0, 0) scale(1.055);
+}
+
+.album-stage-frame.is-standby.standby-prev {
+  transform: translate3d(-3.8%, 0, 0) scale(1.055);
+}
+
+.album-stage-frame.is-active {
+  opacity: 1;
+  z-index: 3;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0px) brightness(1);
+  transition:
+    opacity 920ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1180ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 860ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.album-stage-frame.is-leaving {
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  filter: blur(2.5px) brightness(0.96);
+  transition:
+    opacity 820ms cubic-bezier(0.4, 0, 0.2, 1) 180ms,
+    transform 1180ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 820ms ease 140ms;
+}
+
+.album-stage-frame.is-leaving.leave-next {
+  transform: translate3d(-3%, 0, 0) scale(0.982);
+}
+
+.album-stage-frame.is-leaving.leave-prev {
+  transform: translate3d(3%, 0, 0) scale(0.982);
+}
+
+@keyframes albumFreshJumpNext {
+  from {
+    opacity: 0;
+    transform: translate3d(4%, 0, 0) scale(1.058);
+    filter: blur(4px) brightness(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px) brightness(1);
+  }
+}
+
+@keyframes albumFreshJumpPrev {
+  from {
+    opacity: 0;
+    transform: translate3d(-4%, 0, 0) scale(1.058);
+    filter: blur(4px) brightness(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px) brightness(1);
+  }
+}
+
+@keyframes albumChampagneSheen {
+  0% {
+    opacity: 0;
+    transform: translate3d(-85%, 0, 0);
+  }
+  28% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(95%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .album-stage-frame.is-active.is-fresh-jump.dir-next {
+    animation: albumFreshJumpNext 1040ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .album-stage-frame.is-active.is-fresh-jump.dir-prev {
+    animation: albumFreshJumpPrev 1040ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+.album-stage-prev,
+.album-stage-current {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.wedding-canvas .album-main .album-stage-frame.is-standby img {
+  transform: scale(1.044);
+  transition: none !important;
+}
+
+.wedding-canvas .album-main .album-stage-frame.is-active img {
+  transform: scale(1);
+  transition: transform 5800ms cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+@starting-style {
+  .wedding-canvas .album-main .album-stage-frame.is-active img {
+    transform: scale(1.04);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wedding-canvas .album-main:hover .album-stage-frame.is-active img {
+    transform: scale(1.024);
+    transition: transform 920ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+}
+
+.wedding-canvas .album-main .album-stage-frame.is-leaving img {
+  transform: scale(1);
+  transition: transform 1180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.album-stage-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    112deg,
+    rgba(255, 248, 232, 0) 26%,
+    rgba(255, 246, 224, 0.16) 49%,
+    rgba(232, 200, 138, 0.1) 54%,
+    rgba(255, 248, 232, 0) 74%
+  );
+  animation: albumChampagneSheen 1120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.album-stage-scrim {
+  position: absolute;
+  inset: auto 0 0;
+  height: 34%;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 14, 11, 0) 0%,
+    rgba(18, 14, 11, 0.24) 56%,
+    rgba(18, 14, 11, 0.56) 100%
+  );
+}
+
+/* Chuyển cảnh phân tầng lụa mượt cho 4 ô ảnh phụ biên tập (.album-side) */
+.wedding-canvas .album-gallery .album-side {
+  position: relative;
+  isolation: isolate;
+  border-radius: 17px !important;
+  cursor: pointer;
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 360ms ease,
+    border-color 280ms ease !important;
+}
+
+.wedding-canvas .album-gallery .album-side:hover {
+  transform: translateY(-3px);
+  border-color: var(--wedding-accent) !important;
+  box-shadow: 0 18px 36px rgba(34, 26, 16, 0.22) !important;
+}
+
+.album-side-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.wedding-canvas .album-side .album-side-layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1);
+  transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wedding-canvas .album-side:hover .album-side-layer.is-settled img,
+  .wedding-canvas .album-side:hover .album-side-layer.is-entering img {
+    transform: scale(1.045);
+  }
+}
+
+.album-side-layer.is-settled {
+  z-index: 2;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.album-side-layer.is-entering {
+  z-index: 2;
+}
+
+.album-side-layer.is-leaving {
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes albumSideLayerIn {
+  from {
+    opacity: 0;
+    transform: translate3d(6%, 0, 0) scale(1.065);
+    filter: blur(2.5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes albumSideLayerOut {
+  0%,
+  26% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-5%, 0, 0) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .album-side-layer.is-entering {
+    animation: albumSideLayerIn 860ms cubic-bezier(0.16, 1, 0.3, 1) var(--side-stagger, 0ms) both;
+  }
+
+  .album-side-layer.is-leaving {
+    animation: albumSideLayerOut 880ms cubic-bezier(0.32, 0, 0.67, 0) var(--side-stagger, 0ms) both;
+  }
+}
+
+.wedding-canvas .album-gallery .album-side .album-thumb-index {
+  z-index: 4;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(224, 192, 132, 0.42);
+  transition: transform 280ms ease, background-color 280ms ease;
+}
+
+.album-stage-hud {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.album-stage-counter,
+.album-stage-expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: rgba(20, 16, 13, 0.72);
+  border: 1px solid rgba(218, 186, 122, 0.56);
+  color: #f9f2e4;
+  font-family: var(--inv-sans);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 18px rgba(10, 8, 6, 0.26);
+}
+
+.album-stage-expand {
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), border-color 280ms ease, background-color 280ms ease;
+}
+
+.album-main:hover .album-stage-expand {
+  background: rgba(28, 22, 17, 0.88);
+  border-color: rgba(235, 204, 140, 0.88);
+  transform: translateY(-1px);
+}
+
+.album-stage-status-dot {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #e8c67a;
+  box-shadow: 0 0 8px rgba(232, 198, 122, 0.85);
+  transition: opacity 280ms ease, transform 280ms ease, background-color 280ms ease;
+}
+
+.album-stage-status-dot.is-paused {
+  background: rgba(244, 224, 182, 0.55);
+  box-shadow: none;
+  transform: scale(0.84);
+}
+
+@keyframes albumStatusPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+}
+
+@keyframes albumCounterFlip {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .album-stage-status-dot.is-live {
+    animation: albumStatusPulse 2.4s ease-in-out infinite;
+  }
+
+  .album-stage-num {
+    display: inline-block;
+    animation: albumCounterFlip 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+.album-stage-sep {
+  opacity: 0.62;
+}
+
+.album-stage-total {
+  opacity: 0.88;
+}
+
+.album-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.5px;
+  z-index: 6;
+  background: rgba(255, 248, 235, 0.2);
+  pointer-events: none;
+  transition: opacity 320ms ease;
+}
+
+.wedding-album.is-paused .album-progress-track {
+  opacity: 0.62;
+}
+
+.album-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, #dfba6f 0%, #fff4d4 60%, #f3cf82 100%);
+  box-shadow: 0 0 12px rgba(235, 201, 128, 0.72);
+  will-change: transform;
+}
+
+.wedding-canvas .album-controls {
+  max-width: min(100%, 760px);
+  margin: 18px auto 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(250, 244, 232, 0.96) 0%, rgba(239, 229, 210, 0.96) 100%);
+  border: 1px solid rgba(178, 142, 82, 0.48);
+  box-shadow:
+    0 12px 28px rgba(48, 36, 18, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.wedding-canvas .album-arrow {
+  flex: 0 0 40px;
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+  background: #fbf6ec !important;
+  color: #1f1b16 !important;
+  border: 1px solid rgba(178, 142, 82, 0.55) !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease !important;
+}
+
+.wedding-canvas .album-arrow:hover {
+  background: #fffdf8 !important;
+  border-color: var(--wedding-accent) !important;
+}
+
+.album-stage-strip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.album-stage-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.album-stage-strip-btn {
+  flex: 0 0 auto;
+  width: 46px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  border: 1.5px solid rgba(164, 134, 82, 0.38) !important;
+  background: #2c251f !important;
+  overflow: hidden;
+  opacity: 0.62;
+  transition:
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease !important;
+}
+
+.album-stage-strip-btn:first-child {
+  margin-inline-start: auto;
+}
+
+.album-stage-strip-btn:last-child {
+  margin-inline-end: auto;
+}
+
+.album-stage-strip-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.album-stage-strip-btn:hover {
+  opacity: 0.94;
+}
+
+.album-stage-strip-btn.is-selected {
+  opacity: 1;
+  transform: scale(1.1);
+  border-color: var(--wedding-accent) !important;
+  box-shadow:
+    0 4px 12px rgba(34, 26, 16, 0.18),
+    0 0 0 2px rgba(195, 162, 107, 0.5) !important;
+}
+
+.album-counter-pill {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 251, 243, 0.88);
+  border: 1px solid rgba(178, 142, 82, 0.42);
+  color: #241f19;
+  font-size: 12.5px !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Hiệu ứng nổi phân tầng mượt mà khi lật trang bộ sưu tập ảnh lớn */
+@keyframes albumGridThumbReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wedding-canvas .album-thumb-btn {
+  transition:
+    transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 280ms ease,
+    box-shadow 280ms ease !important;
+}
+
+.wedding-canvas .album-thumb-btn img {
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wedding-canvas .album-thumb-btn:hover img {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wedding-canvas .album-thumb-btn {
+    animation: albumGridThumbReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--thumb-order, 0) * 24ms) both;
+  }
+}
+
+@media (max-width: 560px) {
+  .album-stage-expand {
+    display: none;
+  }
+  .album-counter-pill {
+    display: none;
+  }
+}
+
+/* Lightbox toàn màn hình: sân khấu cố định chống nhảy bố cục & chuyển ảnh hai lớp lụa mượt */
+dialog.album-lightbox::backdrop {
+  backdrop-filter: blur(10px);
 }
 
 .lightbox-top-tools {
@@ -604,15 +1214,133 @@ body:has(.wedding-canvas) > footer {
   display: flex;
   align-items: center;
   gap: 10px;
-  z-index: 5;
+  z-index: 6;
+}
+
+.lightbox-stage {
+  position: relative;
+  width: min(920px, 100%);
+  height: calc(100dvh - 228px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.lightbox-img-prev,
+.lightbox-img-current {
+  grid-area: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.lightbox-img-prev {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.lightbox-img-current {
+  z-index: 2;
+  cursor: zoom-in;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes lightboxEnterNext {
+  from {
+    opacity: 0;
+    transform: translate3d(34px, 0, 0) scale(0.972);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes lightboxEnterPrev {
+  from {
+    opacity: 0;
+    transform: translate3d(-34px, 0, 0) scale(0.972);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes lightboxLeaveNext {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0) scale(0.962);
+    filter: blur(4px);
+  }
+}
+
+@keyframes lightboxLeavePrev {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0) scale(0.962);
+    filter: blur(4px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lightbox-img-current.enter-next {
+    animation: lightboxEnterNext 540ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lightbox-img-current.enter-prev {
+    animation: lightboxEnterPrev 540ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lightbox-img-prev.leave-next {
+    animation: lightboxLeaveNext 440ms cubic-bezier(0.32, 0, 0.67, 0) both;
+  }
+  .lightbox-img-prev.leave-prev {
+    animation: lightboxLeavePrev 440ms cubic-bezier(0.32, 0, 0.67, 0) both;
+  }
 }
 
 dialog.album-lightbox img {
   max-height: calc(100dvh - 228px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
+.lightbox-strip-btn {
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms ease,
+    border-color 240ms ease !important;
+}
+
+.lightbox-strip-btn:first-child {
+  margin-inline-start: auto;
+}
+
+.lightbox-strip-btn:last-child {
+  margin-inline-end: auto;
+}
+
 @media (max-width: 700px) {
+  .lightbox-stage,
   dialog.album-lightbox img {
+    height: calc(100dvh - 284px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     max-height: calc(100dvh - 284px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 }
@@ -621,7 +1349,9 @@ dialog.album-lightbox img {
   dialog.album-lightbox .lightbox-filmstrip {
     display: none;
   }
+  .lightbox-stage,
   dialog.album-lightbox img {
+    height: calc(100dvh - 140px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     max-height: calc(100dvh - 140px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 }
@@ -640,18 +1370,39 @@ dialog.album-lightbox img {
   background: rgba(255, 255, 255, 0.16) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(8px);
   font-size: 13px !important;
 }
 
 dialog.album-lightbox figure.is-zoomed {
-  overflow: auto;
+  overflow: hidden;
   max-height: calc(100dvh - 100px);
 }
 
-dialog.album-lightbox figure.is-zoomed img {
-  transform: scale(1.55);
+dialog.album-lightbox figure.is-zoomed .lightbox-stage {
+  overflow: auto;
+  height: calc(100dvh - 180px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
+dialog.album-lightbox figure.is-zoomed .lightbox-img-current {
+  transform: scale(1.6);
   transform-origin: center center;
   cursor: zoom-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-stage-viewport,
+  .album-stage-frame.is-active,
+  .album-stage-frame.is-leaving,
+  .album-stage-strip-btn,
+  .album-stage-strip-btn img,
+  .lightbox-img-current {
+    transition: none !important;
+    animation: none !important;
+  }
+  .album-stage-sheen {
+    display: none;
+  }
 }
 
 /* === 6. THANH TIẾN TRÌNH CUỘN TRANG ÁNH KIM (SCROLL PROGRESS) === */
@@ -1552,5 +2303,231 @@ dialog.intro-photo-lightbox figure {
   }
   body > footer {
     padding-bottom: 84px;
+  }
+}
+
+/* === 12. SÂN KHẤU HIỆU ỨNG TỰ ĐỘNG CHO CỔNG MỞ THIỆP MỜI RIÊNG (AUTO LUXURY GATE AMBIANCE) === */
+body:has(.invitation-gate) {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(244, 196, 206, 0.24), transparent 46%),
+    radial-gradient(circle at 82% 16%, rgba(229, 195, 123, 0.22), transparent 48%),
+    linear-gradient(180deg, #faf4ea 0%, #f3eadc 52%, #efe3d0 100%);
+}
+
+main.invitation-gate {
+  position: relative;
+}
+
+.entry-ambient-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.invitation-entry {
+  position: relative;
+  z-index: 2;
+}
+
+.entry-floating-stickers {
+  align-items: center;
+  gap: 10px;
+}
+
+.entry-crest-wing {
+  opacity: 0.88;
+}
+
+.entry-crest-wing.wing-right {
+  transform: scaleX(-1);
+}
+
+@keyframes entryWingFlutterLeft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(4deg);
+  }
+}
+
+@keyframes entryWingFlutterRight {
+  0%,
+  100% {
+    transform: scaleX(-1) translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-5px) rotate(4deg);
+  }
+}
+
+@keyframes entryEnvelopeLevitate {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes entryAuraBreath {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes entrySealRingPulse {
+  0% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 0;
+    transform: scale(1.52);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.52);
+  }
+}
+
+@keyframes entryOrnamentGlow {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: translateY(0) scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.08);
+  }
+}
+
+.envelope-aura-glow {
+  position: absolute;
+  inset: -18px -22px;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(229, 188, 114, 0.34) 0%,
+    rgba(196, 98, 116, 0.16) 46%,
+    rgba(255, 248, 232, 0) 74%
+  );
+  pointer-events: none;
+}
+
+.entry-seal-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(232, 198, 126, 0.78);
+  pointer-events: none;
+}
+
+.invitation-entry .intro-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: auto;
+  min-height: 28px;
+  margin: 10px auto 14px;
+  color: var(--wedding-accent, #7a3039);
+  overflow: visible;
+}
+
+.invitation-entry .intro-decoration::before,
+.invitation-entry .intro-decoration::after {
+  content: '';
+  width: clamp(36px, 11vw, 76px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(195, 156, 88, 0.72), transparent);
+}
+
+.invitation-entry .intro-decoration span {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.invitation-entry .intro-decoration .intro-ornament-star {
+  color: #c49746;
+  font-size: 12px;
+}
+
+.entry-privacy-note {
+  max-width: 48ch;
+  margin: 0 auto 20px !important;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: #554c42;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .entry-crest-wing.wing-left {
+    animation: entryWingFlutterLeft 4.2s ease-in-out infinite;
+  }
+
+  .entry-crest-wing.wing-right {
+    animation: entryWingFlutterRight 4.2s ease-in-out 0.35s infinite;
+  }
+
+  .invitation-envelope.is-interactive:not(:hover):not(.is-opening) {
+    animation: entryEnvelopeLevitate 4.4s ease-in-out infinite;
+  }
+
+  .envelope-aura-glow {
+    animation: entryAuraBreath 3.8s ease-in-out infinite;
+  }
+
+  .invitation-entry:not([aria-busy='true']) .entry-seal-pulse {
+    animation: entrySealRingPulse 2.6s cubic-bezier(0.2, 0.65, 0.3, 1) infinite;
+  }
+
+  .invitation-entry .intro-decoration span {
+    animation: entryOrnamentGlow 2.8s ease-in-out infinite;
+  }
+
+  .invitation-entry .intro-decoration span:nth-child(2) {
+    animation-delay: 180ms;
+  }
+
+  .invitation-entry .intro-decoration span:nth-child(3) {
+    animation-delay: 360ms;
+  }
+
+  .invitation-entry .intro-decoration span:nth-child(4) {
+    animation-delay: 540ms;
+  }
+
+  .invitation-entry .intro-decoration span:nth-child(5) {
+    animation-delay: 720ms;
+  }
+
+  .invitation-entry .intro-decoration.is-paused span {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-ambient-stage {
+    display: none;
+  }
+  .entry-crest-wing,
+  .envelope-aura-glow,
+  .entry-seal-pulse,
+  .invitation-entry .intro-decoration span {
+    animation: none !important;
   }
 }

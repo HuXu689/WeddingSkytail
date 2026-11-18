@@ -2,7 +2,7 @@
    LUXURY-TYPOGRAPHY.CSS — Bộ font chữ cưới sang trọng tự lưu trữ (Self-hosted)
    - Cormorant Garamond (Serif biên tập cao cấp, hỗ trợ trọn vẹn dấu tiếng Việt)
    - Be Vietnam Pro (Sans-serif thiết kế chuyên biệt cho tiếng Việt hiện đại)
-   - Tích hợp fallback hệ thống tức thì, giữ text-rendering:auto chống lệch dấu.
+   - Sắc mực sâu đậm, rõ nét, chống chói trắng trên nền giấy kem ngà.
    ============================================================================ */
 
 :root {
@@ -13,6 +13,7 @@
 
 body {
   font-family: var(--font-body);
+  color: #1a1815;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -20,6 +21,9 @@ body {
 .wedding-canvas {
   --inv-serif: var(--font-serif);
   --inv-sans: var(--font-body);
+  --inv-ink: #181613;
+  --inv-muted: #36312a;
+  color: #181613;
 }
 
 .wedding-canvas h1,
@@ -35,18 +39,28 @@ body {
 .welcome-card h1,
 .invitation-entry h1 {
   font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 700;
+  color: #1e1915;
 }
 
 .wedding-canvas:not(.theme-modern) .wedding-cover h1.couple-names {
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.12;
+}
+
+.wedding-canvas .hero-split .couple-names,
+.wedding-canvas .wedding-cover:not(:has(.cover-photo)) .couple-names {
+  color: color-mix(in srgb, var(--wedding-accent) 82%, #14100d);
+}
+
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .cover-content {
+  color: #f6efe2;
 }
 
 .wedding-canvas .couple-join {
   font-family: var(--font-serif);
   font-style: italic;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .wedding-canvas .invitation-section-heading h2,
@@ -57,6 +71,35 @@ body {
 .wedding-canvas .wedding-month-calendar h2,
 .wedding-canvas .wish-book h2 {
   font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: normal;
+  color: color-mix(in srgb, var(--wedding-accent) 84%, #16110d);
+}
+
+.wedding-canvas .intro-person-name,
+.wedding-canvas .ceremony-card h3,
+.wedding-canvas .timeline-content h3,
+.wedding-canvas .event-content h2,
+.wedding-canvas .calendar-details h3,
+.wedding-canvas .month-navigation h3 {
+  font-weight: 700;
+  color: #1b1713;
+}
+
+.wedding-canvas p,
+.wedding-canvas li,
+.wedding-canvas dd,
+.wedding-canvas cite {
+  color: #211d18;
+}
+
+.wedding-canvas .eyebrow {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--wedding-accent) 82%, #1d1612);
+}
+
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .eyebrow,
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .wedding-message,
+.wedding-canvas .wedding-cover:has(.cover-photo):not(.hero-split) .cover-caption {
+  color: #f4ecdd;
 }

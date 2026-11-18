@@ -167,3 +167,75 @@ test('SYMMETRIC-CORNERS-AND-SOFT-FULL-BLEED-ATMOSPHERE: 4 góc viền hoa đối
   assert.match(extraCss, /body:has\(\.wedding-canvas\.atmosphere-crimson\)/);
   assert.match(luxuryCss, /\.wedding-canvas\s+\.wedding-body\s*\{[^}]*background:\s*transparent\s*!important/s);
 });
+
+test('MODERN-AUTO-ALBUM-AND-RICH-TYPOGRAPHY: trình chiếu album tự động mượt mà (đã bỏ nút Trình chiếu kỷ niệm) và nền/chữ đậm rõ chống chói trắng', () => {
+  const album = read('../src/features/invitation/album.tsx');
+  const slideshow = read('../src/features/invitation/album-slideshow.ts');
+  const typoCss = read('../src/features/invitation/luxury-typography.css');
+  const extraCss = read('../src/features/invitation/grand-effects-extra.css');
+
+  assert.doesNotMatch(album, /Trình chiếu kỷ niệm/);
+  assert.match(album, /autoRunning=urls\.length>1&&lightbox===null&&!hovered/);
+  assert.match(album, /album-stage-current/);
+  assert.match(album, /album-progress-fill/);
+  assert.match(album, /album-stage-strip/);
+  assert.match(slideshow, /requestAnimationFrame/);
+  assert.match(typoCss, /--inv-ink:\s*#181613/);
+  assert.match(extraCss, /--atmosphere-paper:\s*#f3ede1/);
+});
+
+test('ALBUM-SILK-TRANSITION: chuyển ảnh đồng bộ không chớp tối (zero-tearing), tiền giải mã lớp kề cận, phân tầng 4 ảnh phụ và Lightbox hai lớp mượt mà', async () => {
+  const albumWindowSrc = read('../src/features/invitation/album-window.ts');
+  const albumWindowJs = ts.transpileModule(albumWindowSrc, {
+    compilerOptions: { module: ts.ModuleKind.ES2022 },
+  }).outputText;
+  const windowDataUrl = `data:text/javascript;base64,${Buffer.from(albumWindowJs).toString('base64')}`;
+
+  const slideshowRaw = read('../src/features/invitation/album-slideshow.ts')
+    .replace("'use client';", '')
+    .replace(/import\s*\{[^}]*\}\s*from\s*'react';/, 'const useCallback=fn=>fn,useEffect=()=>{},useRef=v=>({current:v}),useState=init=>[typeof init==="function"?init():init,()=>{}];')
+    .replace("from './album-window'", `from '${windowDataUrl}'`);
+  const slideshowJs = ts.transpileModule(slideshowRaw, {
+    compilerOptions: { module: ts.ModuleKind.ES2022 },
+  }).outputText;
+  const mod = await import(`data:text/javascript;base64,${Buffer.from(slideshowJs).toString('base64')}`);
+
+  assert.equal(mod.shortestDirection(0, 1, 9), 1);
+  assert.equal(mod.shortestDirection(0, 8, 9), -1);
+  assert.equal(mod.shortestDirection(8, 0, 9), 1);
+  assert.equal(mod.shortestDirection(5, 2, 9), -1);
+
+  // Tối đa 4 lớp duy nhất được sắp xếp tăng dần để React không đảo DOM gây chớp hình
+  assert.deepEqual(mod.computeStageLayers(0, null, 9), [0, 1, 8]);
+  assert.deepEqual(mod.computeStageLayers(4, 1, 200), [1, 3, 4, 5]);
+  assert.deepEqual(mod.computeStageLayers(0, null, 1), [0]);
+  assert.deepEqual(mod.computeStageLayers(0, null, 0), []);
+
+  // Bước kế cận đồng bộ ngay lập tức prev + sidePrev trong cùng 1 commit, không phải nhảy mới (freshJump = false)
+  const s0 = mod.createInitialSlideState(0);
+  const s1 = mod.transitionSlideState(s0, 1, 9, 1);
+  assert.equal(s1.active, 1);
+  assert.equal(s1.prev, 0);
+  assert.equal(s1.direction, 1);
+  assert.equal(s1.freshJump, false);
+  assert.deepEqual(s1.sidePrev, [1, 2, 3, 4]);
+
+  // Nhảy cóc qua ảnh xa bật cờ freshJump = true và tự chọn hướng ngắn nhất
+  const sJump = mod.transitionSlideState(s1, 7, 9);
+  assert.equal(sJump.active, 7);
+  assert.equal(sJump.prev, 1);
+  assert.equal(sJump.direction, -1);
+  assert.equal(sJump.freshJump, true);
+  assert.deepEqual(sJump.sidePrev, [2, 3, 4, 5]);
+
+  const album = read('../src/features/invitation/album.tsx');
+  const luxuryCss = read('../src/features/invitation/luxury-experience.css');
+  assert.match(album, /album-stage-viewport/);
+  assert.match(album, /album-stage-frame/);
+  assert.match(album, /album-side-layer/);
+  assert.match(album, /lightbox-stage/);
+  assert.match(album, /lightbox-img-prev/);
+  assert.match(luxuryCss, /\.album-stage-frame\.is-leaving/);
+  assert.match(luxuryCss, /@keyframes albumSideLayerIn/);
+  assert.match(luxuryCss, /@keyframes lightboxEnterNext/);
+});

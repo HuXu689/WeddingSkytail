@@ -114,7 +114,8 @@ export function SparkleTrail({ active = true }: { active?: boolean }) {
     if (!enabled) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const weddingRoot = canvas.closest('.wedding-canvas') as HTMLElement | null;
+    const weddingRoot = (canvas.closest('.wedding-canvas') ??
+      (canvas.closest('.entry-ambient-stage') ? document.body : null)) as HTMLElement | null;
     if (!weddingRoot) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;

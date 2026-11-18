@@ -20,10 +20,14 @@ test('map is deferred and address is URL encoded, never proxying an arbitrary so
  assert.match(read('../src/features/invitation/venue-map.tsx'),/encodeURIComponent\(address\)/);
  assert.doesNotMatch(source,/<iframe|fetch\(/);
 });
-test('intro decoration is opt-in, small, paused when hidden and reduced-motion aware',()=>{
+test('intro decoration runs automatically without toggle button, pauses when hidden and respects reduced-motion',()=>{
  const source=read('../src/features/invitation/invitation-entry.tsx'),css=read('../src/features/invitation/design.css');
- assert.match(source,/decoration,setDecoration\]=useState\(false\)/);
- assert.match(source,/visibilitychange/);assert.match(source,/aria-hidden="true"><span>♡/);
+ assert.doesNotMatch(source,/Bật trang trí chuyển động|Tắt trang trí chuyển động|intro-decoration-toggle/);
+ assert.match(source,/entry-ambient-stage/);
+ assert.match(source,/<PetalShower/);
+ assert.match(source,/<GoldenDust/);
+ assert.match(source,/<ButterflyFlight/);
+ assert.match(source,/visibilitychange/);assert.match(source,/<span>♡<\/span>/);
  assert.match(css,/\.intro-decoration.is-paused span\{animation-play-state:paused\}/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.intro-decoration\{display:none\}/);
 });
